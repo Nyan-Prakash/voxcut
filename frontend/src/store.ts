@@ -58,8 +58,13 @@ export const useStore = create<State>((set, get) => ({
   refreshEdl: async () => {
     const { project } = get();
     if (!project) return;
-    try { set({ edl: await api.getEdl(project.id) }); } catch { /* */ }
+    // Refresh everything a completed job might have produced, so the UI unlocks
+    // (e.g. the "Generate" button enabling once transcription finishes).
+    try { const t = await api.transcript(project.id); set({ words: t.words }); } catch { /* */ }
+    try { set({ waveform: await api.waveform(project.id) }); } catch { /* */ }
     try { const b = await api.getBeats(project.id); set({ beats: b.beats }); } catch { /* */ }
+    try { set({ edl: await api.getEdl(project.id) }); } catch { /* */ }
+    try { set({ project: await api.getProject(project.id) }); } catch { /* */ }
   },
 
   select: (id) => set({ selectedEventId: id }),
