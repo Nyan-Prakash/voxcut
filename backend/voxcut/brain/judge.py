@@ -40,6 +40,12 @@ intent, and numbered search results (title / channel / duration / views).
 Score each result 0..1 for how likely its VIDEO CONTENT actually contains
 footage that fits the narration and intent — not just keyword overlap.
 
+You are also shown each result's THUMBNAIL. The thumbnail is strong evidence of
+what the footage looks like — a desk-and-microphone thumbnail means a muted
+talking head (reject); an expressive face, mid-action shot, or recognizable
+meme frame means good silent footage. Trust the thumbnail over the title when
+they disagree.
+
 CRITICAL — clips play MUTED under the narrator's voiceover. Judge every result
 as if watched with the sound OFF:
 - HIGH: visible action, physical comedy, exaggerated facial reactions,
@@ -77,17 +83,23 @@ Results:
 def judge_candidates(beat_text: str, intent: str, queries: list[str],
                      candidates: list[dict]) -> list[tuple[int, float]]:
     """Returns [(candidate_index, relevance)] best-first, only relevance >= 0.5.
-    Raises BrainError if the LLM is unavailable/fails (caller falls back)."""
+    Raises BrainError if the LLM is unavailable/fails (caller falls back).
+
+    Candidates may include a 'thumbnail' URL — shown to the model so it judges
+    what the footage LOOKS like, not just what the title claims."""
     results = "\n".join(
         f"{i}: {c['title']!r} | channel: {c.get('channel','?')} | "
         f"{int(c.get('duration_s') or 0)}s | {c.get('views', 0)} views"
         for i, c in enumerate(candidates))
+    images = [(f"Thumbnail for result {i}:", c["thumbnail"])
+              for i, c in enumerate(candidates)
+              if c.get("thumbnail", "").startswith("http")]
     out = structured(
         JUDGE_SYSTEM,
         JUDGE_USER.format(beat_text=beat_text, intent=intent,
                           queries=", ".join(queries), results=results),
         JUDGE_SCHEMA, schema_name="source_judge", temperature=0.2,
-        max_tokens=2000)
+        max_tokens=2000, images=images or None)
     picks = [(p["index"], float(p["relevance"])) for p in out.get("picks", [])
              if 0 <= p["index"] < len(candidates) and p["relevance"] >= 0.5]
     picks.sort(key=lambda t: t[1], reverse=True)

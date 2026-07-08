@@ -6,18 +6,48 @@ re-render (M6): only changed events re-render.
 """
 from __future__ import annotations
 
+import threading
+from collections import defaultdict
 from pathlib import Path
 
 from .compose import CARD_BG, FPS, dims, timeline_ass, write_card_ass
-from .probe import ffmpeg, run
+from .probe import ffmpeg, ffprobe, run
+
+# One render at a time per project: concurrent assembles (double-click, rebuild
+# during generate) otherwise race on video_only/preview files.
+_RENDER_LOCKS: dict[str, threading.Lock] = defaultdict(threading.Lock)
 
 
-def _resolve_asset_path(asset_id: str) -> str | None:
+def _resolve_asset(asset_id: str) -> tuple[str | None, float]:
     from ..db import session_scope
     from ..models import Asset
     with session_scope() as db:
         a = db.get(Asset, asset_id)
-        return a.file_path if a else None
+        return (a.file_path, a.duration_s or 0.0) if a else (None, 0.0)
+
+
+def _probe_ok(path: Path, min_dur: float = 0.05) -> bool:
+    """A segment is usable iff it has a video stream with real duration."""
+    try:
+        info = ffprobe(path)
+    except Exception:  # noqa: BLE001
+        return False
+    has_video = any(s.get("codec_type") == "video" for s in info.get("streams", []))
+    dur = float(info.get("format", {}).get("duration") or 0)
+    return has_video and dur >= min_dur
+
+
+def _run_atomic(cmd: list[str], out: Path) -> None:
+    """Run an ffmpeg command writing to a tmp path, rename into place on
+    success. Readers (the preview player, the mux) can never observe a
+    truncated file, even across processes."""
+    tmp = out.with_name(out.stem + ".tmp" + out.suffix)
+    cmd = [*cmd[:-1], str(tmp)]  # replace final output arg
+    try:
+        run(cmd)
+        tmp.replace(out)
+    finally:
+        tmp.unlink(missing_ok=True)
 
 
 def _seg_text_style(ev: dict) -> tuple[str, str]:
@@ -34,13 +64,13 @@ def _seg_text_style(ev: dict) -> tuple[str, str]:
 def _render_card(text: str, style: str, dur: float, out: Path, ass_path: Path,
                  w: int, h: int, crf: str, preset: str) -> Path:
     ass = write_card_ass(text, dur, w, h, style, ass_path)
-    run([
+    _run_atomic([
         ffmpeg(), "-y",
         "-f", "lavfi", "-i", f"color=c={CARD_BG}:s={w}x{h}:d={dur}:r={FPS}",
         "-vf", f"ass={ass.as_posix()}",
         "-c:v", "libx264", "-preset", preset, "-crf", crf,
         "-pix_fmt", "yuv420p", "-an", str(out),
-    ])
+    ], out)
     return out
 
 
@@ -51,7 +81,8 @@ def render_event_segment(ev: dict, seg_dir: Path, w: int, h: int,
     crf = "28" if proxy else "18"
     preset = "ultrafast" if proxy else "medium"
 
-    asset_path = _resolve_asset_path(ev["asset_id"]) if ev.get("asset_id") else None
+    asset_path, asset_dur = (_resolve_asset(ev["asset_id"])
+                             if ev.get("asset_id") else (None, 0.0))
     cap = ev.get("caption") or {}
     ass_path = seg_dir / f"{ev['id']}.ass"
 
@@ -59,6 +90,9 @@ def render_event_segment(ev: dict, seg_dir: Path, w: int, h: int,
         # --- Real clip: seek, cover-crop to aspect, pad to exact beat duration,
         #     burn any caption. Source audio dropped (VO muxed at concat). ---
         in_s = float(ev["source"].get("in_s", 0.0))
+        # Clamp: a seek at/past EOF decodes zero frames and kills the encoder.
+        if asset_dur > 0:
+            in_s = max(0.0, min(in_s, asset_dur - min(dur, asset_dur) - 0.05))
         ass_expr = ""
         if cap.get("enabled") and cap.get("text"):
             write_card_ass(cap["text"], dur, w, h, cap.get("style", "meme_bottom"),
@@ -69,17 +103,21 @@ def render_event_segment(ev: dict, seg_dir: Path, w: int, h: int,
               f"crop={w}:{h},tpad=stop_mode=clone:stop_duration={dur}"
               f",fps={FPS},setsar=1{ass_expr}")
         try:
-            run([
-                ffmpeg(), "-y", "-ss", f"{in_s}", "-i", asset_path, "-t", f"{dur}",
-                "-vf", vf, "-c:v", "libx264", "-preset", preset, "-crf", crf,
+            _run_atomic([
+                ffmpeg(), "-y", "-ss", f"{in_s:.3f}", "-i", asset_path,
+                "-t", f"{dur}", "-vf", vf,
+                "-c:v", "libx264", "-preset", preset, "-crf", crf,
                 "-pix_fmt", "yuv420p", "-an", str(out),
-            ])
-            return out
+            ], out)
+            if _probe_ok(out):
+                return out
+            out.unlink(missing_ok=True)  # zero-frame output → card fallback
         except Exception:  # noqa: BLE001 — one bad clip must not sink the render
-            # Fall back to a caption card so the timeline stays intact (NFR5).
-            fallback = cap.get("text") or (ev.get("queries") or ["clip unavailable"])[0]
-            return _render_card(f"[unavailable] {fallback}", "card", dur, out,
-                                ass_path, w, h, crf, preset)
+            pass
+        # Fall back to a caption card so the timeline stays intact (NFR5).
+        fallback = cap.get("text") or (ev.get("queries") or ["clip unavailable"])[0]
+        return _render_card(f"[unavailable] {fallback}", "card", dur, out,
+                            ass_path, w, h, crf, preset)
 
     # --- Caption card / placeholder (color background + centered text). ---
     text, style = _seg_text_style(ev)
@@ -88,24 +126,37 @@ def render_event_segment(ev: dict, seg_dir: Path, w: int, h: int,
 
 def render_proxy(project_id: str, edl: dict, master_path: Path | None,
                  project_dir: Path, proxy: bool = True, on_progress=None) -> Path:
+    with _RENDER_LOCKS[f"{project_id}:{proxy}"]:
+        return _render_locked(project_id, edl, master_path, project_dir,
+                              proxy, on_progress)
+
+
+def _render_locked(project_id: str, edl: dict, master_path: Path | None,
+                   project_dir: Path, proxy: bool, on_progress) -> Path:
     aspect = edl.get("aspect", "16:9")
     w, h = dims(aspect, proxy)
     seg_dir = project_dir / ("segments" if proxy else "segments_full")
     seg_dir.mkdir(exist_ok=True)
+    crf = "28" if proxy else "18"
+    preset = "ultrafast" if proxy else "medium"
 
     events = sorted(edl.get("events", []), key=lambda e: e["start_s"])
     seg_paths: list[Path] = []
     for i, ev in enumerate(events):
+        dur = max(0.1, round(ev["end_s"] - ev["start_s"], 3))
+        seg = seg_dir / f"{ev['id']}.mp4"
         try:
-            seg_paths.append(render_event_segment(ev, seg_dir, w, h, proxy))
+            seg = render_event_segment(ev, seg_dir, w, h, proxy)
         except Exception:  # noqa: BLE001 — last-resort per-segment guard
-            crf = "28" if proxy else "18"
-            preset = "ultrafast" if proxy else "medium"
-            dur = max(0.1, round(ev["end_s"] - ev["start_s"], 3))
-            seg_paths.append(_render_card(
+            seg = _render_card(
                 (ev.get("caption") or {}).get("text") or ev.get("kind", "clip"),
-                "card", dur, seg_dir / f"{ev['id']}.mp4",
-                seg_dir / f"{ev['id']}.ass", w, h, crf, preset))
+                "card", dur, seg, seg_dir / f"{ev['id']}.ass", w, h, crf, preset)
+        # Validate before it can poison the concat; a broken segment becomes a card.
+        if not _probe_ok(seg):
+            seg.unlink(missing_ok=True)
+            seg = _render_card("…", "card", dur, seg,
+                               seg_dir / f"{ev['id']}.ass", w, h, crf, preset)
+        seg_paths.append(seg)
         if on_progress:
             on_progress((i + 1) / max(1, len(events)) * 0.85)
 
@@ -117,25 +168,36 @@ def render_proxy(project_id: str, edl: dict, master_path: Path | None,
     concat_list.write_text("".join(f"file '{p.as_posix()}'\n" for p in seg_paths))
     video_only = project_dir / ("video_only_proxy.mp4" if proxy else "video_only.mp4")
     try:
-        run([ffmpeg(), "-y", "-f", "concat", "-safe", "0", "-i", str(concat_list),
-             "-c", "copy", str(video_only)])
+        _run_atomic([ffmpeg(), "-y", "-f", "concat", "-safe", "0",
+                     "-i", str(concat_list), "-c", "copy", str(video_only)],
+                    video_only)
     except Exception:  # noqa: BLE001
-        run([ffmpeg(), "-y", "-f", "concat", "-safe", "0", "-i", str(concat_list),
-             "-c:v", "libx264", "-preset", "ultrafast" if proxy else "medium",
-             "-crf", "28" if proxy else "18", "-pix_fmt", "yuv420p", str(video_only)])
+        _run_atomic([ffmpeg(), "-y", "-f", "concat", "-safe", "0",
+                     "-i", str(concat_list),
+                     "-c:v", "libx264", "-preset", preset, "-crf", crf,
+                     "-pix_fmt", "yuv420p", str(video_only)], video_only)
     if on_progress:
         on_progress(0.92)
 
     out_name = "preview_proxy.mp4" if proxy else "export.mp4"
     out = project_dir / out_name
     if master_path and Path(master_path).exists():
-        run([ffmpeg(), "-y", "-i", str(video_only), "-i", str(master_path),
-             "-map", "0:v:0", "-map", "1:a:0",
-             "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
-             "-shortest", "-movflags", "+faststart", str(out)])
+        try:
+            _run_atomic([ffmpeg(), "-y", "-i", str(video_only),
+                         "-i", str(master_path),
+                         "-map", "0:v:0", "-map", "1:a:0",
+                         "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
+                         "-shortest", "-movflags", "+faststart", str(out)], out)
+        except Exception:  # noqa: BLE001 — mux fallback: re-encode video
+            _run_atomic([ffmpeg(), "-y", "-i", str(video_only),
+                         "-i", str(master_path),
+                         "-map", "0:v:0", "-map", "1:a:0",
+                         "-c:v", "libx264", "-preset", preset, "-crf", crf,
+                         "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
+                         "-shortest", "-movflags", "+faststart", str(out)], out)
     else:
-        run([ffmpeg(), "-y", "-i", str(video_only), "-c", "copy",
-             "-movflags", "+faststart", str(out)])
+        _run_atomic([ffmpeg(), "-y", "-i", str(video_only), "-c", "copy",
+                     "-movflags", "+faststart", str(out)], out)
     if on_progress:
         on_progress(1.0)
     return out

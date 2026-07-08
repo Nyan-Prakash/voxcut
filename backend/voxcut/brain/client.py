@@ -43,8 +43,13 @@ class BrainError(RuntimeError):
 
 def structured(system: str, user: str, schema: dict, *,
                schema_name: str = "response", temperature: float = 0.4,
-               max_tokens: int = 4096) -> dict:
-    """Call the model and return schema-valid JSON (dict). Raises BrainError."""
+               max_tokens: int = 4096,
+               images: list[tuple[str, str]] | None = None) -> dict:
+    """Call the model and return schema-valid JSON (dict). Raises BrainError.
+
+    images: optional [(label, url)] shown to the model after the text (for
+    judging thumbnails). Low-detail to keep cost negligible.
+    """
     cfg = load_config()
     if not cfg.api_key:
         raise BrainError("No OpenAI API key configured (Settings → openai_api_key).")
@@ -56,9 +61,18 @@ def structured(system: str, user: str, schema: dict, *,
         "type": "json_schema",
         "json_schema": {"name": schema_name, "schema": schema, "strict": True},
     }
+    if images:
+        content: list[dict] = [{"type": "text", "text": user}]
+        for label, url in images:
+            content.append({"type": "text", "text": label})
+            content.append({"type": "image_url",
+                            "image_url": {"url": url, "detail": "low"}})
+        user_msg: dict = {"role": "user", "content": content}
+    else:
+        user_msg = {"role": "user", "content": user}
     messages = [
         {"role": "system", "content": system},
-        {"role": "user", "content": user},
+        user_msg,
     ]
 
     last_err = ""
@@ -75,8 +89,14 @@ def structured(system: str, user: str, schema: dict, *,
             return json.loads(content)
         except Exception as exc:  # noqa: BLE001
             last_err = f"{type(exc).__name__}: {exc}"
-            # On a strict-schema failure, retry once with an explicit nudge.
-            messages.append({"role": "user",
-                             "content": "Your previous reply was invalid. Return "
-                                        "ONLY JSON matching the schema exactly."})
+            if images:
+                # A dead thumbnail URL fails the whole call — retry text-only.
+                messages = [{"role": "system", "content": system},
+                            {"role": "user", "content": user}]
+                images = None
+            else:
+                # On a strict-schema failure, retry once with an explicit nudge.
+                messages.append({"role": "user",
+                                 "content": "Your previous reply was invalid. Return "
+                                            "ONLY JSON matching the schema exactly."})
     raise BrainError(f"LLM call failed after retry: {last_err}")

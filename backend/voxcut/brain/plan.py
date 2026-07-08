@@ -25,8 +25,14 @@ Rules:
 SILENT visual: physical action, exaggerated facial reactions, freakouts,
 fails, memes, animated moments. NEVER plan footage of people just talking
 (interviews, podcasts, news anchors, explainers) — muted talking looks broken.
-Write queries that target the visible moment ("guy flips table gif",
-"kid crying over homework", "side eye reaction meme"), not the discussion of it.
+When you want a meme or reaction, NAME THE EXACT well-known clip — a query a
+YouTube search can resolve to one canonical video ("Pinocchio nose growing
+scene", "Michael Scott no god please no", "confused math lady", "side eye Chloe")
+— NEVER a generic pattern like "<emotion> meme" or "<situation> meme"; generic
+meme queries return random low-quality uploads. Stay anchored to the video's
+actual subject and story: at least one query per beat should reference its
+concrete entities or the video subject, so the edit doesn't drift into
+unrelated stock memes.
 1. High-emphasis beats (>=0.7) get the strongest, most literal visual gag.
 2. Vary: never 3 consecutive reaction clips; punctuate runs of clips with a \
 caption_card roughly every 6-10 beats.

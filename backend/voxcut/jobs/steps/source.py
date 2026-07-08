@@ -52,6 +52,7 @@ async def run_source(ctx: JobContext) -> None:
     provider = YouTubeProvider()
     sem = asyncio.Semaphore(DOWNLOAD_CONCURRENCY)
     done = {"n": 0}
+    used_sources: set[str] = set()  # variety guard: one asset per run
 
     async def handle(ev: dict) -> None:
         reaction = ev["kind"] == "clip_reaction"
@@ -60,7 +61,7 @@ async def run_source(ctx: JobContext) -> None:
             async with sem:
                 asset_id, source, candidates = await asyncio.to_thread(
                     _source_one, project_id, ev, provider, filters,
-                    beat_text.get(ev.get("beat_id"), ""))
+                    beat_text.get(ev.get("beat_id"), ""), used_sources)
             if asset_id:
                 ev["asset_id"] = asset_id
                 ev["source"] = source
@@ -100,7 +101,7 @@ def _mark_gap(ev: dict) -> None:
 
 
 def _source_one(project_id: str, ev: dict, provider, filters: Filters,
-                beat_text: str = ""):
+                beat_text: str = "", used_sources: set[str] | None = None):
     """Blocking: search ALL queries → merge → rank → LLM relevance judge →
     reuse-or-download. Returns (asset_id, source, cands).
 
@@ -138,7 +139,8 @@ def _source_one(project_id: str, ev: dict, provider, filters: Filters,
             picks = judge_candidates(
                 beat_text, ev["kind"], queries,
                 [{"title": c.title, "channel": c.channel,
-                  "duration_s": c.duration_s, "views": c.view_count}
+                  "duration_s": c.duration_s, "views": c.view_count,
+                  "thumbnail": c.thumbnail}
                  for c in ranked])
             order = [ranked[i] for i, _rel in picks]
             judged_by_id = {ranked[i].source_id: rel for i, rel in picks}
@@ -153,12 +155,21 @@ def _source_one(project_id: str, ev: dict, provider, filters: Filters,
     if not order:
         return None, None, cand_meta  # judge rejected everything → caption card
 
+    # Variety guard: don't reuse a source already placed in this run — the same
+    # clip on adjacent beats reads as a glitch. Prefer fresh; reuse only if
+    # every approved candidate is taken.
+    if used_sources is not None:
+        fresh = [c for c in order if c.source_id not in used_sources]
+        order = fresh or order
+
     lib_dir = settings().library_dir
     for cand in order[:4]:
         with session_scope() as db:
             existing = find_asset(db, cand.provider, cand.source_id)
             if existing:
                 touch(db, existing.id)
+                if used_sources is not None:
+                    used_sources.add(cand.source_id)
                 return existing.id, _naive_source(ev, existing.duration_s), cand_meta
         try:
             meta = provider.fetch(cand, lib_dir / cand.source_id)
@@ -166,6 +177,8 @@ def _source_one(project_id: str, ev: dict, provider, filters: Filters,
             continue
         with session_scope() as db:
             asset = record_asset(db, meta, queries)
+            if used_sources is not None:
+                used_sources.add(cand.source_id)
             return asset.id, _naive_source(ev, asset.duration_s), cand_meta
     return None, None, cand_meta
 
