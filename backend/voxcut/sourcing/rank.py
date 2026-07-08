@@ -11,11 +11,21 @@ import math
 
 from rapidfuzz import fuzz
 
+from ..moments import embed
 from .base import Candidate, Filters
 
 
-def _title_sim(query: str, title: str) -> float:
-    return fuzz.token_set_ratio(query.lower(), title.lower()) / 100.0
+def _title_sims(query: str, titles: list[str]) -> list[float]:
+    """Semantic similarity query→titles: embedding cosine blended with fuzzy
+    token overlap. Embeddings catch 'related but differently worded'; fuzzy
+    catches exact names the embedder might underweight."""
+    fuzzy = [fuzz.token_set_ratio(query.lower(), t.lower()) / 100.0 for t in titles]
+    vecs = embed.embed(titles + [query]) if titles else None
+    if vecs is None:
+        return fuzzy
+    doc_vecs, qv = vecs[:-1], vecs[-1]
+    cos = ((doc_vecs @ qv) + 1) / 2  # [-1,1] → [0,1]
+    return [0.65 * float(c) + 0.35 * f for c, f in zip(cos, fuzzy)]
 
 
 def _duration_fit(dur: float) -> float:
@@ -44,8 +54,10 @@ def _channel_signal(c: Candidate, reaction: bool) -> float:
     return min(1.0, sig)
 
 
-def score_candidate(query: str, c: Candidate, filters: Filters) -> float:
-    title_sim = _title_sim(query, c.title)
+def score_candidate(query: str, c: Candidate, filters: Filters,
+                    title_sim: float | None = None) -> float:
+    if title_sim is None:
+        title_sim = _title_sims(query, [c.title])[0]
     dur_fit = _duration_fit(c.duration_s)
     pop = math.log10(c.view_count + 1) / 8.0
     chan = _channel_signal(c, filters.reaction_intent)
@@ -62,6 +74,7 @@ def score_candidate(query: str, c: Candidate, filters: Filters) -> float:
 
 
 def rank(query: str, candidates: list[Candidate], filters: Filters) -> list[Candidate]:
-    for c in candidates:
-        c.score = score_candidate(query, c, filters)
+    sims = _title_sims(query, [c.title for c in candidates])
+    for c, sim in zip(candidates, sims):
+        c.score = score_candidate(query, c, filters, title_sim=sim)
     return sorted(candidates, key=lambda c: c.score, reverse=True)

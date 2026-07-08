@@ -51,12 +51,20 @@ def select_moments(*, video: Path, cache_dir: Path, duration: float,
 
     s_text = signals.text_signal(starts, win, subs, beat_query, entities)
     s_heat = signals.heat_signal(starts, win, heatmap_path)
-    s_audio = (signals.audio_signal(starts, win, video, cache_dir / "energy.npz")
-               if w_audio > 0.05 else np.zeros(len(starts), dtype=np.float32))
+    # Audio always computed: it's the only discriminator when subs+heatmap are
+    # missing (common on meme re-uploads).
+    s_audio = signals.audio_signal(starts, win, video, cache_dir / "energy.npz")
     s_vis = np.zeros(len(starts), dtype=np.float32)  # CLIP escalation = v2 (§9.5)
 
-    fused = (w_text * s_text + w_heat * s_heat
-             + w_audio * s_audio + w_vis * s_vis)
+    # Renormalize weights over signals that actually carry information —
+    # otherwise dead signals dilute live ones and every window scores the same.
+    pairs = [(w_text, s_text), (w_heat, s_heat), (w_audio, s_audio), (w_vis, s_vis)]
+    live = [(w, s) for (w, s) in pairs if w > 0 and float(s.max()) > 0]
+    if live:
+        total_w = sum(w for w, _ in live)
+        fused = sum((w / total_w) * s for w, s in live)
+    else:
+        fused = np.zeros(len(starts), dtype=np.float32)
 
     scenes = detect_scenes(video, cache_dir / "scenes.json")
 

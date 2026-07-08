@@ -1,0 +1,83 @@
+"""LLM relevance judge for sourcing (quality gate).
+
+The heuristic ranker orders search results, but title similarity can't tell
+"actually contains this footage" from "vaguely mentions it". This judge shows
+the LLM the beat's narration + the candidate list and asks which videos would
+genuinely contain matching footage. Irrelevant results get rejected — a caption
+card beats a random clip.
+"""
+from __future__ import annotations
+
+from .client import structured
+
+JUDGE_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "picks": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "index": {"type": "integer"},
+                    "relevance": {"type": "number"},
+                    "reason": {"type": "string"},
+                },
+                "required": ["index", "relevance", "reason"],
+            },
+        }
+    },
+    "required": ["picks"],
+}
+
+JUDGE_SYSTEM = """\
+You vet YouTube search results for a fast-cut commentary video editor.
+
+You are given: the narration line (beat) the clip will play under, the visual
+intent, and numbered search results (title / channel / duration / views).
+
+Score each result 0..1 for how likely its VIDEO CONTENT actually contains
+footage that fits the narration and intent — not just keyword overlap.
+
+Judging rules:
+- clip_literal: the video must literally SHOW the named thing/event. A video
+  that merely discusses or reacts to it scores low.
+- clip_reaction / meme_image: prefer the canonical meme/reaction clip everyone
+  knows; short clips from clip channels score high, long essays score low.
+- Podcasts, hour-long discussions, news recaps, lyric videos, and tutorials are
+  almost never good b-roll for a joke — score them low unless the beat is
+  literally about them.
+- Compilations are acceptable only if the wanted moment is clearly the subject.
+- When in doubt, score low. Returning zero good picks is a valid answer —
+  the editor falls back to a stylish caption card, which beats a random clip.
+
+Return picks ONLY for results scoring >= 0.5, ordered best-first."""
+
+JUDGE_USER = """\
+Narration beat: "{beat_text}"
+Visual intent: {intent}
+Search queries used: {queries}
+
+Results:
+{results}"""
+
+
+def judge_candidates(beat_text: str, intent: str, queries: list[str],
+                     candidates: list[dict]) -> list[tuple[int, float]]:
+    """Returns [(candidate_index, relevance)] best-first, only relevance >= 0.5.
+    Raises BrainError if the LLM is unavailable/fails (caller falls back)."""
+    results = "\n".join(
+        f"{i}: {c['title']!r} | channel: {c.get('channel','?')} | "
+        f"{int(c.get('duration_s') or 0)}s | {c.get('views', 0)} views"
+        for i, c in enumerate(candidates))
+    out = structured(
+        JUDGE_SYSTEM,
+        JUDGE_USER.format(beat_text=beat_text, intent=intent,
+                          queries=", ".join(queries), results=results),
+        JUDGE_SCHEMA, schema_name="source_judge", temperature=0.2,
+        max_tokens=2000)
+    picks = [(p["index"], float(p["relevance"])) for p in out.get("picks", [])
+             if 0 <= p["index"] < len(candidates) and p["relevance"] >= 0.5]
+    picks.sort(key=lambda t: t[1], reverse=True)
+    return picks

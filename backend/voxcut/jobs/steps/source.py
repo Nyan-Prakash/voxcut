@@ -32,6 +32,13 @@ async def run_source(ctx: JobContext) -> None:
         brief = json.loads(p.context_brief or "{}") if p else {}
     avoid = brief.get("avoid", [])
 
+    # Beat narration text — the judge scores candidates against what's SAID.
+    beats_path = settings().project_dir(project_id) / "beats.json"
+    beat_text = {}
+    if beats_path.exists():
+        beat_text = {b["id"]: b.get("text") or b.get("gist", "")
+                     for b in json.loads(beats_path.read_text())["beats"]}
+
     only = ctx.payload.get("only_event")
     events = [e for e in edl["events"]
               if e["kind"] in SOURCING_KINDS and e.get("queries") and not e.get("locked")
@@ -52,7 +59,8 @@ async def run_source(ctx: JobContext) -> None:
         try:
             async with sem:
                 asset_id, source, candidates = await asyncio.to_thread(
-                    _source_one, project_id, ev, provider, filters)
+                    _source_one, project_id, ev, provider, filters,
+                    beat_text.get(ev.get("beat_id"), ""))
             if asset_id:
                 ev["asset_id"] = asset_id
                 ev["source"] = source
@@ -91,33 +99,73 @@ def _mark_gap(ev: dict) -> None:
         ev["caption"] = {"text": q, "style": "card", "enabled": True}
 
 
-def _source_one(project_id: str, ev: dict, provider, filters: Filters):
-    """Blocking: search + rank + reuse-or-download. Returns (asset_id, source, cands)."""
+def _source_one(project_id: str, ev: dict, provider, filters: Filters,
+                beat_text: str = ""):
+    """Blocking: search ALL queries → merge → rank → LLM relevance judge →
+    reuse-or-download. Returns (asset_id, source, cands).
+
+    The judge is the quality gate: a candidate that merely keyword-matches gets
+    rejected, and rejecting everything (→ caption card) is a valid outcome —
+    better than shipping a random clip."""
+    from ...brain.client import BrainError, is_available
+    from ...brain.judge import judge_candidates
     from ...sourcing.rank import rank
 
-    query = ev["queries"][0]
-    candidates = provider.search(query, SEARCH_N, filters)
-    ranked = rank(query, candidates, filters)[:5]
-    cand_meta = [{"source_id": c.source_id, "title": c.title, "score": c.score,
+    queries = [q for q in ev.get("queries", []) if q.strip()][:3]
+    if not queries:
+        return None, None, []
+
+    # Search every query the planner wrote; merge + dedupe by source_id.
+    merged: dict[str, object] = {}
+    for q in queries:
+        try:
+            for c in provider.search(q, SEARCH_N, filters):
+                if c.source_id not in merged:
+                    merged[c.source_id] = c
+        except Exception:  # noqa: BLE001 — a failed search shouldn't kill the event
+            continue
+    if not merged:
+        return None, None, []
+
+    # Heuristic rank (embeddings + metadata) against the primary query.
+    ranked = rank(queries[0], list(merged.values()), filters)[:10]
+
+    # LLM judge: score actual relevance to the narration. Order = judge order.
+    order = ranked
+    judged_by_id: dict[str, float] = {}
+    if is_available() and beat_text:
+        try:
+            picks = judge_candidates(
+                beat_text, ev["kind"], queries,
+                [{"title": c.title, "channel": c.channel,
+                  "duration_s": c.duration_s, "views": c.view_count}
+                 for c in ranked])
+            order = [ranked[i] for i, _rel in picks]
+            judged_by_id = {ranked[i].source_id: rel for i, rel in picks}
+        except BrainError:
+            pass  # judge unavailable → fall back to heuristic order
+
+    cand_meta = [{"source_id": c.source_id, "title": c.title,
+                  "score": round(judged_by_id.get(c.source_id, c.score), 3),
                   "url": c.url, "thumbnail": c.thumbnail,
-                  "duration_s": c.duration_s} for c in ranked]
-    if not ranked:
-        return None, None, cand_meta
+                  "duration_s": c.duration_s}
+                 for c in (order or ranked)[:5]]
+    if not order:
+        return None, None, cand_meta  # judge rejected everything → caption card
 
     lib_dir = settings().library_dir
-    for cand in ranked:
+    for cand in order[:4]:
         with session_scope() as db:
             existing = find_asset(db, cand.provider, cand.source_id)
             if existing:
                 touch(db, existing.id)
                 return existing.id, _naive_source(ev, existing.duration_s), cand_meta
-        # Download the top viable candidate.
         try:
             meta = provider.fetch(cand, lib_dir / cand.source_id)
-        except Exception:  # noqa: BLE001 — try next candidate
+        except Exception:  # noqa: BLE001 — try the next approved candidate
             continue
         with session_scope() as db:
-            asset = record_asset(db, meta, ev["queries"])
+            asset = record_asset(db, meta, queries)
             return asset.id, _naive_source(ev, asset.duration_s), cand_meta
     return None, None, cand_meta
 

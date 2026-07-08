@@ -26,7 +26,12 @@ Rules:
 caption_card roughly every 6-10 beats.
 3. Write 2-3 search queries per sourcing beat, ordered best-first. Queries must \
 be what a human would type into YouTube to find EXACTLY this footage — include \
-names, events, "meme", "scene", "interview", "moment" as appropriate.
+names, events, "meme", "scene", "interview", "moment" as appropriate. Be \
+SPECIFIC: never a lone generic word ("school", "phone"); anchor every query to \
+the concrete entity, the named person/show/event, or the video's subject. If \
+the beat names nothing concrete, prefer a well-known meme that matches the \
+EMOTION of the line (name the meme explicitly, e.g. "confused math lady meme") \
+or choose caption_card instead of a vague query.
 4. Respect the avoid-list: {avoid}.
 5. Only write a caption when it's a JOKE or LABEL that adds something.
 6. Source audio: mute by default; "keep" only when the source's own audio IS \
