@@ -3,7 +3,7 @@ import { api } from "./api";
 import type { Beat, Edl, EdlEvent, Job, Project, Waveform, Word } from "./types";
 
 interface State {
-  view: "projects" | "editor" | "settings";
+  view: "projects" | "editor" | "settings" | "library";
   projects: Project[];
   project: Project | null;
   edl: Edl | null;

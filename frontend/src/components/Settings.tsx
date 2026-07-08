@@ -63,6 +63,7 @@ export function SettingsView() {
           <option value="best">Best</option>
         </select>
       </div>
+      <Downloader />
       <div className="card">
         <h2>Export & storage</h2>
         <label>Export resolution</label>
@@ -77,6 +78,38 @@ export function SettingsView() {
                onChange={(e) => setS({ ...s, download_cap_gb: e.target.value })} />
       </div>
       <button onClick={save}>Save settings</button>
+    </div>
+  );
+}
+
+function Downloader() {
+  const setToast = useStore((s) => s.setToast);
+  const [sys, setSys] = useState<any>(null);
+  const [busy, setBusy] = useState("");
+  useEffect(() => { api.system().then(setSys); }, []);
+  return (
+    <div className="card">
+      <h2>Downloader (yt-dlp)</h2>
+      <div className="muted">
+        Sourcing uses yt-dlp. If downloads start failing, update it — YouTube
+        changes often break older versions.
+      </div>
+      <div className="row" style={{ marginTop: 8 }}>
+        <span className="chip">{sys?.yt_dlp ? `v${sys.yt_dlp_version}` : "not installed"}</span>
+        <span className="chip">ffmpeg {sys?.ffmpeg ? "✓" : "✗"}</span>
+        <span className="chip">brain {sys?.brain_ready ? "✓ OpenAI" : "heuristic"}</span>
+      </div>
+      <div className="row" style={{ marginTop: 10 }}>
+        <button className="sec" disabled={!!busy} onClick={async () => {
+          setBusy("canary"); const r = await api.canary();
+          setToast(r.ok ? "✓ Downloader healthy" : `✗ ${r.error}`); setBusy("");
+        }}>{busy === "canary" ? "Checking…" : "Test downloader"}</button>
+        <button className="sec" disabled={!!busy} onClick={async () => {
+          setBusy("update"); const r = await api.updateYtdlp();
+          setToast(r.ok ? `✓ Updated to ${r.version}` : `✗ ${r.error}`);
+          api.system().then(setSys); setBusy("");
+        }}>{busy === "update" ? "Updating…" : "Update downloader"}</button>
+      </div>
     </div>
   );
 }

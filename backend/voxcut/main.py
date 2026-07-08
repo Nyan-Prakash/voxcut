@@ -41,7 +41,7 @@ def create_app() -> FastAPI:
 
     # --- Routers ---
     from .api import (beats, candidates, edl, jobs, library, projects,
-                      settings_api, transcript, voiceover)
+                      settings_api, system as system_api, transcript, voiceover)
     app.include_router(projects.router)
     app.include_router(jobs.router)
     app.include_router(settings_api.router)
@@ -51,19 +51,11 @@ def create_app() -> FastAPI:
     app.include_router(edl.router)
     app.include_router(library.router)
     app.include_router(candidates.router)
+    app.include_router(system_api.router)
 
     @app.get("/api/health")
     def health() -> dict:
         return {"ok": True, "app": "voxcut", "version": "0.1.0"}
-
-    @app.get("/api/system")
-    def system() -> dict:
-        import shutil
-        return {
-            "ffmpeg": bool(shutil.which("ffmpeg")),
-            "yt_dlp": bool(shutil.which("yt-dlp")),
-            "data_dir": str(settings().data_dir),
-        }
 
     # --- Static SPA (built frontend lands in static/; M0 ships a shell) ---
     if (STATIC_DIR / "assets").exists():

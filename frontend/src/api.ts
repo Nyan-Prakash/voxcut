@@ -26,7 +26,25 @@ export const api = {
   mediaUrl: (path: string) => url(path),
 
   health: () => req<{ ok: boolean }>("/health"),
-  system: () => req<{ ffmpeg: boolean; yt_dlp: boolean; data_dir: string }>("/system"),
+  system: () => req<{ ffmpeg: boolean; yt_dlp: boolean; yt_dlp_version: string | null;
+    brain_ready: boolean; data_dir: string; library_bytes: number }>("/system"),
+  canary: () => req<{ ok: boolean; error: string | null }>("/system/canary", { method: "POST" }),
+  updateYtdlp: () => req<{ ok: boolean; version?: string; error?: string }>("/system/update_ytdlp", { method: "POST" }),
+
+  libraryList: (q?: string) => req<{ assets: any[]; disk_usage_bytes: number }>(`/library${q ? `?q=${encodeURIComponent(q)}` : ""}`),
+  libraryUpload: async (file: File) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch(url("/library/upload"), {
+      method: "POST", headers: { "x-voxcut-token": token }, body: fd,
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  },
+  libraryPin: (id: string, pinned: boolean) =>
+    req(`/library/${id}/pin`, { method: "POST", body: JSON.stringify({ pinned }) }),
+  libraryPrune: (max_gb?: number, older_than_days?: number) =>
+    req<{ count: number }>("/library/prune", { method: "POST", body: JSON.stringify({ max_gb, older_than_days }) }),
 
   getSettings: () => req<Record<string, any>>("/settings"),
   putSettings: (values: Record<string, string>) =>

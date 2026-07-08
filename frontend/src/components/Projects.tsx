@@ -1,6 +1,29 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../api";
 import { useStore } from "../store";
+
+function FirstRun() {
+  const setView = useStore((s) => s.setView);
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    api.system().then((s) => setShow(!s.brain_ready)).catch(() => {});
+  }, []);
+  if (!show) return null;
+  return (
+    <div className="card" style={{ borderColor: "var(--accent)" }}>
+      <h2>👋 Welcome to VOXCUT</h2>
+      <div className="muted">
+        VOXCUT turns a voiceover into a fast-cut commentary edit. For the smartest
+        beat segmentation and edit planning, add an OpenAI API key in Settings —
+        without one, VOXCUT still works using a heuristic segmenter.
+      </div>
+      <div className="row" style={{ marginTop: 12 }}>
+        <button onClick={() => setView("settings")}>Add OpenAI key</button>
+        <span className="muted">…or just create a project and try it now.</span>
+      </div>
+    </div>
+  );
+}
 
 export function ProjectsView() {
   const { projects, loadProjects, openProject } = useStore();
@@ -8,6 +31,7 @@ export function ProjectsView() {
 
   return (
     <div className="center">
+      <FirstRun />
       <div className="row" style={{ justifyContent: "space-between" }}>
         <h1>Projects</h1>
         <button onClick={() => setCreating(true)}>+ New project</button>

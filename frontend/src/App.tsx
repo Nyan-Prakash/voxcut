@@ -3,6 +3,7 @@ import { api, subscribeEvents } from "./api";
 import { useStore } from "./store";
 import { ProjectsView } from "./components/Projects";
 import { SettingsView } from "./components/Settings";
+import { LibraryView } from "./components/Library";
 import { Editor } from "./components/Editor";
 import { JobBar } from "./components/JobBar";
 
@@ -23,10 +24,12 @@ export function App() {
         <div className="spacer" />
         {view === "editor" && project && <span className="muted">{project.name}</span>}
         <button className="ghost" onClick={() => setView("projects")}>Projects</button>
+        <button className="ghost" onClick={() => setView("library")}>Library</button>
         <button className="ghost" onClick={() => setView("settings")}>Settings</button>
       </div>
       <div className="content">
         {view === "projects" && <ProjectsView />}
+        {view === "library" && <LibraryView />}
         {view === "settings" && <SettingsView />}
         {view === "editor" && <Editor />}
       </div>

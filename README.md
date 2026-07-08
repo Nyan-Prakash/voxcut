@@ -22,14 +22,18 @@ per-install security token.
 | M | Deliverable | State |
 |---|---|---|
 | 0 | Skeleton: FastAPI + SQLite + job runner + SSE + launcher | ✅ done |
-| 1 | Upload → ASR → transcript + waveform | 🚧 in progress |
-| 2 | Beat segmentation + review overlay | ⬜ |
-| 3 | Planner → EDL (caption cards) → assembly → proxy render | ⬜ |
-| 4 | YouTube sourcing + library + candidate ranking | ⬜ |
-| 5 | Moment selection (signals + scene snap + candidates strip) | ⬜ |
-| 6 | Editor v1 (swap/trim/move/delete/captions/undo) | ⬜ |
-| 7 | Export (1080p) + progress/ETA | ⬜ |
-| 8 | First-run wizard, settings, pruning, polish | ⬜ |
+| 1 | Upload → ASR → transcript + waveform | ✅ done |
+| 2 | Beat segmentation + review API | ✅ done |
+| 3 | Planner → EDL → assembly → proxy render | ✅ done |
+| 4 | YouTube sourcing + library + candidate ranking | ✅ done |
+| 5 | Moment selection (signals + scene snap + candidates strip) | ✅ done |
+| 6 | Editor v1 (candidates strip / captions / audio / undo / review) | ✅ done |
+| 7 | Export (1080p) + progress | ✅ done |
+| 8 | First-run wizard, settings, library UI, yt-dlp self-update | ✅ done |
+
+**LLM brain uses OpenAI** (key in Settings). Without a key VOXCUT falls back to a
+heuristic segmenter/planner and still produces a video. v2 items remaining:
+PiP/zoom/transitions, audio ducking mix, CLIP visual signal, 9:16 reframing UI.
 
 ## Layout
 
