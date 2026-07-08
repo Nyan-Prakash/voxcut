@@ -21,6 +21,12 @@ decide what's on screen. Visual types:
 - broll: generic thematic footage (needs: queries)
 
 Rules:
+0. Clips play MUTED under the narrator's voice, so every clip must work as a
+SILENT visual: physical action, exaggerated facial reactions, freakouts,
+fails, memes, animated moments. NEVER plan footage of people just talking
+(interviews, podcasts, news anchors, explainers) — muted talking looks broken.
+Write queries that target the visible moment ("guy flips table gif",
+"kid crying over homework", "side eye reaction meme"), not the discussion of it.
 1. High-emphasis beats (>=0.7) get the strongest, most literal visual gag.
 2. Vary: never 3 consecutive reaction clips; punctuate runs of clips with a \
 caption_card roughly every 6-10 beats.

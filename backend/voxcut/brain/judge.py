@@ -40,9 +40,20 @@ intent, and numbered search results (title / channel / duration / views).
 Score each result 0..1 for how likely its VIDEO CONTENT actually contains
 footage that fits the narration and intent — not just keyword overlap.
 
+CRITICAL — clips play MUTED under the narrator's voiceover. Judge every result
+as if watched with the sound OFF:
+- HIGH: visible action, physical comedy, exaggerated facial reactions,
+  freakouts, fails, dramatic zooms, animated scenes, anything that reads
+  instantly without audio.
+- LOW: talking heads, interviews, podcasts, news anchors at desks, press
+  conferences, commentary/explainer videos — a muted person talking is dead
+  air on screen, even when the topic matches perfectly.
+- A topically-weaker but visually-expressive clip beats a topically-perfect
+  video of someone talking.
+
 Judging rules:
-- clip_literal: the video must literally SHOW the named thing/event. A video
-  that merely discusses or reacts to it scores low.
+- clip_literal: the video must literally SHOW the named thing/event happening.
+  A video that merely discusses or reacts to it scores low.
 - clip_reaction / meme_image: prefer the canonical meme/reaction clip everyone
   knows; short clips from clip channels score high, long essays score low.
 - Podcasts, hour-long discussions, news recaps, lyric videos, and tutorials are
