@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VOXCUT</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+           background: #0d0f13; color: #e7e9ee; }
+    header { padding: 20px 28px; border-bottom: 1px solid #1e232c; display: flex;
+             align-items: baseline; gap: 14px; }
+    h1 { font-size: 20px; margin: 0; letter-spacing: 2px; }
+    .tag { color: #7b8291; font-size: 12px; }
+    main { padding: 28px; max-width: 900px; }
+    .card { background: #141821; border: 1px solid #1e232c; border-radius: 12px;
+            padding: 20px; margin-bottom: 18px; }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    button { background: #3d63dd; color: #fff; border: 0; border-radius: 8px;
+             padding: 9px 16px; font-size: 14px; cursor: pointer; }
+    button.secondary { background: #232a36; }
+    button:disabled { opacity: .5; cursor: default; }
+    input { background: #0d0f13; border: 1px solid #2a313d; border-radius: 8px;
+            color: #e7e9ee; padding: 9px 12px; font-size: 14px; }
+    .steps { margin-top: 14px; display: grid; gap: 8px; }
+    .step { display: grid; grid-template-columns: 130px 1fr 44px; gap: 10px; align-items: center; }
+    .bar { height: 8px; background: #232a36; border-radius: 6px; overflow: hidden; }
+    .bar > i { display: block; height: 100%; width: 0; background: #3d63dd; transition: width .2s; }
+    .step.done .bar > i { background: #2ecc71; }
+    .muted { color: #7b8291; font-size: 13px; }
+    .ok { color: #2ecc71; } .bad { color: #e74c3c; }
+    pre { background: #0d0f13; padding: 12px; border-radius: 8px; overflow: auto; font-size: 12px; }
+    .pill { font-size: 11px; padding: 2px 8px; border-radius: 20px; background: #232a36; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>VOXCUT</h1>
+    <span class="tag">AI fast-cut commentary editor · M0 skeleton</span>
+  </header>
+  <main>
+    <div class="card">
+      <div class="row">
+        <strong>Backend status</strong>
+        <span id="health" class="pill">checking…</span>
+        <span id="sys" class="muted"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <strong>Pipeline smoke test</strong>
+        <span class="muted">runs the demo job end-to-end (runner + SSE + checkpoints)</span>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button id="run">Run demo pipeline</button>
+        <span id="jobstate" class="muted"></span>
+      </div>
+      <div id="steps" class="steps"></div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <strong>Projects</strong>
+        <input id="pname" placeholder="Project name" value="My first video" />
+        <button id="mkproj" class="secondary">Create</button>
+      </div>
+      <pre id="projects">[]</pre>
+    </div>
+  </main>
+
+  <script>
+    const token = new URLSearchParams(location.search).get('t') || '';
+    const api = (p, opts = {}) => fetch('/api' + p + (p.includes('?') ? '&' : '?') + 't=' + token, {
+      headers: { 'content-type': 'application/json', 'x-voxcut-token': token }, ...opts,
+    });
+
+    async function refreshHealth() {
+      try {
+        const h = await (await api('/health')).json();
+        document.getElementById('health').textContent = h.ok ? 'online' : 'error';
+        document.getElementById('health').classList.add('ok');
+        const s = await (await api('/system')).json();
+        document.getElementById('sys').textContent =
+          `ffmpeg ${s.ffmpeg ? '✓' : '✗'} · yt-dlp ${s.yt_dlp ? '✓' : '✗'} · ${s.data_dir}`;
+      } catch (e) { document.getElementById('health').textContent = 'offline'; }
+    }
+
+    const stepEls = {};
+    function renderSteps(steps) {
+      const c = document.getElementById('steps');
+      for (const s of steps) {
+        let el = stepEls[s.name];
+        if (!el) {
+          el = document.createElement('div');
+          el.className = 'step';
+          el.innerHTML = `<span>${s.name}</span><div class="bar"><i></i></div><span class="pct muted"></span>`;
+          c.appendChild(el); stepEls[s.name] = el;
+        }
+        el.classList.toggle('done', s.state === 'done');
+        el.querySelector('i').style.width = Math.round(s.progress * 100) + '%';
+        el.querySelector('.pct').textContent = Math.round(s.progress * 100) + '%';
+        el.title = s.message || '';
+      }
+    }
+
+    let currentJob = null;
+    document.getElementById('run').onclick = async () => {
+      Object.keys(stepEls).forEach(k => { stepEls[k].remove(); delete stepEls[k]; });
+      const r = await (await api('/jobs', { method: 'POST', body: JSON.stringify({ kind: 'demo' }) })).json();
+      currentJob = r.job_id;
+      document.getElementById('jobstate').textContent = 'running · ' + r.job_id;
+      document.getElementById('run').disabled = true;
+    };
+
+    const es = new EventSource('/api/events?t=' + token);
+    es.onmessage = (m) => {
+      const ev = JSON.parse(m.data);
+      if (ev.job_id && ev.job_id === currentJob) {
+        if (ev.steps) renderSteps(ev.steps);
+        if (ev.type === 'job_done') {
+          document.getElementById('jobstate').textContent = 'done ✓';
+          document.getElementById('jobstate').className = 'ok';
+          document.getElementById('run').disabled = false;
+        }
+        if (ev.type === 'job_failed') {
+          document.getElementById('jobstate').textContent = 'failed: ' + ev.error;
+          document.getElementById('run').disabled = false;
+        }
+      }
+    };
+
+    async function refreshProjects() {
+      const list = await (await api('/projects')).json();
+      document.getElementById('projects').textContent = JSON.stringify(list, null, 2);
+    }
+    document.getElementById('mkproj').onclick = async () => {
+      const name = document.getElementById('pname').value || 'Untitled';
+      await api('/projects', { method: 'POST', body: JSON.stringify({ name }) });
+      refreshProjects();
+    };
+
+    refreshHealth(); refreshProjects();
+  </script>
+</body>
+</html>

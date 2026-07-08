@@ -1,0 +1,19 @@
+# Python / uv
+backend/.venv/
+__pycache__/
+*.pyc
+.uv/
+uv.lock
+
+# VOXCUT data (never commit user media / DB)
+data/
+/tmp/voxcut*
+
+# Node / Vite
+frontend/node_modules/
+frontend/dist/
+backend/voxcut/static/assets/
+
+# OS
+.DS_Store
+*.log
