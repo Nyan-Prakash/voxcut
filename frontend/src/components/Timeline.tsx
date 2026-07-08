@@ -1,17 +1,23 @@
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useStore } from "../store";
 
 const PX_PER_S = 60;
 
 export function Timeline() {
-  const { edl, beats, waveform, project, selectedEventId, select } = useStore();
+  const { edl, beats, project, selectedEventId, select, playheadS, seek } = useStore();
   const dur = project?.duration_s || (edl ? Math.max(...edl.events.map((e) => e.end_s)) : 0);
   const width = Math.max(600, dur * PX_PER_S);
 
   if (!edl) return null;
 
+  const seekAt = (e: React.MouseEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    seek((e.clientX - rect.left) / PX_PER_S);
+  };
+
   return (
-    <div style={{ minWidth: width }}>
+    <div style={{ minWidth: width, position: "relative" }} onClick={seekAt}>
+      <div className="playhead" style={{ left: playheadS * PX_PER_S }} />
       <Wave width={width} />
       {/* Beat ruler */}
       <div className="track" style={{ height: 20 }}>

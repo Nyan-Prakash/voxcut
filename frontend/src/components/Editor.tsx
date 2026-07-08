@@ -50,6 +50,10 @@ function EditorToolbar() {
         await api.generate(project!.id);
         useStore.getState().setToast("Regenerating…");
       }}>↻ Regenerate all</button>
+      <button className="sec" onClick={async () => {
+        await api.rebuildPreview(project!.id);
+        useStore.getState().setToast("Rebuilding preview…");
+      }}>▶ Rebuild preview</button>
       <button className="ghost" onClick={() => undo()}>↶ undo</button>
       <button className="ghost" onClick={() => refreshEdl()}>refresh</button>
       <ReviewNav />
@@ -93,23 +97,53 @@ function ExportButton() {
 }
 
 function Preview() {
-  const { project, previewNonce, edl } = useStore();
+  const { project, previewNonce, edl, registerVideo, setPlayhead } = useStore();
   const ref = useRef<HTMLVideoElement>(null);
   const [ok, setOk] = useState(true);
+
   useEffect(() => {
-    if (ref.current) { ref.current.load(); }
+    registerVideo(ref.current);
+    return () => registerVideo(null);
+  }, [ref.current]);
+
+  useEffect(() => {
+    setOk(true);
+    if (ref.current) ref.current.load();
   }, [previewNonce, edl?.version]);
 
   if (!project) return null;
   const src = `${api.previewUrl(project.id)}&n=${previewNonce}`;
+
   return (
     <div className="preview-pane">
       {ok ? (
-        <video ref={ref} controls onError={() => setOk(false)}>
-          <source src={src} type="video/mp4" />
-        </video>
+        <>
+          <video
+            ref={ref}
+            controls
+            style={{ flex: 1, minHeight: 0 }}
+            onError={() => setOk(false)}
+            onTimeUpdate={(e) => setPlayhead((e.target as HTMLVideoElement).currentTime)}
+          >
+            <source src={src} type="video/mp4" />
+          </video>
+          <div className="row" style={{ marginTop: 8 }}>
+            <button onClick={() => {
+              const v = ref.current;
+              if (!v) return;
+              v.paused ? v.play() : v.pause();
+            }}>⏯ Play / Pause whole video</button>
+            <span className="muted">plays the full stitched timeline</span>
+          </div>
+        </>
       ) : (
-        <div className="muted">No preview yet — generate an edit first.</div>
+        <div style={{ textAlign: "center" }}>
+          <div className="muted">No preview rendered yet.</div>
+          <button className="sec" style={{ marginTop: 10 }} onClick={async () => {
+            await api.rebuildPreview(project.id);
+            useStore.getState().setToast("Building preview…");
+          }}>Build preview</button>
+        </div>
       )}
     </div>
   );

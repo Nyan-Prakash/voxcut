@@ -31,6 +31,19 @@ def _seg_text_style(ev: dict) -> tuple[str, str]:
     return (cap.get("text") or ""), "card"
 
 
+def _render_card(text: str, style: str, dur: float, out: Path, ass_path: Path,
+                 w: int, h: int, crf: str, preset: str) -> Path:
+    ass = write_card_ass(text, dur, w, h, style, ass_path)
+    run([
+        ffmpeg(), "-y",
+        "-f", "lavfi", "-i", f"color=c={CARD_BG}:s={w}x{h}:d={dur}:r={FPS}",
+        "-vf", f"ass={ass.as_posix()}",
+        "-c:v", "libx264", "-preset", preset, "-crf", crf,
+        "-pix_fmt", "yuv420p", "-an", str(out),
+    ])
+    return out
+
+
 def render_event_segment(ev: dict, seg_dir: Path, w: int, h: int,
                          proxy: bool = True) -> Path:
     out = seg_dir / f"{ev['id']}.mp4"
@@ -46,33 +59,31 @@ def render_event_segment(ev: dict, seg_dir: Path, w: int, h: int,
         # --- Real clip: seek, cover-crop to aspect, pad to exact beat duration,
         #     burn any caption. Source audio dropped (VO muxed at concat). ---
         in_s = float(ev["source"].get("in_s", 0.0))
-        # Caption over the clip (optional) via a per-segment ASS.
         ass_expr = ""
         if cap.get("enabled") and cap.get("text"):
             write_card_ass(cap["text"], dur, w, h, cap.get("style", "meme_bottom"),
                            ass_path)
             ass_expr = f",ass={ass_path.as_posix()}"
+        # setsar=1 normalizes pixel aspect so concat stream-copy stays valid.
         vf = (f"scale={w}:{h}:force_original_aspect_ratio=increase,"
               f"crop={w}:{h},tpad=stop_mode=clone:stop_duration={dur}"
-              f",fps={FPS}{ass_expr}")
-        run([
-            ffmpeg(), "-y", "-ss", f"{in_s}", "-i", asset_path, "-t", f"{dur}",
-            "-vf", vf, "-c:v", "libx264", "-preset", preset, "-crf", crf,
-            "-pix_fmt", "yuv420p", "-an", str(out),
-        ])
-        return out
+              f",fps={FPS},setsar=1{ass_expr}")
+        try:
+            run([
+                ffmpeg(), "-y", "-ss", f"{in_s}", "-i", asset_path, "-t", f"{dur}",
+                "-vf", vf, "-c:v", "libx264", "-preset", preset, "-crf", crf,
+                "-pix_fmt", "yuv420p", "-an", str(out),
+            ])
+            return out
+        except Exception:  # noqa: BLE001 — one bad clip must not sink the render
+            # Fall back to a caption card so the timeline stays intact (NFR5).
+            fallback = cap.get("text") or (ev.get("queries") or ["clip unavailable"])[0]
+            return _render_card(f"[unavailable] {fallback}", "card", dur, out,
+                                ass_path, w, h, crf, preset)
 
     # --- Caption card / placeholder (color background + centered text). ---
     text, style = _seg_text_style(ev)
-    ass = write_card_ass(text, dur, w, h, style, ass_path)
-    run([
-        ffmpeg(), "-y",
-        "-f", "lavfi", "-i", f"color=c={CARD_BG}:s={w}x{h}:d={dur}:r={FPS}",
-        "-vf", f"ass={ass.as_posix()}",
-        "-c:v", "libx264", "-preset", preset, "-crf", crf,
-        "-pix_fmt", "yuv420p", "-an", str(out),
-    ])
-    return out
+    return _render_card(text, style, dur, out, ass_path, w, h, crf, preset)
 
 
 def render_proxy(project_id: str, edl: dict, master_path: Path | None,
@@ -85,16 +96,33 @@ def render_proxy(project_id: str, edl: dict, master_path: Path | None,
     events = sorted(edl.get("events", []), key=lambda e: e["start_s"])
     seg_paths: list[Path] = []
     for i, ev in enumerate(events):
-        seg_paths.append(render_event_segment(ev, seg_dir, w, h, proxy))
+        try:
+            seg_paths.append(render_event_segment(ev, seg_dir, w, h, proxy))
+        except Exception:  # noqa: BLE001 — last-resort per-segment guard
+            crf = "28" if proxy else "18"
+            preset = "ultrafast" if proxy else "medium"
+            dur = max(0.1, round(ev["end_s"] - ev["start_s"], 3))
+            seg_paths.append(_render_card(
+                (ev.get("caption") or {}).get("text") or ev.get("kind", "clip"),
+                "card", dur, seg_dir / f"{ev['id']}.mp4",
+                seg_dir / f"{ev['id']}.ass", w, h, crf, preset))
         if on_progress:
             on_progress((i + 1) / max(1, len(events)) * 0.85)
 
-    # Concat (segments share codec/params → stream copy is safe & fast).
+    if not seg_paths:
+        raise RuntimeError("no events to render")
+
+    # Concat: stream-copy first (fast); re-encode fallback if params disagree.
     concat_list = seg_dir / "concat.txt"
     concat_list.write_text("".join(f"file '{p.as_posix()}'\n" for p in seg_paths))
     video_only = project_dir / ("video_only_proxy.mp4" if proxy else "video_only.mp4")
-    run([ffmpeg(), "-y", "-f", "concat", "-safe", "0", "-i", str(concat_list),
-         "-c", "copy", str(video_only)])
+    try:
+        run([ffmpeg(), "-y", "-f", "concat", "-safe", "0", "-i", str(concat_list),
+             "-c", "copy", str(video_only)])
+    except Exception:  # noqa: BLE001
+        run([ffmpeg(), "-y", "-f", "concat", "-safe", "0", "-i", str(concat_list),
+             "-c:v", "libx264", "-preset", "ultrafast" if proxy else "medium",
+             "-crf", "28" if proxy else "18", "-pix_fmt", "yuv420p", str(video_only)])
     if on_progress:
         on_progress(0.92)
 

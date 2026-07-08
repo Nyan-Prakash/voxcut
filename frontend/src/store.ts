@@ -15,6 +15,8 @@ interface State {
   activeJobId: string | null;
   previewNonce: number;
   toast: string | null;
+  playheadS: number;
+  videoEl: HTMLVideoElement | null;
 
   setView: (v: State["view"]) => void;
   loadProjects: () => Promise<void>;
@@ -26,6 +28,9 @@ interface State {
   onEvent: (ev: any) => void;
   setToast: (t: string | null) => void;
   bumpPreview: () => void;
+  setPlayhead: (t: number) => void;
+  registerVideo: (el: HTMLVideoElement | null) => void;
+  seek: (t: number) => void;
 }
 
 export const useStore = create<State>((set, get) => ({
@@ -41,6 +46,8 @@ export const useStore = create<State>((set, get) => ({
   activeJobId: null,
   previewNonce: 0,
   toast: null,
+  playheadS: 0,
+  videoEl: null,
 
   setView: (v) => set({ view: v }),
 
@@ -110,6 +117,24 @@ export const useStore = create<State>((set, get) => ({
     }
   },
 
-  setToast: (t) => set({ toast: t }),
+  setToast: (t) => {
+    set({ toast: t });
+    if (t) {
+      const msg = t;
+      setTimeout(() => {
+        if (get().toast === msg) set({ toast: null });
+      }, 4000);
+    }
+  },
   bumpPreview: () => set((s) => ({ previewNonce: s.previewNonce + 1 })),
+  setPlayhead: (t) => set({ playheadS: t }),
+  registerVideo: (el) => set({ videoEl: el }),
+  seek: (t) => {
+    const { videoEl } = get();
+    if (videoEl) {
+      videoEl.currentTime = t;
+      videoEl.play().catch(() => {});
+    }
+    set({ playheadS: t });
+  },
 }));
