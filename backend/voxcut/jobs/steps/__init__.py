@@ -1,4 +1,4 @@
 """Importing this package registers all job handlers into STEP_REGISTRY."""
-from . import beats, demo, transcribe  # noqa: F401
+from . import assemble, beats, demo, generate, plan, transcribe  # noqa: F401
 
-__all__ = ["beats", "demo", "transcribe"]
+__all__ = ["assemble", "beats", "demo", "generate", "plan", "transcribe"]

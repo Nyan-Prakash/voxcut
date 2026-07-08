@@ -44,7 +44,8 @@ async def run_beats(ctx: JobContext) -> None:
     mode = "LLM" if is_available() else "heuristic"
     await ctx.report(step, 0.1, f"Segmenting beats ({mode})")
 
-    context = _brief_summary(brief)
+    from ...brain.steps_helpers import brief_summary
+    context = brief_summary(brief)
     beats = await asyncio.to_thread(
         seg.segment, words, silences, context, density, duration)
 
@@ -52,21 +53,3 @@ async def run_beats(ctx: JobContext) -> None:
     doc = {"version": 1, "cut_density": density, "mode": mode, "beats": beats}
     (pdir / "beats.json").write_text(json.dumps(doc, indent=2))
     await ctx.finish_step(step, f"{len(beats)} beats ({mode})")
-
-
-def _brief_summary(brief: dict) -> str:
-    parts = []
-    if brief.get("title"):
-        parts.append(f"Title: {brief['title']}")
-    if brief.get("subject"):
-        parts.append(f"Subject: {brief['subject']}")
-    if brief.get("tone") and brief["tone"] != "infer":
-        parts.append(f"Tone: {brief['tone']}")
-    refs = brief.get("named_references") or []
-    if refs:
-        parts.append("References: " + ", ".join(
-            f"{r.get('name')} ({r.get('hint')})" if r.get("hint") else r.get("name", "")
-            for r in refs))
-    if brief.get("notes"):
-        parts.append(f"Notes: {brief['notes']}")
-    return " | ".join(parts)

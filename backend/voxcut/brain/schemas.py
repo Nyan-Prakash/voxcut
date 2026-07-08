@@ -30,6 +30,44 @@ SEGMENTATION_SCHEMA = {
     "required": ["beats"],
 }
 
+PLAN_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "items": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "beat_id": {"type": "string"},
+                    "kind": {"type": "string",
+                             "enum": ["clip_literal", "clip_reaction",
+                                      "meme_image", "caption_card", "broll"]},
+                    "queries": {"type": "array", "items": {"type": "string"}},
+                    "audio_mode": {"type": "string",
+                                   "enum": ["mute", "duck", "keep"]},
+                    "caption": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "properties": {
+                            "text": {"type": "string"},
+                            "style": {"type": "string",
+                                      "enum": ["meme_top", "meme_bottom",
+                                               "subtitle", "label"]},
+                            "enabled": {"type": "boolean"},
+                        },
+                        "required": ["text", "style", "enabled"],
+                    },
+                },
+                "required": ["beat_id", "kind", "queries", "audio_mode", "caption"],
+            },
+        }
+    },
+    "required": ["items"],
+}
+
+
 # A single beat re-split (validation repair for over-long beats).
 SPLIT_SCHEMA = {
     "type": "object",
