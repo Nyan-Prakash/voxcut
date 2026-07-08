@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "voxcut",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "--project", "backend", "uvicorn", "--app-dir", "backend", "voxcut.main:app", "--host", "127.0.0.1", "--port", "8489"],
+      "port": 8489
+    }
+  ]
+}

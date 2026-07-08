@@ -121,3 +121,23 @@ def preview(project_id: str) -> FileResponse:
     if not path.exists():
         raise HTTPException(404, "preview not ready")
     return FileResponse(path, media_type="video/mp4")
+
+
+class ExportBody(BaseModel):
+    resolution: str = "1080p"
+
+
+@router.post("/{project_id}/export")
+async def export(project_id: str, body: ExportBody) -> dict:
+    job_id = await runner.submit("export", project_id=project_id,
+                                 payload={"resolution": body.resolution})
+    return {"job_id": job_id}
+
+
+@router.get("/{project_id}/export/download")
+def export_download(project_id: str) -> FileResponse:
+    path = settings().project_dir(project_id) / "export.mp4"
+    if not path.exists():
+        raise HTTPException(404, "export not ready")
+    return FileResponse(path, media_type="video/mp4",
+                        filename=f"voxcut_{project_id}.mp4")

@@ -70,10 +70,15 @@ def create_app() -> FastAPI:
         app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="assets")
 
     @app.get("/")
-    def index() -> FileResponse:
+    def index(request: Request):
         idx = STATIC_DIR / "index.html"
         if not idx.exists():
             raise HTTPException(500, "frontend not built")
+        # Localhost convenience: ensure the SPA always has the session token in
+        # the URL (matches the launcher). Safe — we bind 127.0.0.1 only.
+        if request.query_params.get("t") != settings().session_token:
+            from fastapi.responses import RedirectResponse
+            return RedirectResponse(f"/?t={settings().session_token}")
         return FileResponse(idx)
 
     @app.get("/{full_path:path}")
