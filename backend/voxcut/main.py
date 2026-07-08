@@ -40,8 +40,8 @@ def create_app() -> FastAPI:
         return await call_next(request)
 
     # --- Routers ---
-    from .api import (beats, edl, jobs, library, projects, settings_api,
-                      transcript, voiceover)
+    from .api import (beats, candidates, edl, jobs, library, projects,
+                      settings_api, transcript, voiceover)
     app.include_router(projects.router)
     app.include_router(jobs.router)
     app.include_router(settings_api.router)
@@ -50,6 +50,7 @@ def create_app() -> FastAPI:
     app.include_router(beats.router)
     app.include_router(edl.router)
     app.include_router(library.router)
+    app.include_router(candidates.router)
 
     @app.get("/api/health")
     def health() -> dict:

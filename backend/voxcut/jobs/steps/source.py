@@ -32,8 +32,10 @@ async def run_source(ctx: JobContext) -> None:
         brief = json.loads(p.context_brief or "{}") if p else {}
     avoid = brief.get("avoid", [])
 
+    only = ctx.payload.get("only_event")
     events = [e for e in edl["events"]
-              if e["kind"] in SOURCING_KINDS and e.get("queries") and not e.get("locked")]
+              if e["kind"] in SOURCING_KINDS and e.get("queries") and not e.get("locked")
+              and (only is None or e["id"] == only)]
     step = ctx.add_step("source")
     await ctx.report(step, 0.02, f"Sourcing {len(events)} clips")
     if not events:
@@ -70,6 +72,13 @@ async def run_source(ctx: JobContext) -> None:
     save_edl(project_id, edl)
     filled = sum(1 for e in events if e.get("asset_id"))
     await ctx.finish_step(step, f"{filled}/{len(events)} clips sourced")
+
+    # Single-event re-source (Search again): place its moment + rebuild preview.
+    if only and filled:
+        from .assemble import run_assemble
+        from .moment import run_moment
+        await run_moment(ctx)
+        await run_assemble(ctx)
 
 
 def _mark_gap(ev: dict) -> None:

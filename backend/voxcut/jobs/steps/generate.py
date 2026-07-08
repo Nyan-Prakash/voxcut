@@ -12,6 +12,7 @@ from ...models import Word
 from ..runner import JobContext, register
 from .assemble import run_assemble
 from .beats import run_beats
+from .moment import run_moment
 from .plan import run_plan
 from .source import run_source
 
@@ -29,4 +30,5 @@ async def run_generate(ctx: JobContext) -> None:
     await run_plan(ctx)
     if not ctx.payload.get("skip_sourcing"):
         await run_source(ctx)
+        await run_moment(ctx)
     await run_assemble(ctx)
