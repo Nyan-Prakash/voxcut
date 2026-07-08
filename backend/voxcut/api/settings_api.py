@@ -11,8 +11,9 @@ from ..models import Setting
 router = APIRouter(prefix="/api/settings", tags=["settings"])
 
 # Sensitive keys are write-only over the API (returned as a boolean "is set").
-SECRET_KEYS = {"claude_api_key"}
+SECRET_KEYS = {"openai_api_key"}
 DEFAULTS = {
+    "openai_model": "gpt-4o",
     "transcription_quality": "balanced",   # fast | balanced | best
     "download_cap_gb": "50",
     "export_resolution": "1080p",
@@ -57,26 +58,28 @@ def put_settings(body: SettingsPut, db: Session = Depends(get_session)) -> dict:
 
 
 class TestKeyBody(BaseModel):
-    claude_api_key: str | None = None
+    openai_api_key: str | None = None
+    openai_model: str | None = None
 
 
 @router.post("/test_key")
 async def test_key(body: TestKeyBody, db: Session = Depends(get_session)) -> dict:
-    """Validate the Claude API key with a live, minimal call (§13)."""
-    key = body.claude_api_key or _get(db, "claude_api_key")
+    """Validate the OpenAI API key with a live, minimal call (§13)."""
+    key = body.openai_api_key or _get(db, "openai_api_key")
+    model = body.openai_model or _get(db, "openai_model") or "gpt-4o"
     if not key:
         return {"ok": False, "error": "No API key provided."}
     import httpx
     try:
         async with httpx.AsyncClient(timeout=20) as client:
             r = await client.post(
-                "https://api.anthropic.com/v1/messages",
-                headers={"x-api-key": key, "anthropic-version": "2023-06-01"},
-                json={"model": "claude-sonnet-4-6", "max_tokens": 8,
+                "https://api.openai.com/v1/chat/completions",
+                headers={"Authorization": f"Bearer {key}"},
+                json={"model": model, "max_tokens": 5,
                       "messages": [{"role": "user", "content": "ping"}]},
             )
         if r.status_code == 200:
-            return {"ok": True}
+            return {"ok": True, "model": model}
         return {"ok": False, "error": f"HTTP {r.status_code}: {r.text[:200]}"}
     except Exception as exc:  # noqa: BLE001
         return {"ok": False, "error": str(exc)}

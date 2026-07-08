@@ -13,6 +13,8 @@ dependencies = [
     "pydantic>=2.9",
     "faster-whisper>=1.0",
     "numpy>=1.26",
+    "openai>=1.50",
+    "rapidfuzz>=3.14.5",
 ]
 
 [tool.uv]
