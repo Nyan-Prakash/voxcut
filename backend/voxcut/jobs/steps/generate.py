@@ -13,6 +13,7 @@ from ..runner import JobContext, register
 from .assemble import run_assemble
 from .beats import run_beats
 from .plan import run_plan
+from .source import run_source
 
 
 @register("generate")
@@ -26,4 +27,6 @@ async def run_generate(ctx: JobContext) -> None:
 
     await run_beats(ctx)
     await run_plan(ctx)
+    if not ctx.payload.get("skip_sourcing"):
+        await run_source(ctx)
     await run_assemble(ctx)

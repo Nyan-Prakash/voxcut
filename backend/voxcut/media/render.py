@@ -8,8 +8,16 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .compose import CARD_BG, FPS, dims, write_card_ass
+from .compose import CARD_BG, FPS, dims, timeline_ass, write_card_ass
 from .probe import ffmpeg, run
+
+
+def _resolve_asset_path(asset_id: str) -> str | None:
+    from ..db import session_scope
+    from ..models import Asset
+    with session_scope() as db:
+        a = db.get(Asset, asset_id)
+        return a.file_path if a else None
 
 
 def _seg_text_style(ev: dict) -> tuple[str, str]:
@@ -27,12 +35,36 @@ def render_event_segment(ev: dict, seg_dir: Path, w: int, h: int,
                          proxy: bool = True) -> Path:
     out = seg_dir / f"{ev['id']}.mp4"
     dur = max(0.1, round(ev["end_s"] - ev["start_s"], 3))
-
-    # M3: caption cards + placeholders. Real clips/images land in M4/M5.
-    text, style = _seg_text_style(ev)
-    ass = write_card_ass(text, dur, w, h, style, seg_dir / f"{ev['id']}.ass")
     crf = "28" if proxy else "18"
     preset = "ultrafast" if proxy else "medium"
+
+    asset_path = _resolve_asset_path(ev["asset_id"]) if ev.get("asset_id") else None
+    cap = ev.get("caption") or {}
+    ass_path = seg_dir / f"{ev['id']}.ass"
+
+    if asset_path and Path(asset_path).exists() and ev.get("source"):
+        # --- Real clip: seek, cover-crop to aspect, pad to exact beat duration,
+        #     burn any caption. Source audio dropped (VO muxed at concat). ---
+        in_s = float(ev["source"].get("in_s", 0.0))
+        # Caption over the clip (optional) via a per-segment ASS.
+        ass_expr = ""
+        if cap.get("enabled") and cap.get("text"):
+            write_card_ass(cap["text"], dur, w, h, cap.get("style", "meme_bottom"),
+                           ass_path)
+            ass_expr = f",ass={ass_path.as_posix()}"
+        vf = (f"scale={w}:{h}:force_original_aspect_ratio=increase,"
+              f"crop={w}:{h},tpad=stop_mode=clone:stop_duration={dur}"
+              f",fps={FPS}{ass_expr}")
+        run([
+            ffmpeg(), "-y", "-ss", f"{in_s}", "-i", asset_path, "-t", f"{dur}",
+            "-vf", vf, "-c:v", "libx264", "-preset", preset, "-crf", crf,
+            "-pix_fmt", "yuv420p", "-an", str(out),
+        ])
+        return out
+
+    # --- Caption card / placeholder (color background + centered text). ---
+    text, style = _seg_text_style(ev)
+    ass = write_card_ass(text, dur, w, h, style, ass_path)
     run([
         ffmpeg(), "-y",
         "-f", "lavfi", "-i", f"color=c={CARD_BG}:s={w}x{h}:d={dur}:r={FPS}",
