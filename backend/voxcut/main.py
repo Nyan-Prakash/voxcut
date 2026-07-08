@@ -40,10 +40,12 @@ def create_app() -> FastAPI:
         return await call_next(request)
 
     # --- Routers ---
-    from .api import jobs, projects, settings_api
+    from .api import jobs, projects, settings_api, transcript, voiceover
     app.include_router(projects.router)
     app.include_router(jobs.router)
     app.include_router(settings_api.router)
+    app.include_router(voiceover.router)
+    app.include_router(transcript.router)
 
     @app.get("/api/health")
     def health() -> dict:

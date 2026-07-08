@@ -11,12 +11,8 @@ dependencies = [
     "python-ulid>=3.0",
     "httpx>=0.27",
     "pydantic>=2.9",
-]
-
-[project.optional-dependencies]
-# Heavier ML/media deps land in later milestones. Kept separate so M0 installs fast.
-asr = [
     "faster-whisper>=1.0",
+    "numpy>=1.26",
 ]
 
 [tool.uv]
