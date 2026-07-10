@@ -68,10 +68,10 @@ async def run_source(ctx: JobContext) -> None:
                 ev["source_candidates"] = candidates
                 ev["flags"] = [f for f in ev.get("flags", []) if f != "gap_unfilled"]
             else:
-                _mark_gap(ev)
+                _mark_gap(ev, beat_text.get(ev.get("beat_id"), ""))
         except Exception as exc:  # noqa: BLE001 — degrade, never fail the job
             ev.setdefault("flags", []).append(f"source_error:{type(exc).__name__}")
-            _mark_gap(ev)
+            _mark_gap(ev, beat_text.get(ev.get("beat_id"), ""))
         finally:
             done["n"] += 1
             await ctx.report(step, done["n"] / len(events),
@@ -90,14 +90,17 @@ async def run_source(ctx: JobContext) -> None:
         await run_assemble(ctx)
 
 
-def _mark_gap(ev: dict) -> None:
+def _mark_gap(ev: dict, beat_text: str = "") -> None:
     ev["kind"] = "caption_card"  # fallback so it still renders (NFR5)
     ev.setdefault("flags", [])
     if "gap_unfilled" not in ev["flags"]:
         ev["flags"].append("gap_unfilled")
+    # Card shows the narrator's own words (lyric-card style), never the raw
+    # search query — a query on screen reads as a bug, not a design choice.
     if not ev["caption"].get("text"):
-        q = (ev.get("queries") or ["clip"])[0]
-        ev["caption"] = {"text": q, "style": "card", "enabled": True}
+        words = beat_text.split()
+        text = " ".join(words[:10]) + ("…" if len(words) > 10 else "")
+        ev["caption"] = {"text": text or "—", "style": "card", "enabled": True}
 
 
 def _source_one(project_id: str, ev: dict, provider, filters: Filters,

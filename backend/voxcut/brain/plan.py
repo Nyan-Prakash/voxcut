@@ -29,7 +29,10 @@ When you want a meme or reaction, NAME THE EXACT well-known clip — a query a
 YouTube search can resolve to one canonical video ("Pinocchio nose growing
 scene", "Michael Scott no god please no", "confused math lady", "side eye Chloe")
 — NEVER a generic pattern like "<emotion> meme" or "<situation> meme"; generic
-meme queries return random low-quality uploads. Stay anchored to the video's
+meme queries return random low-quality uploads. The quoted names above are
+FORMAT examples only — do NOT default to them; draw from the full breadth of
+internet culture and pick whatever canonical clip genuinely fits THIS beat.
+Never use the same meme twice in one video. Stay anchored to the video's
 actual subject and story: at least one query per beat should reference its
 concrete entities or the video subject, so the edit doesn't drift into
 unrelated stock memes.
