@@ -42,6 +42,32 @@ Rules this implies:
 6. **No subtitle captions.** Sampled frames show no burned subtitles; text on
    screen is rare and is itself a gag (labels, signs).
 
+## Measured clip taxonomy (24 transcript-aligned frames, GPT-vision classified)
+
+**Source flavor:** movie/TV scenes 25% · viral clips 25% · stock footage 12% ·
+stock photos 8% · anime 8% · cartoons 8% · custom-edited gags 8% · news 4%.
+Memes are seasoning, not the meal — the backbone is real footage matched to
+the words. Zero talking heads in all samples.
+
+**Relation to narration (the comedy engine):**
+| Mode | Share | Example from the video |
+|---|---|---|
+| Literal | 29% | "fire drill" → hand pulling fire alarm |
+| Absurd non-sequitur | 25% | age rant → lizard wearing clothes at a mirror |
+| Reaction | 21% | opinion line → unimpressed elderly man in corner |
+| Exaggerated-literal | 12% | "don't want to burn" → speedster with lightning |
+| Ironic deadpan | 12% | lockdown drills → person aiming a toy dart gun |
+
+Key law: **either clearly the thing or clearly a joke — never the mediocre
+middle.** A semi-related, unfunny clip is the style's worst outcome.
+
+**Energy:** calm 29% · medium 46% · chaotic 25% — chaos is *reserved for
+punchlines* ("special guest" → man crashing through glass), not constant.
+
+These proportions + the mediocre-middle law + energy-matching are now encoded
+in the planner playbook and both judges (brain/plan.py, brain/judge.py);
+punchline/setup markers flow from beat emphasis into judge prompts.
+
 ## Audio formula
 
 - Clips play muted under the VO except when the clip's audio IS the joke

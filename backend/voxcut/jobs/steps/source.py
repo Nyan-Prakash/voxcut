@@ -33,11 +33,17 @@ async def run_source(ctx: JobContext) -> None:
     avoid = brief.get("avoid", [])
 
     # Beat narration text — the judge scores candidates against what's SAID.
+    # Punchline beats are marked so judges can match visual energy (§playbook).
     beats_path = settings().project_dir(project_id) / "beats.json"
     beat_text = {}
     if beats_path.exists():
-        beat_text = {b["id"]: b.get("text") or b.get("gist", "")
-                     for b in json.loads(beats_path.read_text())["beats"]}
+        for b in json.loads(beats_path.read_text())["beats"]:
+            txt = b.get("text") or b.get("gist", "")
+            if b.get("emphasis", 0) >= 0.7:
+                txt += " [PUNCHLINE beat — wants a chaotic, high-energy visual]"
+            elif b.get("emphasis", 1) < 0.4:
+                txt += " [setup beat — calm/medium footage is right]"
+            beat_text[b["id"]] = txt
 
     only = ctx.payload.get("only_event")
     events = [e for e in edl["events"]

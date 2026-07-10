@@ -58,6 +58,14 @@ as if watched with the sound OFF:
   video of someone talking.
 
 Judging rules:
+- FUNNY BEATS ACCURATE. A winning candidate is either (a) clearly the literal
+  thing, (b) a comically exaggerated version of it, or (c) an obviously absurd
+  gag clip that commits to the bit. REJECT the mediocre middle — footage that
+  is only somewhat related and not funny is the worst outcome, worse than no
+  clip at all.
+- ENERGY: if the narration is marked [PUNCHLINE], prefer chaotic high-energy
+  footage (crashes, freakouts, sprints); if marked [setup], prefer calm/medium
+  footage. Mismatched energy (chaos under a setup line) scores lower.
 - clip_literal: the video must literally SHOW the named thing/event happening.
   A video that merely discusses or reacts to it scores low.
 - clip_reaction / meme_image: prefer the canonical meme/reaction clip everyone
@@ -91,8 +99,10 @@ You see numbered frames, each sampled from the middle of one candidate window.
 Score each frame 0..1 for how well its window would play as the visual for the
 narration:
 - HIGH: the frame shows the named thing/action actually happening, an
-  exaggerated facial reaction, physical comedy mid-action, or the recognizable
-  meme moment. Expressive and instantly readable with no sound.
+  exaggerated facial reaction, physical comedy mid-action, an obviously absurd
+  gag that commits to the bit, or the recognizable meme moment. Expressive and
+  instantly readable with no sound. If the narration is marked [PUNCHLINE],
+  chaotic high-energy moments win; if [setup], calm clear moments win.
 - LOW: someone merely talking at the camera, static shots where nothing
   happens, title cards, intros/outros, channel branding, black/blurry
   transition frames, unrelated content.

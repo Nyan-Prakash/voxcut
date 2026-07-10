@@ -36,29 +36,47 @@ Never use the same meme twice in one video. Stay anchored to the video's
 actual subject and story: at least one query per beat should reference its
 concrete entities or the video subject, so the edit doesn't drift into
 unrelated stock memes.
-1. High-emphasis beats (>=0.7) get the strongest, most literal visual gag.
-Literal means EXAGGERATED-literal: show the most absurd available version of \
-the thing being said (narrator mentions "school safety" → riot footage from a \
-movie, not a hallway). The gap between a mundane line and an over-the-top \
-visual IS the joke.
-2. Vary the visual FLAVOR across the video: rotate between movie/TV scenes, \
-cartoons & anime, stock footage/photos, and viral clips — never 3 consecutive \
-beats of the same flavor, never 3 consecutive reaction clips. Deliberately \
-cheap or watermarked stock imagery is allowed as an ironic gag. Punctuate runs \
-of clips with a caption_card roughly every 6-10 beats.
-3. Write 2-3 search queries per sourcing beat, ordered best-first. Queries must \
+1. COMEDY PLAYBOOK — pick ONE relation mode per beat (measured mix from the \
+reference editor in parentheses; roughly match it across the video):
+   a. LITERAL (~30%): plain footage of the thing being said. Use for setup \
+beats that ground the story ("fire drill" → hand pulling a fire alarm).
+   b. ABSURD NON-SEQUITUR (~20%): for connective/filler beats, a clearly \
+unrelated but tonally-matched ridiculous clip (a lizard wearing clothes, an \
+owl on a couch) beats a strained literal match. It must be OBVIOUSLY a joke — \
+commit to the bit. Query the funny thing itself, not the beat's topic.
+   c. REACTION (~20%): a person/character visibly reacting the way the \
+narrator feels. Use for opinions and judgments.
+   d. EXAGGERATED-LITERAL (~15%): the most over-the-top available version of \
+the thing said ("had to run" → speedster with lightning effects). Reserve the \
+craziest versions for punchlines.
+   e. IRONIC DEADPAN (~15%): for dark or serious topics, comic understatement \
+(lockdown drill → toy dart gun). The mismatch is the joke.
+NEVER the mediocre middle: a clip that is only somewhat related and not funny \
+is the worst outcome — go clearly literal or clearly joke, never in between.
+2. ENERGY MATCHING: match visual energy to the beat's emphasis. Setup beats \
+(emphasis <0.5) want calm/medium footage; punchlines (>=0.7) want chaotic \
+high-energy visuals (crashes, explosions, freakouts, sprinting). Do not put \
+chaos under setup lines or calm stock under a punchline.
+3. FLAVOR MIX (measured): movie/TV scenes + viral clips are the backbone \
+(~half the video), stock footage/photos ~20% (deliberately cheap or \
+watermarked stock allowed as an ironic gag), anime + cartoons ~15% as \
+seasoning. Named memes are a spice, not the meal — most beats want real \
+footage matched to the words, not a meme. Never 3 consecutive beats of the \
+same flavor; never 3 consecutive reactions. Punctuate runs of clips with a \
+caption_card roughly every 6-10 beats.
+4. Write 2-3 search queries per sourcing beat, ordered best-first. Queries must \
 be what a human would type into YouTube to find EXACTLY this footage — include \
 names, events, "meme", "scene", "interview", "moment" as appropriate. Be \
 SPECIFIC: never a lone generic word ("school", "phone"); anchor every query to \
-the concrete entity, the named person/show/event, or the video's subject. If \
-the beat names nothing concrete, prefer a well-known meme that matches the \
-EMOTION of the line (name the meme explicitly, e.g. "confused math lady meme") \
-or choose caption_card instead of a vague query.
-4. Respect the avoid-list: {avoid}.
-5. Captions are OFF by default — clips play clean, no subtitles. Write one \
+the concrete entity, the named person/show/event, or the video's subject — \
+EXCEPT for absurd non-sequitur beats, where the query names the funny footage \
+itself ("iguana in a dress mirror"). If the beat names nothing concrete and no \
+non-sequitur fits, choose caption_card instead of a vague query.
+5. Respect the avoid-list: {avoid}.
+6. Captions are OFF by default — clips play clean, no subtitles. Write one \
 only when a JOKE or LABEL genuinely adds a gag (at most ~1 in 4 beats), and \
 never use the "subtitle" style over a clip; use meme_top/meme_bottom/label.
-6. Source audio: mute by default; "keep" only when the source's own audio IS \
+7. Source audio: mute by default; "keep" only when the source's own audio IS \
 the joke.
 
 Return one plan item per beat, in order, referencing beat_id."""
