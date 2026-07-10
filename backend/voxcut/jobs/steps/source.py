@@ -91,16 +91,19 @@ async def run_source(ctx: JobContext) -> None:
 
 
 def _mark_gap(ev: dict, beat_text: str = "") -> None:
-    ev["kind"] = "caption_card"  # fallback so it still renders (NFR5)
+    """Unsourceable beat. The renderer extends the neighboring clip through the
+    gap (no text card on screen — operator preference). The stored caption is a
+    last-resort only, used when there is no neighboring clip to extend."""
+    ev["kind"] = "caption_card"
     ev.setdefault("flags", [])
     if "gap_unfilled" not in ev["flags"]:
         ev["flags"].append("gap_unfilled")
-    # Card shows the narrator's own words (lyric-card style), never the raw
-    # search query — a query on screen reads as a bug, not a design choice.
     if not ev["caption"].get("text"):
         words = beat_text.split()
         text = " ".join(words[:10]) + ("…" if len(words) > 10 else "")
-        ev["caption"] = {"text": text or "—", "style": "card", "enabled": True}
+        ev["caption"]["text"] = text or "—"
+        ev["caption"]["style"] = "card"
+    ev["caption"]["enabled"] = False  # no caption-track entry, no burned text
 
 
 def _source_one(project_id: str, ev: dict, provider, filters: Filters,

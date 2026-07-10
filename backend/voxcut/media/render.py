@@ -74,10 +74,38 @@ def _render_card(text: str, style: str, dur: float, out: Path, ass_path: Path,
     return out
 
 
+def _is_gap(ev: dict) -> bool:
+    return "gap_unfilled" in (ev.get("flags") or []) and not ev.get("asset_id")
+
+
+def _absorb_gaps(events: list[dict]) -> list[tuple[dict, float]]:
+    """Unsourced gap events don't get their own screen time — the neighboring
+    clip plays through them (operator preference: no fallback text cards).
+    Returns (event, render_duration) pairs; absorbed gaps are dropped.
+    Backward pass first (previous clip holds), then forward (a leading gap is
+    covered by the next clip). Gaps with no clip neighbor render as cards."""
+    spans: list[list] = [[ev, ev["start_s"], ev["end_s"]] for ev in events]
+    absorbed: list[list] = []
+    for item in spans:
+        if _is_gap(item[0]) and absorbed and absorbed[-1][0].get("asset_id"):
+            absorbed[-1][2] = item[2]      # previous clip holds through the gap
+            continue
+        absorbed.append(item)
+    result: list[list] = []
+    for item in reversed(absorbed):
+        if _is_gap(item[0]) and result and result[-1][0].get("asset_id"):
+            result[-1][1] = item[1]        # next clip starts early to cover it
+            continue
+        result.append(item)
+    result.reverse()
+    return [(ev, max(0.1, round(e - s, 3))) for ev, s, e in result]
+
+
 def render_event_segment(ev: dict, seg_dir: Path, w: int, h: int,
-                         proxy: bool = True) -> Path:
+                         proxy: bool = True, dur: float | None = None) -> Path:
     out = seg_dir / f"{ev['id']}.mp4"
-    dur = max(0.1, round(ev["end_s"] - ev["start_s"], 3))
+    if dur is None:
+        dur = max(0.1, round(ev["end_s"] - ev["start_s"], 3))
     crf = "28" if proxy else "18"
     preset = "ultrafast" if proxy else "medium"
 
@@ -141,12 +169,12 @@ def _render_locked(project_id: str, edl: dict, master_path: Path | None,
     preset = "ultrafast" if proxy else "medium"
 
     events = sorted(edl.get("events", []), key=lambda e: e["start_s"])
+    render_plan = _absorb_gaps(events)
     seg_paths: list[Path] = []
-    for i, ev in enumerate(events):
-        dur = max(0.1, round(ev["end_s"] - ev["start_s"], 3))
+    for i, (ev, dur) in enumerate(render_plan):
         seg = seg_dir / f"{ev['id']}.mp4"
         try:
-            seg = render_event_segment(ev, seg_dir, w, h, proxy)
+            seg = render_event_segment(ev, seg_dir, w, h, proxy, dur=dur)
         except Exception:  # noqa: BLE001 — last-resort per-segment guard
             seg = _render_card(
                 (ev.get("caption") or {}).get("text") or ev.get("kind", "clip"),
@@ -158,7 +186,7 @@ def _render_locked(project_id: str, edl: dict, master_path: Path | None,
                                seg_dir / f"{ev['id']}.ass", w, h, crf, preset)
         seg_paths.append(seg)
         if on_progress:
-            on_progress((i + 1) / max(1, len(events)) * 0.85)
+            on_progress((i + 1) / max(1, len(render_plan)) * 0.85)
 
     if not seg_paths:
         raise RuntimeError("no events to render")
