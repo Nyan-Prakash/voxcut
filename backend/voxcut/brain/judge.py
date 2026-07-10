@@ -66,6 +66,9 @@ Judging rules:
   almost never good b-roll for a joke — score them low unless the beat is
   literally about them.
 - Compilations are acceptable only if the wanted moment is clearly the subject.
+- TONE: this is a comedy edit. Reject footage of real tragedy — death, violent
+  crime, accidents, disasters, grief — regardless of relevance. A funny beat
+  cut against someone's real misfortune reads as offensive, not funny.
 - When in doubt, score low. Returning zero good picks is a valid answer —
   the editor falls back to a stylish caption card, which beats a random clip.
 
@@ -78,6 +81,47 @@ Search queries used: {queries}
 
 Results:
 {results}"""
+
+
+FRAME_SYSTEM = """\
+You pick the exact MOMENT inside a downloaded video for a fast-cut commentary
+edit. The clip plays MUTED under the narrator's voiceover.
+
+You see numbered frames, each sampled from the middle of one candidate window.
+Score each frame 0..1 for how well its window would play as the visual for the
+narration:
+- HIGH: the frame shows the named thing/action actually happening, an
+  exaggerated facial reaction, physical comedy mid-action, or the recognizable
+  meme moment. Expressive and instantly readable with no sound.
+- LOW: someone merely talking at the camera, static shots where nothing
+  happens, title cards, intros/outros, channel branding, black/blurry
+  transition frames, unrelated content.
+Score every frame index exactly once. Be harsh: 0.8+ means "this exact moment
+is the gag". If nothing fits, low scores everywhere are the right answer."""
+
+FRAME_USER = """\
+Narration beat: "{beat_text}"
+Visual intent: {intent}
+Video: {video_title}
+{n} candidate windows; frame i is from the middle of window i."""
+
+
+def judge_frames(beat_text: str, intent: str, video_title: str,
+                 frames: list[str]) -> list[float]:
+    """frames: list of data-URL jpegs, one per candidate window (in order).
+    Returns a score 0..1 per frame. Raises BrainError on failure."""
+    images = [(f"Frame {i}:", url) for i, url in enumerate(frames)]
+    out = structured(
+        FRAME_SYSTEM,
+        FRAME_USER.format(beat_text=beat_text, intent=intent,
+                          video_title=video_title, n=len(frames)),
+        JUDGE_SCHEMA, schema_name="frame_judge", temperature=0.2,
+        max_tokens=1500, images=images)
+    scores = [0.0] * len(frames)
+    for p in out.get("picks", []):
+        if 0 <= p["index"] < len(frames):
+            scores[p["index"]] = max(0.0, min(1.0, float(p["relevance"])))
+    return scores
 
 
 def judge_candidates(beat_text: str, intent: str, queries: list[str],
