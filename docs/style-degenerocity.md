@@ -60,19 +60,30 @@ Rules this implies:
   unrelated sentence + the same whiteboard meme image. Heatmap shows a
   second retention peak at the outro (455–465s) — the signature works.
 
-## What VOXCUT should change (recommendation queue)
+## What VOXCUT should change (revised plan — operator decision 2026-07-10)
 
-1. **New cut density tier `degen`**: target beat ≈ 1.5s (~40/min), 2–8 words.
-2. **Always-on motion**: default zoom punch-in is there; add per-event random
-   pan/zoom variants so even 2s shots have interior motion.
-3. **Caption default off** for this style; keep planner joke-captions only.
-4. **Planner style pack**: prompt variant encoding rules 1–4 above
-   (exaggeration-first literal visuals, source diversity, stock-irony allowed).
-5. **Signature outro support**: project setting "outro card" (image + line) —
-   cheap, spec §16.4 already anticipated intro/outro.
-6. **Music layer** (v2): looping bed track with auto-duck under VO.
-7. **Custom gag images** (v2): image-gen or template compositing for
-   photoshopped signs/labels.
+Operator direction: the ultra-fast cutting and motion effects of the reference
+are NOT wanted. Pacing stays fully user-controlled through the existing
+cut-density setting (chill / normal / hyperactive) chosen at project setup —
+no new faster tier, no automatic pan/zoom variants, no choppiness. What we
+adopt from the reference is the *visual taste*, not the tempo.
+
+**Adopt (pending operator confirmation):**
+1. **Planner style pack** — encode the visual taste rules into the planner
+   prompt: exaggerated-literal visuals (show the most absurd available version
+   of the thing being said), high source diversity across a video (movies /
+   cartoons+anime / stock / viral clips — avoid three of the same flavor in a
+   row), ironic stock footage allowed as a gag. This improves *what* gets
+   picked at any density.
+2. **Subtitle captions default OFF** — the reference burns no subtitles; keep
+   planner-written joke captions/labels only. (Stays toggleable per event.)
+3. **Signature outro card** — optional project setting: a closing line + image
+   appended at the end ("in conclusion…" pattern). Off by default.
+
+**Explicitly rejected:** `degen` density tier (~1.5s beats), automatic motion
+variants / zoom punches. Keep clips steady; respect the chosen density.
+
+**Deferred (v2):** music bed with auto-duck; custom gag-image generation.
 
 ## Sources
 

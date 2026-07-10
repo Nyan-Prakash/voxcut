@@ -34,8 +34,15 @@ actual subject and story: at least one query per beat should reference its
 concrete entities or the video subject, so the edit doesn't drift into
 unrelated stock memes.
 1. High-emphasis beats (>=0.7) get the strongest, most literal visual gag.
-2. Vary: never 3 consecutive reaction clips; punctuate runs of clips with a \
-caption_card roughly every 6-10 beats.
+Literal means EXAGGERATED-literal: show the most absurd available version of \
+the thing being said (narrator mentions "school safety" → riot footage from a \
+movie, not a hallway). The gap between a mundane line and an over-the-top \
+visual IS the joke.
+2. Vary the visual FLAVOR across the video: rotate between movie/TV scenes, \
+cartoons & anime, stock footage/photos, and viral clips — never 3 consecutive \
+beats of the same flavor, never 3 consecutive reaction clips. Deliberately \
+cheap or watermarked stock imagery is allowed as an ironic gag. Punctuate runs \
+of clips with a caption_card roughly every 6-10 beats.
 3. Write 2-3 search queries per sourcing beat, ordered best-first. Queries must \
 be what a human would type into YouTube to find EXACTLY this footage — include \
 names, events, "meme", "scene", "interview", "moment" as appropriate. Be \
@@ -45,7 +52,9 @@ the beat names nothing concrete, prefer a well-known meme that matches the \
 EMOTION of the line (name the meme explicitly, e.g. "confused math lady meme") \
 or choose caption_card instead of a vague query.
 4. Respect the avoid-list: {avoid}.
-5. Only write a caption when it's a JOKE or LABEL that adds something.
+5. Captions are OFF by default — clips play clean, no subtitles. Write one \
+only when a JOKE or LABEL genuinely adds a gag (at most ~1 in 4 beats), and \
+never use the "subtitle" style over a clip; use meme_top/meme_bottom/label.
 6. Source audio: mute by default; "keep" only when the source's own audio IS \
 the joke.
 
@@ -127,11 +136,15 @@ def _llm_plan(beats: list[dict], brief: dict) -> list[dict]:
             continue
         kind = it["kind"] if it["kind"] in KINDS else "caption_card"
         cap = it.get("caption") or {}
+        style = cap.get("style", "meme_top")
+        # Captions-off default: no subtitle-style text burned over clips.
+        if kind != "caption_card" and style == "subtitle":
+            style = "meme_bottom"
         events.append(_event(
             b, kind,
             caption_text=cap.get("text", ""),
             caption_enabled=bool(cap.get("enabled")) or kind == "caption_card",
-            caption_style=cap.get("style", "meme_top"),
+            caption_style=style,
             queries=it.get("queries", []),
             audio_mode=it.get("audio_mode", "mute"),
         ))
