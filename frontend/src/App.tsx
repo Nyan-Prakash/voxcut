@@ -1,6 +1,33 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { api, subscribeEvents } from "./api";
 import { useStore } from "./store";
+
+type ThemeMode = "auto" | "light" | "dark";
+
+function applyTheme(mode: ThemeMode) {
+  const dark = mode === "dark" ||
+    (mode === "auto" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+}
+
+function ThemeToggle() {
+  const [mode, setMode] = useState<ThemeMode>(
+    (localStorage.getItem("voxcut-theme") as ThemeMode) || "auto");
+  useEffect(() => {
+    applyTheme(mode);
+    localStorage.setItem("voxcut-theme", mode);
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => applyTheme(mode);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [mode]);
+  const next: Record<ThemeMode, ThemeMode> = { auto: "light", light: "dark", dark: "auto" };
+  const icon = { auto: "◐", light: "☀", dark: "☾" }[mode];
+  return (
+    <button className="ghost" title={`Theme: ${mode}`}
+            onClick={() => setMode(next[mode])}>{icon}</button>
+  );
+}
 import { ProjectsView } from "./components/Projects";
 import { SettingsView } from "./components/Settings";
 import { LibraryView } from "./components/Library";
@@ -18,6 +45,7 @@ export function App() {
 
   return (
     <div className="app">
+      <div className="aurora" aria-hidden><i /><i /><i /></div>
       <div className="topbar">
         <span className="logo">VOXCUT</span>
         <SystemChips />
@@ -26,6 +54,7 @@ export function App() {
         <button className="ghost" onClick={() => setView("projects")}>Projects</button>
         <button className="ghost" onClick={() => setView("library")}>Library</button>
         <button className="ghost" onClick={() => setView("settings")}>Settings</button>
+        <ThemeToggle />
       </div>
       <div className="content">
         {view === "projects" && <ProjectsView />}

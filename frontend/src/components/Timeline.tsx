@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { api } from "../api";
 import { useStore } from "../store";
 
 const PX_PER_S = 60;
@@ -49,8 +50,13 @@ export function Timeline() {
                             width: Math.max(8, (e.end_s - e.start_s) * PX_PER_S) }}
                    onClick={() => select(e.id)}
                    title={`${e.kind} · ${label}`}>
-                {rev && <span className="rev">⚑ </span>}
-                {label}
+                {e.asset_id && project && (
+                  <img loading="lazy" alt=""
+                       src={api.mediaUrl(`/projects/${project.id}/thumb/${e.id}`)}
+                       onError={(ev) => ((ev.target as HTMLElement).style.display = "none")} />
+                )}
+                {rev && <span className="rev">⚑</span>}
+                <span className="evt-label">{label}</span>
               </div>
             );
           })}
@@ -77,6 +83,13 @@ export function Timeline() {
 function Wave({ width }: { width: number }) {
   const { waveform } = useStore();
   const ref = useRef<HTMLCanvasElement>(null);
+  const [themeTick, setThemeTick] = React.useState(0);
+  useEffect(() => {
+    // Repaint when the theme flips — canvas colors don't track CSS vars.
+    const obs = new MutationObserver(() => setThemeTick((t) => t + 1));
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => obs.disconnect();
+  }, []);
   useEffect(() => {
     const c = ref.current;
     if (!c) return;
@@ -88,11 +101,12 @@ function Wave({ width }: { width: number }) {
     if (!waveform || !waveform.peaks.length) return;
     const peaks = waveform.peaks;
     const bw = width / peaks.length;
-    ctx.fillStyle = "#3d63dd";
+    ctx.fillStyle = getComputedStyle(document.documentElement)
+      .getPropertyValue("--wave").trim() || "rgba(128,128,140,0.4)";
     peaks.forEach((p, i) => {
       const h = Math.max(1, p * 42);
       ctx.fillRect(i * bw, 23 - h / 2, Math.max(0.5, bw - 0.5), h);
     });
-  }, [waveform, width]);
+  }, [waveform, width, themeTick]);
   return <canvas ref={ref} className="wave" style={{ width }} />;
 }

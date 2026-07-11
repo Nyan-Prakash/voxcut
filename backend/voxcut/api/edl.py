@@ -93,6 +93,7 @@ def _mark_dirty(project_id: str, event_ids: list[str]) -> None:
     for eid in event_ids:
         for ext in (".mp4", ".ass"):
             (seg_dir / f"{eid}{ext}").unlink(missing_ok=True)
+        (seg_dir / f"thumb_{eid}.jpg").unlink(missing_ok=True)
 
 
 @router.post("/{project_id}/edl/undo")
@@ -121,6 +122,37 @@ def preview(project_id: str) -> FileResponse:
     if not path.exists():
         raise HTTPException(404, "preview not ready")
     return FileResponse(path, media_type="video/mp4")
+
+
+@router.get("/{project_id}/thumb/{event_id}")
+def event_thumb(project_id: str, event_id: str) -> FileResponse:
+    """Timeline thumbnail: one frame from the event's chosen source moment."""
+    import subprocess
+
+    from ..db import session_scope
+    from ..media.probe import ffmpeg
+    from ..models import Asset
+
+    seg_dir = settings().project_dir(project_id) / "segments"
+    seg_dir.mkdir(exist_ok=True)
+    cache = seg_dir / f"thumb_{event_id}.jpg"
+    if not cache.exists():
+        edl = load_edl(project_id)
+        ev = next((e for e in edl["events"] if e["id"] == event_id), None)
+        if not ev or not ev.get("asset_id"):
+            raise HTTPException(404, "no footage for this event")
+        with session_scope() as db:
+            asset = db.get(Asset, ev["asset_id"])
+        if not asset:
+            raise HTTPException(404, "asset missing")
+        t = float((ev.get("source") or {}).get("in_s", 0.0)) + 0.4
+        proc = subprocess.run(
+            [ffmpeg(), "-y", "-ss", f"{t:.2f}", "-i", asset.file_path,
+             "-frames:v", "1", "-vf", "scale=240:-2", "-q:v", "6", str(cache)],
+            capture_output=True, text=True, timeout=60)
+        if proc.returncode != 0 or not cache.exists():
+            raise HTTPException(404, "thumb extraction failed")
+    return FileResponse(cache, media_type="image/jpeg")
 
 
 class ExportBody(BaseModel):
