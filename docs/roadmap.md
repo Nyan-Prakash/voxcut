@@ -5,6 +5,14 @@ in VOXCUT is visible to the audience. Operator's time per video goes to
 (1) writing/recording VO [explicitly out of scope — VO stays theirs],
 (2) reviewing/swapping clips, (3) finishing touches done elsewhere or skipped.
 
+> **P0 status: attempted 2026-07-10, REJECTED by operator 2026-07-11 and fully
+> reverted.** The implementation (auto-picked Kevin MacLeod bed + sidechain
+> ducking + synthesized whoosh/impact SFX auto-placed on punchlines) was judged
+> "really bad" in real use. Likely culprits: stock meme-music feel, synthetic
+> SFX quality, and auto placement taste. Do NOT rebuild this design. If audio
+> comes back, start from operator-supplied tracks/SFX files and manual
+> placement only, and demo on one project before keeping anything.
+
 ## P0 — Publish-ready audio (the loudest gap)
 
 **1. Auto music bed.** "Auto everything": VOXCUT infers the video's mood from
