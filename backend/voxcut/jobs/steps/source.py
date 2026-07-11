@@ -13,7 +13,7 @@ from ...config import settings
 from ...db import session_scope
 from ...edl_store import load_edl, save_edl
 from ...library.index import find_asset, record_asset, touch
-from ...models import Project
+from ...models import Asset, Project
 from ...sourcing.base import Filters
 from ...sourcing.youtube import YouTubeProvider
 from ..runner import JobContext, register
@@ -40,9 +40,10 @@ async def run_source(ctx: JobContext) -> None:
         for b in json.loads(beats_path.read_text())["beats"]:
             txt = b.get("text") or b.get("gist", "")
             if b.get("rhythm") == "list_item":
-                txt += (" [LIST ITEM in a rapid-fire list — a plain literal "
-                        "shot of exactly this item is IDEAL; simple stock "
-                        "footage scores high here]")
+                txt += (" [LIST ITEM in a rapid-fire list — an instantly-"
+                        "readable shot of exactly this item; a funny/"
+                        "exaggerated version beats plain stock, but plain "
+                        "stock still scores well]")
             elif b.get("emphasis", 0) >= 0.7:
                 txt += " [PUNCHLINE beat — wants a chaotic, high-energy visual]"
             elif b.get("emphasis", 1) < 0.4:
@@ -69,13 +70,14 @@ async def run_source(ctx: JobContext) -> None:
         filters = Filters(avoid=avoid, reaction_intent=reaction)
         try:
             async with sem:
-                asset_id, source, candidates = await asyncio.to_thread(
+                asset_id, source, candidates, finalist_ids = await asyncio.to_thread(
                     _source_one, project_id, ev, provider, filters,
                     beat_text.get(ev.get("beat_id"), ""), used_sources)
             if asset_id:
                 ev["asset_id"] = asset_id
                 ev["source"] = source
                 ev["source_candidates"] = candidates
+                ev["finalist_asset_ids"] = finalist_ids
                 ev["flags"] = [f for f in ev.get("flags", []) if f != "gap_unfilled"]
             else:
                 _mark_gap(ev, beat_text.get(ev.get("beat_id"), ""))
@@ -118,34 +120,39 @@ def _mark_gap(ev: dict, beat_text: str = "") -> None:
 
 def _source_one(project_id: str, ev: dict, provider, filters: Filters,
                 beat_text: str = "", used_sources: set[str] | None = None):
-    """Blocking: search ALL queries → merge → rank → LLM relevance judge →
-    reuse-or-download. Returns (asset_id, source, cands).
+    """Blocking tournament sourcing: search BOTH comedic angles (primary
+    queries + joke_queries) → merge → rank → LLM relevance judge → download the
+    top approved candidate from EACH angle. The moment step frame-verifies all
+    finalists and keeps the funnier one.
 
-    The judge is the quality gate: a candidate that merely keyword-matches gets
-    rejected, and rejecting everything (→ caption card) is a valid outcome —
-    better than shipping a random clip."""
+    Returns (asset_id, source, cand_meta, finalist_asset_ids). Rejecting
+    everything (→ gap) is a valid outcome — better than a random clip."""
     from ...brain.client import BrainError, is_available
     from ...brain.judge import judge_candidates
     from ...sourcing.rank import rank
 
     queries = [q for q in ev.get("queries", []) if q.strip()][:3]
+    joke_queries = [q for q in ev.get("joke_queries", []) if q.strip()][:2]
     if not queries:
-        return None, None, []
+        return None, None, [], []
 
-    # Search every query the planner wrote; merge + dedupe by source_id.
+    # Search every query from both angles; merge + dedupe, remembering angle.
     merged: dict[str, object] = {}
-    for q in queries:
-        try:
-            for c in provider.search(q, SEARCH_N, filters):
-                if c.source_id not in merged:
-                    merged[c.source_id] = c
-        except Exception:  # noqa: BLE001 — a failed search shouldn't kill the event
-            continue
+    angle_of: dict[str, str] = {}
+    for angle, qs in (("primary", queries), ("joke", joke_queries)):
+        for q in qs:
+            try:
+                for c in provider.search(q, SEARCH_N, filters):
+                    if c.source_id not in merged:
+                        merged[c.source_id] = c
+                        angle_of[c.source_id] = angle
+            except Exception:  # noqa: BLE001 — one failed search ≠ dead event
+                continue
     if not merged:
-        return None, None, []
+        return None, None, [], []
 
     # Heuristic rank (embeddings + metadata) against the primary query.
-    ranked = rank(queries[0], list(merged.values()), filters)[:10]
+    ranked = rank(queries[0], list(merged.values()), filters)[:14]
 
     # LLM judge: score actual relevance to the narration. Order = judge order.
     order = ranked
@@ -153,7 +160,7 @@ def _source_one(project_id: str, ev: dict, provider, filters: Filters,
     if is_available() and beat_text:
         try:
             picks = judge_candidates(
-                beat_text, ev["kind"], queries,
+                beat_text, ev["kind"], queries + joke_queries,
                 [{"title": c.title, "channel": c.channel,
                   "duration_s": c.duration_s, "views": c.view_count,
                   "thumbnail": c.thumbnail}
@@ -169,34 +176,64 @@ def _source_one(project_id: str, ev: dict, provider, filters: Filters,
                   "duration_s": c.duration_s}
                  for c in (order or ranked)[:5]]
     if not order:
-        return None, None, cand_meta  # judge rejected everything → caption card
+        return None, None, cand_meta, []  # judge rejected everything → gap
 
-    # Variety guard: don't reuse a source already placed in this run — the same
-    # clip on adjacent beats reads as a glitch. Prefer fresh; reuse only if
-    # every approved candidate is taken.
+    # Variety guard: prefer sources not already used in this run.
     if used_sources is not None:
         fresh = [c for c in order if c.source_id not in used_sources]
         order = fresh or order
 
-    lib_dir = settings().library_dir
-    for cand in order[:4]:
-        with session_scope() as db:
-            existing = find_asset(db, cand.provider, cand.source_id)
-            if existing:
-                touch(db, existing.id)
-                if used_sources is not None:
-                    used_sources.add(cand.source_id)
-                return existing.id, _naive_source(ev, existing.duration_s), cand_meta
-        try:
-            meta = provider.fetch(cand, lib_dir / cand.source_id)
-        except Exception:  # noqa: BLE001 — try the next approved candidate
-            continue
-        with session_scope() as db:
-            asset = record_asset(db, meta, queries)
+    # Tournament: best approved candidate PER ANGLE (judge order preserved),
+    # plus the runner-up of the primary angle as a fallback pool.
+    picks_by_angle: dict[str, list] = {"primary": [], "joke": []}
+    for c in order:
+        picks_by_angle[angle_of.get(c.source_id, "primary")].append(c)
+    wanted: list = []
+    if picks_by_angle["primary"]:
+        wanted.append(picks_by_angle["primary"][0])
+    if picks_by_angle["joke"]:
+        wanted.append(picks_by_angle["joke"][0])
+    if len(wanted) < 2 and len(picks_by_angle["primary"]) > 1:
+        wanted.append(picks_by_angle["primary"][1])
+
+    finalist_ids: list[str] = []
+    for cand in wanted:
+        aid = _fetch_or_reuse(provider, cand, queries)
+        if aid:
+            finalist_ids.append(aid)
             if used_sources is not None:
                 used_sources.add(cand.source_id)
-            return asset.id, _naive_source(ev, asset.duration_s), cand_meta
-    return None, None, cand_meta
+    # Backfill from remaining approved candidates if downloads failed.
+    if not finalist_ids:
+        for cand in order[:4]:
+            aid = _fetch_or_reuse(provider, cand, queries)
+            if aid:
+                finalist_ids.append(aid)
+                if used_sources is not None:
+                    used_sources.add(cand.source_id)
+                break
+    if not finalist_ids:
+        return None, None, cand_meta, []
+
+    with session_scope() as db:
+        first = db.get(Asset, finalist_ids[0])
+        dur = first.duration_s if first else 0.0
+    return finalist_ids[0], _naive_source(ev, dur), cand_meta, finalist_ids
+
+
+def _fetch_or_reuse(provider, cand, queries: list[str]) -> str | None:
+    """Reuse a cached asset or download; returns asset id or None."""
+    with session_scope() as db:
+        existing = find_asset(db, cand.provider, cand.source_id)
+        if existing:
+            touch(db, existing.id)
+            return existing.id
+    try:
+        meta = provider.fetch(cand, settings().library_dir / cand.source_id)
+    except Exception:  # noqa: BLE001
+        return None
+    with session_scope() as db:
+        return record_asset(db, meta, queries).id
 
 
 def _naive_source(ev: dict, asset_dur: float) -> dict:

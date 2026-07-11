@@ -98,6 +98,10 @@ export const api = {
     req<{ job_id: string }>(`/projects/${id}/candidates/${ev}/research`, {
       method: "POST", body: JSON.stringify({ query }),
     }),
+  pickFinalist: (id: string, ev: string, asset_id: string, in_s: number, out_s: number) =>
+    req(`/projects/${id}/candidates/${ev}/pick_finalist`, {
+      method: "POST", body: JSON.stringify({ asset_id, in_s, out_s }),
+    }),
 
   getJob: (jobId: string) => req<Job>(`/jobs/${jobId}`),
   exportProject: (id: string, resolution: string) =>

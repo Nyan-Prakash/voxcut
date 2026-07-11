@@ -47,6 +47,10 @@ PLAN_SCHEMA = {
                              "enum": ["clip_literal", "clip_reaction",
                                       "meme_image", "caption_card", "broll"]},
                     "queries": {"type": "array", "items": {"type": "string"}},
+                    "joke_queries": {
+                        "type": "array", "items": {"type": "string"},
+                        "description": "queries for the OTHER comedic angle "
+                                       "(tournament candidate)"},
                     "audio_mode": {"type": "string",
                                    "enum": ["mute", "duck", "keep"]},
                     "caption": {
@@ -62,7 +66,8 @@ PLAN_SCHEMA = {
                         "required": ["text", "style", "enabled"],
                     },
                 },
-                "required": ["beat_id", "kind", "queries", "audio_mode", "caption"],
+                "required": ["beat_id", "kind", "queries", "joke_queries",
+                             "audio_mode", "caption"],
             },
         }
     },

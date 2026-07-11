@@ -58,11 +58,22 @@ is the worst outcome — go clearly literal or clearly joke, never in between.
 high-energy visuals (crashes, explosions, freakouts, sprinting). Do not put \
 chaos under setup lines or calm stock under a punchline.
 2b. QUICK-CUT BEATS: beats tagged rhythm=list_item are rapid-fire one-item \
-beats — each wants a PLAIN, instantly-readable literal shot of exactly that \
-item ("popcorn" → popcorn close-up). Simple stock footage is CORRECT here; the \
-speed of the cuts is the joke, so rule 1's never-mediocre law does not apply \
-to list items. Write ONE dead-simple query naming the item. rhythm=escalation \
-beats want visuals whose energy rises with each step.
+beats — each wants an INSTANTLY-READABLE shot of exactly that item, and the \
+funny version beats the plain one when it exists ("popcorn" → popcorn machine \
+exploding > popcorn close-up). Put the funny version in queries and the plain \
+item in joke_queries as the fallback. Plain stock is an acceptable outcome; \
+confusing or slow-to-read footage is not. rhythm=escalation beats want visuals \
+whose energy rises with each step.
+2c. TOURNAMENT — every sourcing beat provides TWO comedic angles and the \
+pipeline tests both with real footage, keeping whichever verifies funnier: \
+"queries" = your primary angle; "joke_queries" = the OTHER angle. If the \
+primary is literal/exaggerated-literal, joke_queries names a reaction or \
+canonical meme matching the emotion; if the primary is a meme/reaction, \
+joke_queries goes literal. Both angles must obey rule 4's specificity. \
+caption_card items use empty joke_queries.
+2d. FAMOUS + FRESH: mix recognizable iconic scenes (recognition lands the \
+joke) with fresh, lesser-known finds (surprise lands the joke) — a video of \
+only worn-out memes is as weak as a video of only obscure clips.
 3. FLAVOR MIX (measured): movie/TV scenes + viral clips are the backbone \
 (~half the video), stock footage/photos ~20% (deliberately cheap or \
 watermarked stock allowed as an ironic gag), anime + cartoons ~15% as \
@@ -102,7 +113,7 @@ def _default_treatment() -> dict:
 
 def _event(beat: dict, kind: str, caption_text: str = "", caption_enabled: bool = False,
            caption_style: str = "meme_top", queries: list[str] | None = None,
-           audio_mode: str = "mute") -> dict:
+           audio_mode: str = "mute", joke_queries: list[str] | None = None) -> dict:
     flags = ["auto"]
     if kind != "caption_card" and not queries:
         flags.append("gap_unfilled")
@@ -115,6 +126,7 @@ def _event(beat: dict, kind: str, caption_text: str = "", caption_enabled: bool 
         "asset_id": None,
         "source": None,
         "queries": queries or [],
+        "joke_queries": joke_queries or [],
         "treatment": _default_treatment(),
         "caption": {"text": caption_text, "style": caption_style,
                     "enabled": caption_enabled},
@@ -175,6 +187,7 @@ def _llm_plan(beats: list[dict], brief: dict) -> list[dict]:
             caption_style=style,
             queries=it.get("queries", []),
             audio_mode=it.get("audio_mode", "mute"),
+            joke_queries=it.get("joke_queries", []),
         ))
     return events
 

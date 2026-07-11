@@ -22,8 +22,36 @@ def get_candidates(project_id: str, event_id: str) -> dict:
         "chosen_source": ev.get("source"),
         "moment_candidates": ev.get("moment_candidates", []),
         "source_candidates": ev.get("source_candidates", []),
+        "finalists": ev.get("finalists", []),
         "flags": ev.get("flags", []),
     }
+
+
+class PickFinalist(BaseModel):
+    asset_id: str
+    in_s: float
+    out_s: float
+
+
+@router.post("/{project_id}/candidates/{event_id}/pick_finalist")
+def pick_finalist(project_id: str, event_id: str, body: PickFinalist) -> dict:
+    """Swap the event to a tournament finalist (already downloaded — instant)."""
+    edl = load_edl(project_id)
+    ev = next((e for e in edl["events"] if e["id"] == event_id), None)
+    if not ev:
+        raise HTTPException(404, "event not found")
+    ev["asset_id"] = body.asset_id
+    src = ev.get("source") or {}
+    src.update({"in_s": body.in_s, "out_s": body.out_s})
+    ev["source"] = src
+    ev["flags"] = [f for f in ev.get("flags", [])
+                   if f not in ("close_call", "needs_review")]
+    from ..config import settings
+    seg = settings().project_dir(project_id) / "segments"
+    for ext in (".mp4", ".ass"):
+        (seg / f"{event_id}{ext}").unlink(missing_ok=True)
+    save_edl(project_id, edl)
+    return {"ok": True, "asset_id": body.asset_id, "source": ev["source"]}
 
 
 class PickMoment(BaseModel):

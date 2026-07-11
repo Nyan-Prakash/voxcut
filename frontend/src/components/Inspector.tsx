@@ -70,6 +70,32 @@ function InspectorBody({ ev, applyOps }: { ev: EdlEvent; applyOps: (ops: any[]) 
         ))}
       </div>
 
+      {/* Tournament finalists — both angles fully verified, one click to swap */}
+      {cands?.finalists?.length > 1 && (
+        <>
+          <label>Finalists (both verified — click to swap)</label>
+          <div className="cand-strip">
+            {cands.finalists.map((f: any, i: number) => {
+              const chosen = f.asset_id === ev.asset_id;
+              return (
+                <div key={i} className={`cand ${chosen ? "chosen" : ""}`} title={f.title}
+                     onClick={async () => {
+                       if (chosen) return;
+                       await api.pickFinalist(project!.id, ev.id, f.asset_id, f.in_s, f.out_s);
+                       await api.rebuildPreview(project!.id);
+                       useStore.getState().refreshEdl();
+                     }}>
+                  <div>{chosen ? "✓ " : ""}{(f.title || "clip").slice(0, 38)}</div>
+                  <div className="muted">
+                    vision {f.visual?.toFixed?.(2) ?? "—"} · {f.in_s?.toFixed?.(1)}s→{f.out_s?.toFixed?.(1)}s
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
       {/* Candidate moments within the chosen source */}
       {cands?.moment_candidates?.length > 0 && (
         <>

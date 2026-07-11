@@ -65,21 +65,21 @@ function EditorToolbar() {
 
 function ReviewNav() {
   const { edl, select } = useStore();
+  const FLAGS = ["needs_review", "gap_unfilled", "close_call"];
+  const flagged = () => edl
+    ? edl.events.filter((e) => e.flags?.some((f) => FLAGS.includes(f)))
+    : [];
   const jump = () => {
-    if (!edl) return;
-    const flagged = edl.events.filter((e) =>
-      e.flags?.includes("needs_review") || e.flags?.includes("gap_unfilled"));
-    if (flagged.length) {
+    const list = flagged();
+    if (list.length) {
       const cur = useStore.getState().selectedEventId;
-      const idx = flagged.findIndex((e) => e.id === cur);
-      select(flagged[(idx + 1) % flagged.length].id);
+      const idx = list.findIndex((e) => e.id === cur);
+      select(list[(idx + 1) % list.length].id);
     } else {
       useStore.getState().setToast("Nothing flagged for review 🎉");
     }
   };
-  const count = edl?.events.filter((e) =>
-    e.flags?.includes("needs_review") || e.flags?.includes("gap_unfilled")).length || 0;
-  return <button className="ghost" onClick={jump}>⚑ Review ({count})</button>;
+  return <button className="ghost" onClick={jump}>⚑ Review ({flagged().length})</button>;
 }
 
 function ExportButton() {

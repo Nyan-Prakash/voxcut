@@ -57,7 +57,10 @@ async def run_moment(ctx: JobContext) -> None:
 # measure ~0.3-0.4; real visual gags 0.7+.)
 ESCALATE_BELOW = 0.45
 REVIEW_BELOW = 0.5
-VISION_WEIGHT = 0.7  # final window score = 0.7*vision + 0.3*signal fusion
+VISION_WEIGHT = 0.7   # final window score = 0.7*vision + 0.3*signal fusion
+CLOSE_CALL_GAP = 0.1  # finalists within this vision margin → flag for review
+COARSE_MAX_FRAMES = 20
+COARSE_KEEP = 0.4     # coarse regions below this score aren't worth refining
 
 
 def _signal_moments(ev: dict, asset: Asset, query: str, entities: list[str]):
@@ -72,18 +75,19 @@ def _signal_moments(ev: dict, asset: Asset, query: str, entities: list[str]):
     )
 
 
-def _verify_visually(ev: dict, asset: Asset, beat: dict, moments) -> list[float] | None:
-    """Frame-judge the candidate windows. None = vision unavailable/failed."""
+def _judge_windows(ev: dict, asset: Asset, beat: dict,
+                   windows: list[tuple[float, float]],
+                   work_tag: str) -> list[float] | None:
+    """Frame-judge arbitrary windows. None = vision unavailable/failed."""
     from ...brain.client import BrainError, is_available
     from ...brain.judge import judge_frames
     from ...moments.frames import sample_window_frames
 
-    if not is_available():
+    if not is_available() or not windows:
         return None
-    windows = [(m.in_s, m.out_s) for m in moments]
     urls = sample_window_frames(
         Path(asset.file_path), windows,
-        settings().library_dir / asset.source_id / "verify")
+        settings().library_dir / asset.source_id / "verify" / f"{ev['id']}_{work_tag}")
     present = [(i, u) for i, u in enumerate(urls) if u]
     if not present:
         return None
@@ -93,42 +97,79 @@ def _verify_visually(ev: dict, asset: Asset, beat: dict, moments) -> list[float]
             asset.title or "", [u for _i, u in present])
     except BrainError:
         return None
-    scores = [0.0] * len(moments)
+    scores = [0.0] * len(windows)
     for (i, _u), s in zip(present, scores_present):
         scores[i] = s
     return scores
 
 
+def _coarse_windows(ev: dict, asset: Asset, beat: dict,
+                    beat_dur: float) -> list[tuple[float, float]]:
+    """Stage 1: scan frames across the ENTIRE video to find where the gag
+    lives, independent of subtitle/heatmap/audio signals. Fixes the
+    'window misses the gag entirely' failure — weak signals can no longer
+    strand the search in the wrong region."""
+    dur = asset.duration_s or 0.0
+    if dur <= beat_dur * 4:  # short clip — fine windows already cover it
+        return []
+    n = min(COARSE_MAX_FRAMES, max(6, int(dur // 8)))
+    step = dur / n
+    windows = []
+    for i in range(n):
+        c = step / 2 + i * step
+        windows.append((max(0.0, c - beat_dur / 2), min(dur, c + beat_dur / 2)))
+    scores = _judge_windows(ev, asset, beat, windows, "coarse")
+    if scores is None:
+        return []
+    top = sorted(range(len(windows)), key=lambda i: scores[i], reverse=True)[:3]
+    return [windows[i] for i in top if scores[i] >= COARSE_KEEP]
+
+
 def _try_asset(ev: dict, asset: Asset, beat: dict, query: str,
                entities: list[str]) -> dict:
-    """Score one asset: signal windows + visual verification. Returns a result
-    dict with the best window and its vision score (None if vision was off)."""
+    """Score one asset: coarse whole-video vision scan + signal windows →
+    fine frame verification. Returns the best window + its vision score."""
+    from ...moments.scenes import detect_scenes, snap_to_scenes
+
+    beat_dur = ev["end_s"] - ev["start_s"]
     moments, conf = _signal_moments(ev, asset, query, entities)
-    vision = _verify_visually(ev, asset, beat, moments)
+    sig_windows = [(m.in_s, m.out_s, m.score) for m in moments[:3]]
+
+    coarse = _coarse_windows(ev, asset, beat, beat_dur)
+    scenes = detect_scenes(Path(asset.file_path),
+                           settings().library_dir / asset.source_id / "scenes.json")
+    coarse_snapped = [(*snap_to_scenes(a, b, scenes, tolerance=beat_dur * 0.25), 0.0)
+                      for (a, b) in coarse]
+
+    # Merge candidate windows (coarse first — they came from real pixels),
+    # dropping near-duplicates.
+    merged: list[tuple[float, float, float]] = []
+    for w in coarse_snapped + sig_windows:
+        if all(abs(w[0] - m[0]) > beat_dur * 0.5 for m in merged):
+            merged.append(w)
+    merged = merged[:6]
+    if not merged:
+        merged = [(0.0, min(asset.duration_s or beat_dur, beat_dur), 0.0)]
+
+    vision = _judge_windows(ev, asset, beat, [(a, b) for a, b, _s in merged], "fine")
     if vision is None:
-        order = list(range(len(moments)))
+        order = list(range(len(merged)))
         best_vision = None
     else:
-        blended = [VISION_WEIGHT * v + (1 - VISION_WEIGHT) * m.score
-                   for v, m in zip(vision, moments)]
-        order = sorted(range(len(moments)), key=lambda i: blended[i], reverse=True)
+        blended = [VISION_WEIGHT * v + (1 - VISION_WEIGHT) * s
+                   for v, (_a, _b, s) in zip(vision, merged)]
+        order = sorted(range(len(merged)), key=lambda i: blended[i], reverse=True)
         best_vision = vision[order[0]]
+
     cands = []
     for i in order:
-        d = moments[i].to_dict()
+        a, b, s = merged[i]
+        d = {"in_s": round(a, 3), "out_s": round(b, 3), "score": round(s, 4)}
         if vision is not None:
             d["visual"] = round(vision[i], 3)
         cands.append(d)
     return {"asset": asset, "moments": cands, "conf": conf,
             "best_vision": best_vision}
-
-
-def _next_unused_source(ev: dict, current_source_id: str):
-    """Next judge-approved source candidate ≠ the current asset (for escalation)."""
-    for c in ev.get("source_candidates", []):
-        if c.get("source_id") and c["source_id"] != current_source_id and c.get("url"):
-            return c
-    return None
 
 
 def _fetch_candidate(cand: dict) -> Asset | None:
@@ -147,12 +188,13 @@ def _fetch_candidate(cand: dict) -> Asset | None:
         return record_asset(db, meta, [])
 
 
-def _place_one(ev: dict, beats: dict) -> None:
-    with session_scope() as db:
-        asset = db.get(Asset, ev["asset_id"])
-    if not asset or not Path(asset.file_path).exists():
-        return
+def _score_of(result: dict) -> float:
+    if result["best_vision"] is not None:
+        return result["best_vision"]
+    return result["moments"][0].get("score", 0.0) if result["moments"] else 0.0
 
+
+def _place_one(ev: dict, beats: dict) -> None:
     beat = beats.get(ev.get("beat_id"), {})
     query = " ".join(filter(None, [
         beat.get("gist", ""), beat.get("text", ""),
@@ -161,33 +203,72 @@ def _place_one(ev: dict, beats: dict) -> None:
     ])).strip() or (ev.get("queries") or ["clip"])[0]
     entities = beat.get("concrete_entities", [])
 
-    result = _try_asset(ev, asset, beat, query, entities)
+    # Tournament: verify every downloaded finalist (both comedic angles).
+    finalist_ids = list(dict.fromkeys(
+        ev.get("finalist_asset_ids") or
+        ([ev["asset_id"]] if ev.get("asset_id") else [])))
+    results: list[dict] = []
+    for aid in finalist_ids:
+        with session_scope() as db:
+            asset = db.get(Asset, aid)
+        if not asset or not Path(asset.file_path).exists():
+            continue
+        try:
+            results.append(_try_asset(ev, asset, beat, query, entities))
+        except Exception:  # noqa: BLE001 — a broken finalist forfeits
+            continue
+    if not results:
+        return
 
-    # Closed loop: if the footage verifiably doesn't show the gag, try the
-    # next judge-approved source once and keep whichever verifies better.
-    if (result["best_vision"] is not None
-            and result["best_vision"] < ESCALATE_BELOW):
-        nxt = _next_unused_source(ev, asset.source_id)
+    results.sort(key=_score_of, reverse=True)
+    winner = results[0]
+
+    # Escalation net: if even the tournament winner verifiably misses, try one
+    # more judge-approved source before settling.
+    if (winner["best_vision"] is not None
+            and winner["best_vision"] < ESCALATE_BELOW):
+        tried = {r["asset"].source_id for r in results}
+        nxt = next((c for c in ev.get("source_candidates", [])
+                    if c.get("source_id") and c["source_id"] not in tried
+                    and c.get("url")), None)
         alt_asset = _fetch_candidate(nxt) if nxt else None
         if alt_asset and Path(alt_asset.file_path).exists():
-            alt = _try_asset(ev, alt_asset, beat, query, entities)
-            if (alt["best_vision"] or 0) > result["best_vision"]:
-                result = alt
-                ev["asset_id"] = alt_asset.id
+            try:
+                alt = _try_asset(ev, alt_asset, beat, query, entities)
+                results.append(alt)
+                results.sort(key=_score_of, reverse=True)
+                winner = results[0]
+            except Exception:  # noqa: BLE001
+                pass
 
-    best = result["moments"][0]
+    ev["asset_id"] = winner["asset"].id
+    best = winner["moments"][0]
     src = {"in_s": best["in_s"], "out_s": best["out_s"], "chosen_rank": 1,
-           "confidence": result["conf"]}
-    if result["best_vision"] is not None:
-        src["visual"] = round(result["best_vision"], 3)
+           "confidence": winner["conf"]}
+    if winner["best_vision"] is not None:
+        src["visual"] = round(winner["best_vision"], 3)
     ev["source"] = src
-    ev["moment_candidates"] = result["moments"]
+    ev["moment_candidates"] = winner["moments"]
+    ev["finalists"] = [{
+        "asset_id": r["asset"].id,
+        "title": r["asset"].title,
+        "in_s": r["moments"][0]["in_s"],
+        "out_s": r["moments"][0]["out_s"],
+        "visual": r["best_vision"],
+    } for r in results[:3]]
 
-    flags = [f for f in ev.get("flags", []) if f != "needs_review"]
+    flags = [f for f in ev.get("flags", [])
+             if f not in ("needs_review", "close_call")]
     from ...moments.select import CONF_THRESHOLD
-    needs_review = (result["best_vision"] < REVIEW_BELOW
-                    if result["best_vision"] is not None
-                    else result["conf"] < CONF_THRESHOLD)
+    needs_review = (winner["best_vision"] < REVIEW_BELOW
+                    if winner["best_vision"] is not None
+                    else winner["conf"] < CONF_THRESHOLD)
     if needs_review:
         flags.append("needs_review")
+    # Close call: two finalists verified nearly equal — worth a human eyeball.
+    if (len(results) > 1
+            and results[0]["best_vision"] is not None
+            and results[1]["best_vision"] is not None
+            and results[0]["best_vision"] - results[1]["best_vision"] < CLOSE_CALL_GAP):
+        flags.append("close_call")
     ev["flags"] = flags
