@@ -23,7 +23,7 @@ class Project(SQLModel, table=True):
     voiceover_path: str | None = None
     duration_s: float = 0.0
     context_brief: str = "{}"  # JSON blob, schema in §4.2
-    settings: str = "{}"       # JSON: aspect, cut_density, caption_mode, resolution
+    settings: str = "{}"       # JSON: aspect, cut_density, resolution
     edl_version: int = 0
     status: str = "draft"      # draft | generating | ready | error
 

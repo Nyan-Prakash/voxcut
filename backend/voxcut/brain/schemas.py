@@ -45,7 +45,7 @@ PLAN_SCHEMA = {
                     "beat_id": {"type": "string"},
                     "kind": {"type": "string",
                              "enum": ["clip_literal", "clip_reaction",
-                                      "meme_image", "caption_card", "broll"]},
+                                      "meme_image", "broll"]},
                     "queries": {"type": "array", "items": {"type": "string"}},
                     "joke_queries": {
                         "type": "array", "items": {"type": "string"},
@@ -53,21 +53,9 @@ PLAN_SCHEMA = {
                                        "(tournament candidate)"},
                     "audio_mode": {"type": "string",
                                    "enum": ["mute", "duck", "keep"]},
-                    "caption": {
-                        "type": "object",
-                        "additionalProperties": False,
-                        "properties": {
-                            "text": {"type": "string"},
-                            "style": {"type": "string",
-                                      "enum": ["meme_top", "meme_bottom",
-                                               "subtitle", "label"]},
-                            "enabled": {"type": "boolean"},
-                        },
-                        "required": ["text", "style", "enabled"],
-                    },
                 },
                 "required": ["beat_id", "kind", "queries", "joke_queries",
-                             "audio_mode", "caption"],
+                             "audio_mode"],
             },
         }
     },

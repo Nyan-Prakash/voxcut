@@ -50,10 +50,10 @@ async def run_source(ctx: JobContext) -> None:
                 txt += " [setup beat — calm/medium footage is right]"
             beat_text[b["id"]] = txt
 
-    only = ctx.payload.get("only_event")
+    only = _only_ids(ctx.payload)
     events = [e for e in edl["events"]
               if e["kind"] in SOURCING_KINDS and e.get("queries") and not e.get("locked")
-              and (only is None or e["id"] == only)]
+              and (only is None or e["id"] in only)]
     step = ctx.add_step("source")
     await ctx.report(step, 0.02, f"Sourcing {len(events)} clips")
     if not events:
@@ -63,7 +63,9 @@ async def run_source(ctx: JobContext) -> None:
     provider = YouTubeProvider()
     sem = asyncio.Semaphore(DOWNLOAD_CONCURRENCY)
     done = {"n": 0}
-    used_sources: set[str] = set()  # variety guard: one asset per run
+    # Variety guard: one asset per run. Reroll seeds this with the footage it
+    # is replacing, so "regenerate" never hands back the same clip.
+    used_sources: set[str] = set(ctx.payload.get("avoid_source_ids") or [])
 
     async def handle(ev: dict) -> None:
         reaction = ev["kind"] == "clip_reaction"
@@ -94,7 +96,7 @@ async def run_source(ctx: JobContext) -> None:
     filled = sum(1 for e in events if e.get("asset_id"))
     await ctx.finish_step(step, f"{filled}/{len(events)} clips sourced")
 
-    # Single-event re-source (Search again): place its moment + rebuild preview.
+    # Targeted re-source (Search again / reroll): place moments + rebuild preview.
     if only and filled:
         from .assemble import run_assemble
         from .moment import run_moment
@@ -102,20 +104,23 @@ async def run_source(ctx: JobContext) -> None:
         await run_assemble(ctx)
 
 
+def _only_ids(payload: dict) -> set[str] | None:
+    """Payload may target one event (only_event) or several (only_events)."""
+    ids = payload.get("only_events") or []
+    if payload.get("only_event"):
+        ids = [*ids, payload["only_event"]]
+    return set(ids) or None
+
+
 def _mark_gap(ev: dict, beat_text: str = "") -> None:
     """Unsourceable beat. The renderer extends the neighboring clip through the
-    gap (no text card on screen — operator preference). The stored caption is a
-    last-resort only, used when there is no neighboring clip to extend."""
-    ev["kind"] = "caption_card"
+    gap (no text on screen — operator preference); a gap with no clip neighbor
+    renders as a plain dark background."""
+    ev["asset_id"] = None
+    ev["source"] = None
     ev.setdefault("flags", [])
     if "gap_unfilled" not in ev["flags"]:
         ev["flags"].append("gap_unfilled")
-    if not ev["caption"].get("text"):
-        words = beat_text.split()
-        text = " ".join(words[:10]) + ("…" if len(words) > 10 else "")
-        ev["caption"]["text"] = text or "—"
-        ev["caption"]["style"] = "card"
-    ev["caption"]["enabled"] = False  # no caption-track entry, no burned text
 
 
 def _source_one(project_id: str, ev: dict, provider, filters: Filters,

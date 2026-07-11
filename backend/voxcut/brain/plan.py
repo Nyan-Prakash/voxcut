@@ -1,8 +1,9 @@
 """Edit planner — the edit brain (spec §7).
 
-Per scene-group of beats, decides what's on screen: clip vs caption card vs
-b-roll, with search queries for sourcing (used in M4+). Produces EDL events
-(timing carried from beats). Heuristic fallback writes a caption card per beat.
+Per scene-group of beats, decides what's on screen: which footage to hunt for,
+with search queries for sourcing (used in M4+). Produces EDL events (timing
+carried from beats). No captions: every beat is footage; unsourceable beats
+become gaps absorbed by neighboring clips at render time.
 """
 from __future__ import annotations
 
@@ -17,7 +18,6 @@ decide what's on screen. Visual types:
 - clip_literal: footage of the named thing (needs: search queries)
 - clip_reaction: a reaction moment matching the tone (needs: reaction queries)
 - meme_image: a well-known meme/image (needs: image queries)
-- caption_card: full-screen styled text (write the text; <=7 words)
 - broll: generic thematic footage (needs: queries)
 
 Rules:
@@ -64,13 +64,12 @@ exploding > popcorn close-up). Put the funny version in queries and the plain \
 item in joke_queries as the fallback. Plain stock is an acceptable outcome; \
 confusing or slow-to-read footage is not. rhythm=escalation beats want visuals \
 whose energy rises with each step.
-2c. TOURNAMENT — every sourcing beat provides TWO comedic angles and the \
-pipeline tests both with real footage, keeping whichever verifies funnier: \
+2c. TOURNAMENT — every beat provides TWO comedic angles and the pipeline \
+tests both with real footage, keeping whichever verifies funnier: \
 "queries" = your primary angle; "joke_queries" = the OTHER angle. If the \
 primary is literal/exaggerated-literal, joke_queries names a reaction or \
 canonical meme matching the emotion; if the primary is a meme/reaction, \
-joke_queries goes literal. Both angles must obey rule 4's specificity. \
-caption_card items use empty joke_queries.
+joke_queries goes literal. Both angles must obey rule 4's specificity.
 2d. FAMOUS + FRESH: mix recognizable iconic scenes (recognition lands the \
 joke) with fresh, lesser-known finds (surprise lands the joke) — a video of \
 only worn-out memes is as weak as a video of only obscure clips.
@@ -79,21 +78,18 @@ only worn-out memes is as weak as a video of only obscure clips.
 watermarked stock allowed as an ironic gag), anime + cartoons ~15% as \
 seasoning. Named memes are a spice, not the meal — most beats want real \
 footage matched to the words, not a meme. Never 3 consecutive beats of the \
-same flavor; never 3 consecutive reactions. Punctuate runs of clips with a \
-caption_card roughly every 6-10 beats.
-4. Write 2-3 search queries per sourcing beat, ordered best-first. Queries must \
+same flavor; never 3 consecutive reactions.
+4. Write 2-3 search queries per beat, ordered best-first. Queries must \
 be what a human would type into YouTube to find EXACTLY this footage — include \
 names, events, "meme", "scene", "interview", "moment" as appropriate. Be \
 SPECIFIC: never a lone generic word ("school", "phone"); anchor every query to \
 the concrete entity, the named person/show/event, or the video's subject — \
 EXCEPT for absurd non-sequitur beats, where the query names the funny footage \
-itself ("iguana in a dress mirror"). If the beat names nothing concrete and no \
-non-sequitur fits, choose caption_card instead of a vague query.
+itself ("iguana in a dress mirror"). If the beat names nothing concrete, an \
+absurd non-sequitur or a tonally-matched reaction is ALWAYS available — every \
+beat gets real queries.
 5. Respect the avoid-list: {avoid}.
-6. Captions are OFF by default — clips play clean, no subtitles. Write one \
-only when a JOKE or LABEL genuinely adds a gag (at most ~1 in 4 beats), and \
-never use the "subtitle" style over a clip; use meme_top/meme_bottom/label.
-7. Source audio: mute by default; "keep" only when the source's own audio IS \
+6. Source audio: mute by default; "keep" only when the source's own audio IS \
 the joke.
 
 Return one plan item per beat, in order, referencing beat_id."""
@@ -111,11 +107,10 @@ def _default_treatment() -> dict:
             "transition_in": "cut", "fit": "cover"}
 
 
-def _event(beat: dict, kind: str, caption_text: str = "", caption_enabled: bool = False,
-           caption_style: str = "meme_top", queries: list[str] | None = None,
+def _event(beat: dict, kind: str, queries: list[str] | None = None,
            audio_mode: str = "mute", joke_queries: list[str] | None = None) -> dict:
     flags = ["auto"]
-    if kind != "caption_card" and not queries:
+    if not queries:
         flags.append("gap_unfilled")
     return {
         "id": f"ev_{ULID()}",
@@ -128,8 +123,6 @@ def _event(beat: dict, kind: str, caption_text: str = "", caption_enabled: bool 
         "queries": queries or [],
         "joke_queries": joke_queries or [],
         "treatment": _default_treatment(),
-        "caption": {"text": caption_text, "style": caption_style,
-                    "enabled": caption_enabled},
         "audio": {"mode": audio_mode, "duck_db": -18},
         "flags": flags,
         "locked": False,
@@ -151,11 +144,13 @@ def plan(beats: list[dict], brief: dict, aspect: str = "16:9",
     return {"version": 1, "aspect": aspect, "events": events}
 
 
+KINDS = {"clip_literal", "clip_reaction", "meme_image", "broll"}
+
+
 def _llm_plan(beats: list[dict], brief: dict) -> list[dict]:
     from .steps_helpers import brief_summary  # lazy to avoid cycle
     avoid = ", ".join(brief.get("avoid", [])) or "(none)"
     context = brief_summary(brief)
-    KINDS = {"clip_literal", "clip_reaction", "meme_image", "caption_card", "broll"}
 
     beats_block = "\n".join(
         f"{b['id']} | emph={b['emphasis']} | rhythm={b.get('rhythm', 'flow')} | "
@@ -166,38 +161,59 @@ def _llm_plan(beats: list[dict], brief: dict) -> list[dict]:
     out = structured(system, user, PLAN_SCHEMA, schema_name="edit_plan",
                      temperature=0.5, max_tokens=6000)
 
-    by_id = {b["id"]: b for b in beats}
     items = {it["beat_id"]: it for it in out.get("items", [])}
     events: list[dict] = []
     for b in beats:
         it = items.get(b["id"])
         if not it:
-            events.append(_event(b, "caption_card", b["gist"][:60], True))
+            events.append(_heuristic_event(b))
             continue
-        kind = it["kind"] if it["kind"] in KINDS else "caption_card"
-        cap = it.get("caption") or {}
-        style = cap.get("style", "meme_top")
-        # Captions-off default: no subtitle-style text burned over clips.
-        if kind != "caption_card" and style == "subtitle":
-            style = "meme_bottom"
-        events.append(_event(
-            b, kind,
-            caption_text=cap.get("text", ""),
-            caption_enabled=bool(cap.get("enabled")) or kind == "caption_card",
-            caption_style=style,
-            queries=it.get("queries", []),
-            audio_mode=it.get("audio_mode", "mute"),
-            joke_queries=it.get("joke_queries", []),
-        ))
+        events.append(_item_to_event(b, it))
     return events
+
+
+def _item_to_event(beat: dict, it: dict) -> dict:
+    kind = it["kind"] if it["kind"] in KINDS else "broll"
+    return _event(
+        beat, kind,
+        queries=it.get("queries", []),
+        audio_mode=it.get("audio_mode", "mute"),
+        joke_queries=it.get("joke_queries", []),
+    )
+
+
+def plan_one(beat: dict, brief: dict, avoid_extra: list[str] | None = None) -> dict:
+    """Re-plan a single beat (per-clip reroll). Returns a fresh event for the
+    beat with new queries/kind. Raises BrainError when the LLM is unavailable."""
+    from .steps_helpers import brief_summary  # lazy to avoid cycle
+    avoid = ", ".join((brief.get("avoid") or []) + (avoid_extra or [])) or "(none)"
+    context = brief_summary(brief)
+    beats_block = (
+        f"{beat['id']} | emph={beat['emphasis']} | rhythm={beat.get('rhythm', 'flow')} | "
+        f"affinity={beat.get('visual_affinity', 'literal')} | "
+        f"entities={beat.get('concrete_entities')} | {beat.get('text', beat.get('gist', ''))}")
+    system = PLAN_SYSTEM.format(avoid=avoid)
+    user = PLAN_USER.format(context=context, avoid=avoid, beats_block=beats_block)
+    out = structured(system, user, PLAN_SCHEMA, schema_name="edit_plan",
+                     temperature=0.8, max_tokens=1200)
+    items = out.get("items") or []
+    if not items:
+        raise BrainError("planner returned no item for beat")
+    return _item_to_event(beat, items[0])
+
+
+def _heuristic_event(b: dict) -> dict:
+    """No LLM: hunt broll for the beat's gist/entities. Weak queries beat
+    burned text — captions are gone by design."""
+    entities = [e for e in b.get("concrete_entities", []) if e]
+    queries = []
+    if entities:
+        queries.append(" ".join(entities[:3]))
+    gist = (b.get("gist") or b.get("text") or "").strip()
+    if gist:
+        queries.append(gist[:80])
+    return _event(b, "broll", queries=queries)
 
 
 def _heuristic_plan(beats: list[dict]) -> list[dict]:
-    """No LLM: every beat becomes a caption card of its own text (a lyric-video
-    style baseline). Proves the render pipeline end-to-end."""
-    events = []
-    for b in beats:
-        text = (b.get("gist") or b["text"])[:80]
-        events.append(_event(b, "caption_card", caption_text=text,
-                             caption_enabled=True, caption_style="subtitle"))
-    return events
+    return [_heuristic_event(b) for b in beats]

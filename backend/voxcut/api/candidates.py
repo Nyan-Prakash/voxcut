@@ -78,6 +78,35 @@ def pick_moment(project_id: str, event_id: str, body: PickMoment) -> dict:
     return {"ok": True, "source": ev["source"]}
 
 
+class RerollBody(BaseModel):
+    event_ids: list[str]
+
+
+@router.post("/{project_id}/events/{event_id}/reroll")
+async def reroll_one(project_id: str, event_id: str) -> dict:
+    """Regenerate one clip from scratch: re-plan the beat (fresh angle +
+    queries), re-run the tournament, excluding the current footage."""
+    edl = load_edl(project_id)
+    if not any(e["id"] == event_id for e in edl["events"]):
+        raise HTTPException(404, "event not found")
+    job_id = await runner.submit("reroll", project_id=project_id,
+                                 payload={"only_events": [event_id]})
+    return {"job_id": job_id}
+
+
+@router.post("/{project_id}/events/reroll")
+async def reroll_many(project_id: str, body: RerollBody) -> dict:
+    """Regenerate several clips in one job (e.g. the halves of a fresh cut)."""
+    edl = load_edl(project_id)
+    known = {e["id"] for e in edl["events"]}
+    ids = [i for i in body.event_ids if i in known]
+    if not ids:
+        raise HTTPException(404, "no matching events")
+    job_id = await runner.submit("reroll", project_id=project_id,
+                                 payload={"only_events": ids})
+    return {"job_id": job_id}
+
+
 class ReSource(BaseModel):
     query: str
 

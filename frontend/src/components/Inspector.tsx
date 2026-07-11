@@ -9,15 +9,17 @@ export function Inspector() {
 
   if (!ev) {
     return <div className="inspector"><div className="muted">
-      Select a clip in the timeline to edit it.
+      Select a clip in the timeline to edit it.<br /><br />
+      ✂ Cut tool: click a clip to split it.<br />
+      ＋ Segment tool: drag a range to carve a new segment.<br />
+      🎲 on any clip: regenerate just that clip.
     </div></div>;
   }
   return <InspectorBody key={ev.id} ev={ev} applyOps={applyOps} />;
 }
 
 function InspectorBody({ ev, applyOps }: { ev: EdlEvent; applyOps: (ops: any[]) => Promise<void> }) {
-  const { project } = useStore();
-  const [caption, setCaption] = useState(ev.caption?.text || "");
+  const { project, reroll } = useStore();
   const [cands, setCands] = useState<any>(null);
   const [query, setQuery] = useState(ev.queries?.[0] || "");
 
@@ -40,27 +42,17 @@ function InspectorBody({ ev, applyOps }: { ev: EdlEvent; applyOps: (ops: any[]) 
         </div>
       )}
 
+      <button style={{ width: "100%", marginTop: 8 }} disabled={ev.locked}
+              title="Re-plans this beat with a fresh comedic angle, re-runs the tournament, and never returns the same footage"
+              onClick={() => reroll([ev.id])}>
+        🎲 Reroll this clip
+      </button>
+
       <label>Type</label>
       <select value={ev.kind} onChange={(e) => applyOps([{ op: "set_kind", event_id: ev.id, data: { kind: e.target.value } }])}>
-        {["clip_literal", "clip_reaction", "meme_image", "broll", "caption_card"].map((k) =>
+        {["clip_literal", "clip_reaction", "meme_image", "broll"].map((k) =>
           <option key={k} value={k}>{k}</option>)}
       </select>
-
-      <label>Caption</label>
-      <input value={caption} onChange={(e) => setCaption(e.target.value)}
-             onBlur={() => applyOps([{ op: "set_caption", event_id: ev.id,
-               data: { text: caption, enabled: caption.length > 0 } }])} />
-      <div className="row" style={{ marginTop: 6 }}>
-        <select value={ev.caption?.style || "subtitle"} style={{ flex: 1 }}
-                onChange={(e) => applyOps([{ op: "set_caption", event_id: ev.id, data: { style: e.target.value } }])}>
-          {["meme_top", "meme_bottom", "subtitle", "label", "card"].map((s) =>
-            <option key={s} value={s}>{s}</option>)}
-        </select>
-        <label style={{ margin: 0 }}>
-          <input type="checkbox" style={{ width: "auto" }} checked={!!ev.caption?.enabled}
-                 onChange={(e) => applyOps([{ op: "set_caption", event_id: ev.id, data: { enabled: e.target.checked } }])} /> show
-        </label>
-      </div>
 
       <label>Source audio</label>
       <div className="seg">
@@ -139,7 +131,7 @@ function InspectorBody({ ev, applyOps }: { ev: EdlEvent; applyOps: (ops: any[]) 
         </>
       )}
 
-      <label>Search again (find new footage)</label>
+      <label>Search again (find new footage with your own query)</label>
       <div className="row">
         <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="youtube search…" />
         <button className="sec" onClick={() => reSource(project!.id, ev.id, query)}>Go</button>

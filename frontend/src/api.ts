@@ -86,6 +86,22 @@ export const api = {
       method: "POST", body: JSON.stringify({ base_version, ops }),
     }),
   undo: (id: string) => req<Edl>(`/projects/${id}/edl/undo`, { method: "POST" }),
+  splitEvent: (id: string, event_id: string, at_s: number) =>
+    req<{ edl: Edl; cut_s: number; event_ids: string[]; new_event_id: string }>(
+      `/projects/${id}/edl/split`, {
+        method: "POST", body: JSON.stringify({ event_id, at_s }),
+      }),
+  addSegment: (id: string, start_s: number, end_s: number) =>
+    req<{ edl: Edl; new_event_id: string; removed: string[] }>(
+      `/projects/${id}/edl/add_segment`, {
+        method: "POST", body: JSON.stringify({ start_s, end_s }),
+      }),
+  reroll: (id: string, eventIds: string[]) =>
+    eventIds.length === 1
+      ? req<{ job_id: string }>(`/projects/${id}/events/${eventIds[0]}/reroll`, { method: "POST" })
+      : req<{ job_id: string }>(`/projects/${id}/events/reroll`, {
+          method: "POST", body: JSON.stringify({ event_ids: eventIds }),
+        }),
   rebuildPreview: (id: string) => req<{ job_id: string }>(`/projects/${id}/preview/rebuild`, { method: "POST" }),
   previewUrl: (id: string) => url(`/projects/${id}/preview`),
 

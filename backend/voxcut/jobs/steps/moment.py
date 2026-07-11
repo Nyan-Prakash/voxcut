@@ -23,9 +23,10 @@ async def run_moment(ctx: JobContext) -> None:
     beats = ({b["id"]: b for b in json.loads(beats_path.read_text())["beats"]}
              if beats_path.exists() else {})
 
-    only = ctx.payload.get("only_event")
+    from .source import _only_ids
+    only = _only_ids(ctx.payload)
     events = [e for e in edl["events"] if e.get("asset_id") and not e.get("locked")
-              and (only is None or e["id"] == only)]
+              and (only is None or e["id"] in only)]
     step = ctx.add_step("moment")
     await ctx.report(step, 0.02, f"Selecting moments for {len(events)} clips")
     if not events:
@@ -199,7 +200,6 @@ def _place_one(ev: dict, beats: dict) -> None:
     query = " ".join(filter(None, [
         beat.get("gist", ""), beat.get("text", ""),
         " ".join(ev.get("queries", [])),
-        (ev.get("caption") or {}).get("text", ""),
     ])).strip() or (ev.get("queries") or ["clip"])[0]
     entities = beat.get("concrete_entities", [])
 

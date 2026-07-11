@@ -33,12 +33,6 @@ export interface Beat {
   locked: boolean;
 }
 
-export interface Caption {
-  text: string;
-  style: string;
-  enabled: boolean;
-}
-
 export interface EdlSource {
   in_s: number;
   out_s: number;
@@ -48,20 +42,21 @@ export interface EdlSource {
 
 export interface EdlEvent {
   id: string;
-  beat_id: string;
+  beat_id: string | null;
   start_s: number;
   end_s: number;
   kind: string;
   asset_id: string | null;
   source: EdlSource | null;
   queries: string[];
+  joke_queries?: string[];
   treatment: Record<string, any>;
-  caption: Caption;
   audio: { mode: string; duck_db?: number };
   flags: string[];
   locked: boolean;
   moment_candidates?: EdlSource[];
   source_candidates?: any[];
+  finalists?: any[];
 }
 
 export interface Edl {

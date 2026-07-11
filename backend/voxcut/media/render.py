@@ -10,7 +10,7 @@ import threading
 from collections import defaultdict
 from pathlib import Path
 
-from .compose import CARD_BG, FPS, dims, timeline_ass, write_card_ass
+from .compose import CARD_BG, FPS, dims
 from .probe import ffmpeg, ffprobe, run
 
 # One render at a time per project: concurrent assembles (double-click, rebuild
@@ -50,24 +50,13 @@ def _run_atomic(cmd: list[str], out: Path) -> None:
         tmp.unlink(missing_ok=True)
 
 
-def _seg_text_style(ev: dict) -> tuple[str, str]:
-    cap = ev.get("caption") or {}
-    if cap.get("enabled") and cap.get("text"):
-        return cap["text"], cap.get("style", "subtitle")
-    # Placeholder for a sourcing event without an asset yet — keep it watchable.
-    q = ev.get("queries") or []
-    if ev["kind"] != "caption_card" and q:
-        return f"[{ev['kind']}] {q[0]}", "card"
-    return (cap.get("text") or ""), "card"
-
-
-def _render_card(text: str, style: str, dur: float, out: Path, ass_path: Path,
-                 w: int, h: int, crf: str, preset: str) -> Path:
-    ass = write_card_ass(text, dur, w, h, style, ass_path)
+def _render_blank(dur: float, out: Path, w: int, h: int,
+                  crf: str, preset: str) -> Path:
+    """Plain dark background — the only non-footage segment we ever render.
+    No text on screen, ever (captions removed by design)."""
     _run_atomic([
         ffmpeg(), "-y",
         "-f", "lavfi", "-i", f"color=c={CARD_BG}:s={w}x{h}:d={dur}:r={FPS}",
-        "-vf", f"ass={ass.as_posix()}",
         "-c:v", "libx264", "-preset", preset, "-crf", crf,
         "-pix_fmt", "yuv420p", "-an", str(out),
     ], out)
@@ -83,7 +72,7 @@ def _absorb_gaps(events: list[dict]) -> list[tuple[dict, float]]:
     clip plays through them (operator preference: no fallback text cards).
     Returns (event, render_duration) pairs; absorbed gaps are dropped.
     Backward pass first (previous clip holds), then forward (a leading gap is
-    covered by the next clip). Gaps with no clip neighbor render as cards."""
+    covered by the next clip). Gaps with no clip neighbor render blank."""
     spans: list[list] = [[ev, ev["start_s"], ev["end_s"]] for ev in events]
     absorbed: list[list] = []
     for item in spans:
@@ -111,25 +100,18 @@ def render_event_segment(ev: dict, seg_dir: Path, w: int, h: int,
 
     asset_path, asset_dur = (_resolve_asset(ev["asset_id"])
                              if ev.get("asset_id") else (None, 0.0))
-    cap = ev.get("caption") or {}
-    ass_path = seg_dir / f"{ev['id']}.ass"
 
     if asset_path and Path(asset_path).exists() and ev.get("source"):
-        # --- Real clip: seek, cover-crop to aspect, pad to exact beat duration,
-        #     burn any caption. Source audio dropped (VO muxed at concat). ---
+        # --- Real clip: seek, cover-crop to aspect, pad to exact beat duration.
+        #     Source audio dropped (VO muxed at concat). ---
         in_s = float(ev["source"].get("in_s", 0.0))
         # Clamp: a seek at/past EOF decodes zero frames and kills the encoder.
         if asset_dur > 0:
             in_s = max(0.0, min(in_s, asset_dur - min(dur, asset_dur) - 0.05))
-        ass_expr = ""
-        if cap.get("enabled") and cap.get("text"):
-            write_card_ass(cap["text"], dur, w, h, cap.get("style", "meme_bottom"),
-                           ass_path)
-            ass_expr = f",ass={ass_path.as_posix()}"
         # setsar=1 normalizes pixel aspect so concat stream-copy stays valid.
         vf = (f"scale={w}:{h}:force_original_aspect_ratio=increase,"
               f"crop={w}:{h},tpad=stop_mode=clone:stop_duration={dur}"
-              f",fps={FPS},setsar=1{ass_expr}")
+              f",fps={FPS},setsar=1")
         try:
             _run_atomic([
                 ffmpeg(), "-y", "-ss", f"{in_s:.3f}", "-i", asset_path,
@@ -139,17 +121,13 @@ def render_event_segment(ev: dict, seg_dir: Path, w: int, h: int,
             ], out)
             if _probe_ok(out):
                 return out
-            out.unlink(missing_ok=True)  # zero-frame output → card fallback
+            out.unlink(missing_ok=True)  # zero-frame output → blank fallback
         except Exception:  # noqa: BLE001 — one bad clip must not sink the render
             pass
-        # Fall back to a caption card so the timeline stays intact (NFR5).
-        fallback = cap.get("text") or (ev.get("queries") or ["clip unavailable"])[0]
-        return _render_card(f"[unavailable] {fallback}", "card", dur, out,
-                            ass_path, w, h, crf, preset)
 
-    # --- Caption card / placeholder (color background + centered text). ---
-    text, style = _seg_text_style(ev)
-    return _render_card(text, style, dur, out, ass_path, w, h, crf, preset)
+    # --- Gap / unavailable clip: plain background, absorbed by neighbors
+    #     whenever one exists (see _absorb_gaps). ---
+    return _render_blank(dur, out, w, h, crf, preset)
 
 
 def render_proxy(project_id: str, edl: dict, master_path: Path | None,
@@ -176,14 +154,11 @@ def _render_locked(project_id: str, edl: dict, master_path: Path | None,
         try:
             seg = render_event_segment(ev, seg_dir, w, h, proxy, dur=dur)
         except Exception:  # noqa: BLE001 — last-resort per-segment guard
-            seg = _render_card(
-                (ev.get("caption") or {}).get("text") or ev.get("kind", "clip"),
-                "card", dur, seg, seg_dir / f"{ev['id']}.ass", w, h, crf, preset)
-        # Validate before it can poison the concat; a broken segment becomes a card.
+            seg = _render_blank(dur, seg, w, h, crf, preset)
+        # Validate before it can poison the concat; a broken segment goes blank.
         if not _probe_ok(seg):
             seg.unlink(missing_ok=True)
-            seg = _render_card("…", "card", dur, seg,
-                               seg_dir / f"{ev['id']}.ass", w, h, crf, preset)
+            seg = _render_blank(dur, seg, w, h, crf, preset)
         seg_paths.append(seg)
         if on_progress:
             on_progress((i + 1) / max(1, len(render_plan)) * 0.85)

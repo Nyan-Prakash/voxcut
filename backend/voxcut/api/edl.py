@@ -30,7 +30,7 @@ async def generate(project_id: str) -> dict:
 
 
 class Op(BaseModel):
-    op: str          # set_caption | set_treatment | set_audio | set_kind | delete | reorder | lock
+    op: str          # set_treatment | set_audio | set_kind | delete | lock | set_source | set_asset
     event_id: str | None = None
     data: dict = {}
 
@@ -40,7 +40,7 @@ class OpsBody(BaseModel):
     ops: list[Op]
 
 
-_ALLOWED = {"set_caption", "set_treatment", "set_audio", "set_kind",
+_ALLOWED = {"set_treatment", "set_audio", "set_kind",
             "delete", "lock", "set_source", "set_asset"}
 
 
@@ -64,9 +64,7 @@ def apply_ops(project_id: str, body: OpsBody) -> dict:
         ev = events.get(op.event_id or "")
         if not ev:
             raise HTTPException(404, f"event {op.event_id} not found")
-        if op.op == "set_caption":
-            ev["caption"].update(op.data)
-        elif op.op == "set_treatment":
+        if op.op == "set_treatment":
             ev["treatment"].update(op.data)
         elif op.op == "set_audio":
             ev["audio"].update(op.data)
@@ -94,6 +92,31 @@ def _mark_dirty(project_id: str, event_ids: list[str]) -> None:
         for ext in (".mp4", ".ass"):
             (seg_dir / f"{eid}{ext}").unlink(missing_ok=True)
         (seg_dir / f"thumb_{eid}.jpg").unlink(missing_ok=True)
+
+
+class SplitBody(BaseModel):
+    event_id: str
+    at_s: float
+
+
+@router.post("/{project_id}/edl/split")
+def split(project_id: str, body: SplitBody) -> dict:
+    """Cut an event in two at ~at_s (word-snapped). Both halves keep the same
+    footage; the underlying beat splits with it so either half can reroll."""
+    from ..timeline_ops import split_event
+    return split_event(project_id, body.event_id, body.at_s)
+
+
+class AddSegmentBody(BaseModel):
+    start_s: float
+    end_s: float
+
+
+@router.post("/{project_id}/edl/add_segment")
+def add_segment(project_id: str, body: AddSegmentBody) -> dict:
+    """Carve out [start_s, end_s] and insert a fresh empty segment there."""
+    from ..timeline_ops import add_segment as _add
+    return _add(project_id, body.start_s, body.end_s)
 
 
 @router.post("/{project_id}/edl/undo")

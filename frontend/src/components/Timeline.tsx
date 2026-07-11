@@ -1,24 +1,66 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import { useStore } from "../store";
 
 const PX_PER_S = 60;
 
 export function Timeline() {
-  const { edl, beats, project, selectedEventId, select, playheadS, seek } = useStore();
+  const { edl, beats, project, selectedEventId, select, playheadS, seek,
+          tool, splitAt, addSegmentRange, reroll } = useStore();
+  const [drag, setDrag] = useState<{ a: number; b: number } | null>(null);
   const dur = project?.duration_s || (edl ? Math.max(...edl.events.map((e) => e.end_s)) : 0);
   const width = Math.max(600, dur * PX_PER_S);
 
   if (!edl) return null;
 
-  const seekAt = (e: React.MouseEvent) => {
+  const tAt = (e: React.MouseEvent) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    seek((e.clientX - rect.left) / PX_PER_S);
+    return (e.clientX - rect.left) / PX_PER_S;
+  };
+
+  const onBackgroundClick = (e: React.MouseEvent) => {
+    if (tool === "select") seek(tAt(e));
+  };
+
+  const onEventClick = (e: React.MouseEvent, evId: string) => {
+    e.stopPropagation();
+    if (tool === "cut") {
+      const rect = (e.currentTarget as HTMLElement).closest(".tl-root")!.getBoundingClientRect();
+      splitAt(evId, (e.clientX - rect.left) / PX_PER_S);
+    } else {
+      select(evId);
+    }
+  };
+
+  // Drag-to-add: press, sweep a range, release → new segment.
+  const onMouseDown = (e: React.MouseEvent) => {
+    if (tool !== "add") return;
+    const t = tAt(e);
+    setDrag({ a: t, b: t });
+  };
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (tool !== "add" || !drag) return;
+    setDrag({ a: drag.a, b: tAt(e) });
+  };
+  const onMouseUp = () => {
+    if (tool !== "add" || !drag) return;
+    const [a, b] = [Math.min(drag.a, drag.b), Math.max(drag.a, drag.b)];
+    setDrag(null);
+    if (b - a >= 0.5) addSegmentRange(a, b);
   };
 
   return (
-    <div style={{ minWidth: width, position: "relative" }} onClick={seekAt}>
+    <div className={`tl-root tool-${tool}`}
+         style={{ minWidth: width, position: "relative" }}
+         onClick={onBackgroundClick}
+         onMouseDown={onMouseDown} onMouseMove={onMouseMove}
+         onMouseUp={onMouseUp} onMouseLeave={() => setDrag(null)}>
       <div className="playhead" style={{ left: playheadS * PX_PER_S }} />
+      {drag && (
+        <div className="add-range"
+             style={{ left: Math.min(drag.a, drag.b) * PX_PER_S,
+                      width: Math.abs(drag.b - drag.a) * PX_PER_S }} />
+      )}
       <Wave width={width} />
       {/* Beat ruler */}
       <div className="track" style={{ height: 20 }}>
@@ -32,48 +74,38 @@ export function Timeline() {
       </div>
       {/* Video track */}
       <div className="track-label">video</div>
-      <div className="track">
+      <div className="track" style={{ height: 56 }}>
         <div className="tl-inner">
           {edl.events.map((e) => {
-            const cls = e.flags?.includes("gap_unfilled") ? "gap"
-              : e.kind === "caption_card" ? "card" : "clip";
+            const cls = e.flags?.includes("gap_unfilled") ? "gap" : "clip";
             const rev = e.flags?.includes("needs_review") || e.flags?.includes("close_call");
             // Label with what actually PLAYS (tournament winner), not the query.
-            const winner = (e as any).finalists?.find((f: any) => f.asset_id === e.asset_id);
-            const label = e.kind === "caption_card"
-              ? (e.caption?.text || "card")
-              : (winner?.title || e.queries?.[0] || e.kind);
+            const winner = e.finalists?.find((f: any) => f.asset_id === e.asset_id);
+            const label = winner?.title || e.queries?.[0]
+              || (e.flags?.includes("user_added") ? "new segment — search or reroll" : e.kind);
             return (
               <div key={e.id}
                    className={`evt ${cls} ${selectedEventId === e.id ? "sel" : ""}`}
                    style={{ left: e.start_s * PX_PER_S,
                             width: Math.max(8, (e.end_s - e.start_s) * PX_PER_S) }}
-                   onClick={() => select(e.id)}
-                   title={`${e.kind} · ${label}`}>
+                   onClick={(me) => onEventClick(me, e.id)}
+                   title={tool === "cut" ? "click to cut here" : `${e.kind} · ${label}`}>
                 {e.asset_id && project && (
                   <img loading="lazy" alt=""
                        src={api.mediaUrl(`/projects/${project.id}/thumb/${e.id}`)}
                        onError={(ev) => ((ev.target as HTMLElement).style.display = "none")} />
                 )}
                 {rev && <span className="rev">⚑</span>}
+                {tool === "select" && !e.locked && (
+                  <button className="dice" title="Reroll: fresh plan + fresh footage for this clip"
+                          onClick={(me) => { me.stopPropagation(); reroll([e.id]); }}>
+                    🎲
+                  </button>
+                )}
                 <span className="evt-label">{label}</span>
               </div>
             );
           })}
-        </div>
-      </div>
-      {/* Caption track */}
-      <div className="track-label">captions</div>
-      <div className="track" style={{ height: 24 }}>
-        <div className="tl-inner">
-          {edl.events.filter((e) => e.caption?.enabled && e.caption?.text).map((e) => (
-            <div key={e.id} className="capline"
-                 style={{ left: e.start_s * PX_PER_S,
-                          width: Math.max(8, (e.end_s - e.start_s) * PX_PER_S) }}
-                 onClick={() => select(e.id)}>
-              {e.caption.text}
-            </div>
-          ))}
         </div>
       </div>
     </div>

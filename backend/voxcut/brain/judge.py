@@ -3,8 +3,8 @@
 The heuristic ranker orders search results, but title similarity can't tell
 "actually contains this footage" from "vaguely mentions it". This judge shows
 the LLM the beat's narration + the candidate list and asks which videos would
-genuinely contain matching footage. Irrelevant results get rejected — a caption
-card beats a random clip.
+genuinely contain matching footage. Irrelevant results get rejected — a gap
+held by the neighboring clip beats a random clip.
 """
 from __future__ import annotations
 
@@ -78,7 +78,8 @@ Judging rules:
   crime, accidents, disasters, grief — regardless of relevance. A funny beat
   cut against someone's real misfortune reads as offensive, not funny.
 - When in doubt, score low. Returning zero good picks is a valid answer —
-  the editor falls back to a stylish caption card, which beats a random clip.
+  the editor lets the neighboring clip hold through the gap, which beats a
+  random clip.
 
 Return picks ONLY for results scoring >= 0.5, ordered best-first."""
 

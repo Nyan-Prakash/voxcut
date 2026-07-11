@@ -20,24 +20,22 @@ with session_scope() as db:
     pid = p.id
 pdir = settings().project_dir(pid)
 
-# Two beats → two clip events with real queries.
+# Two beats → one clip event with real queries + one unfilled gap.
 events = [
     {"id": "ev_a", "beat_id": "b1", "start_s": 0.0, "end_s": 4.0,
      "kind": "clip_literal", "asset_id": None, "source": None,
-     "queries": ["Kevin drops the chili The Office"],
-     "treatment": {}, "caption": {"text": "HE DROPPED THE CHILI", "style": "meme_bottom",
-                                   "enabled": True},
+     "queries": ["Kevin drops the chili The Office"], "joke_queries": [],
+     "treatment": {},
      "audio": {"mode": "mute"}, "flags": ["auto"], "locked": False},
     {"id": "ev_b", "beat_id": "b2", "start_s": 4.0, "end_s": 7.0,
-     "kind": "caption_card", "asset_id": None, "source": None, "queries": [],
-     "treatment": {}, "caption": {"text": "a tragedy for the whole office",
-                                  "style": "subtitle", "enabled": True},
-     "audio": {"mode": "mute"}, "flags": ["auto"], "locked": False},
+     "kind": "broll", "asset_id": None, "source": None, "queries": [],
+     "joke_queries": [], "treatment": {},
+     "audio": {"mode": "mute"}, "flags": ["auto", "gap_unfilled"], "locked": False},
 ]
 
 provider = YouTubeProvider()
 print("sourcing clip event (downloading)…")
-asset_id, source, cands = _source_one(pid, events[0], provider, Filters())
+asset_id, source, cands, _finalists = _source_one(pid, events[0], provider, Filters())
 print("  asset_id:", asset_id)
 print("  source:", source)
 print("  candidates:", len(cands))

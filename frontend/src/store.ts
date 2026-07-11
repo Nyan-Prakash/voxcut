@@ -17,6 +17,7 @@ interface State {
   toast: string | null;
   playheadS: number;
   videoEl: HTMLVideoElement | null;
+  tool: "select" | "cut" | "add";
 
   setView: (v: State["view"]) => void;
   loadProjects: () => Promise<void>;
@@ -25,6 +26,10 @@ interface State {
   select: (id: string | null) => void;
   applyOps: (ops: any[]) => Promise<void>;
   undo: () => Promise<void>;
+  setTool: (t: State["tool"]) => void;
+  splitAt: (eventId: string, atS: number) => Promise<void>;
+  addSegmentRange: (startS: number, endS: number) => Promise<void>;
+  reroll: (eventIds: string[]) => Promise<void>;
   onEvent: (ev: any) => void;
   setToast: (t: string | null) => void;
   bumpPreview: () => void;
@@ -48,8 +53,10 @@ export const useStore = create<State>((set, get) => ({
   toast: null,
   playheadS: 0,
   videoEl: null,
+  tool: "select",
 
   setView: (v) => set({ view: v }),
+  setTool: (t) => set({ tool: t }),
 
   loadProjects: async () => set({ projects: await api.listProjects() }),
 
@@ -91,6 +98,41 @@ export const useStore = create<State>((set, get) => ({
     const edl = await api.undo(project.id);
     set({ edl });
     await api.rebuildPreview(project.id);
+  },
+
+  splitAt: async (eventId, atS) => {
+    const { project } = get();
+    if (!project) return;
+    try {
+      const res = await api.splitEvent(project.id, eventId, atS);
+      set({ edl: res.edl, selectedEventId: res.new_event_id });
+      try { const b = await api.getBeats(project.id); set({ beats: b.beats }); } catch { /* */ }
+      get().setToast(`✂ Cut at ${res.cut_s.toFixed(2)}s — reroll either half for new footage`);
+      await api.rebuildPreview(project.id);
+    } catch (e: any) { get().setToast(e.message); }
+  },
+
+  addSegmentRange: async (startS, endS) => {
+    const { project } = get();
+    if (!project) return;
+    try {
+      const res = await api.addSegment(project.id, startS, endS);
+      set({ edl: res.edl, selectedEventId: res.new_event_id, tool: "select" });
+      try { const b = await api.getBeats(project.id); set({ beats: b.beats }); } catch { /* */ }
+      get().setToast("Segment added — search or reroll to fill it");
+      await api.rebuildPreview(project.id);
+    } catch (e: any) { get().setToast(e.message); }
+  },
+
+  reroll: async (eventIds) => {
+    const { project } = get();
+    if (!project || !eventIds.length) return;
+    try {
+      await api.reroll(project.id, eventIds);
+      get().setToast(eventIds.length === 1
+        ? "🎲 Rerolling clip — fresh plan, fresh footage…"
+        : `🎲 Rerolling ${eventIds.length} clips…`);
+    } catch (e: any) { get().setToast(e.message); }
   },
 
   onEvent: (ev) => {

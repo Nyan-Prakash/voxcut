@@ -14,9 +14,9 @@ init_db()
 print("embedder available:", embed.available())
 
 ev = {"id": "ev_x", "start_s": 0.0, "end_s": 4.0, "kind": "clip_literal",
-      "queries": ["Kevin drops the chili The Office"], "caption": {"text": ""},
+      "queries": ["Kevin drops the chili The Office"], "joke_queries": [],
       "flags": [], "locked": False}
-asset_id, _src, _c = _source_one("proj_test", ev, YouTubeProvider(), Filters())
+asset_id, _src, _c, _f = _source_one("proj_test", ev, YouTubeProvider(), Filters())
 with session_scope() as db:
     a = db.get(Asset, asset_id)
     file_path, subs_path, heatmap_path, dur, sid = (

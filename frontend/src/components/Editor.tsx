@@ -42,10 +42,29 @@ export function Editor() {
   );
 }
 
+function ToolSwitch() {
+  const { tool, setTool } = useStore();
+  const TOOLS: Array<{ id: typeof tool; label: string; hint: string }> = [
+    { id: "select", label: "▣ Select", hint: "click clips to edit, click background to seek" },
+    { id: "cut", label: "✂ Cut", hint: "click a clip to split it at that point (snaps to words)" },
+    { id: "add", label: "＋ Segment", hint: "drag a range on the timeline to carve a new segment" },
+  ];
+  return (
+    <div className="seg" role="toolbar">
+      {TOOLS.map((t) => (
+        <button key={t.id} title={t.hint}
+                className={tool === t.id ? "active" : "sec"}
+                onClick={() => setTool(t.id)}>{t.label}</button>
+      ))}
+    </div>
+  );
+}
+
 function EditorToolbar() {
   const { project, undo, refreshEdl } = useStore();
   return (
     <div className="row">
+      <ToolSwitch />
       <button className="sec" onClick={async () => {
         await api.generate(project!.id);
         useStore.getState().setToast("Regenerating…");
