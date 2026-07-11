@@ -36,16 +36,21 @@ export function Timeline() {
           {edl.events.map((e) => {
             const cls = e.flags?.includes("gap_unfilled") ? "gap"
               : e.kind === "caption_card" ? "card" : "clip";
-            const rev = e.flags?.includes("needs_review");
+            const rev = e.flags?.includes("needs_review") || e.flags?.includes("close_call");
+            // Label with what actually PLAYS (tournament winner), not the query.
+            const winner = (e as any).finalists?.find((f: any) => f.asset_id === e.asset_id);
+            const label = e.kind === "caption_card"
+              ? (e.caption?.text || "card")
+              : (winner?.title || e.queries?.[0] || e.kind);
             return (
               <div key={e.id}
                    className={`evt ${cls} ${selectedEventId === e.id ? "sel" : ""}`}
                    style={{ left: e.start_s * PX_PER_S,
                             width: Math.max(8, (e.end_s - e.start_s) * PX_PER_S) }}
                    onClick={() => select(e.id)}
-                   title={`${e.kind} · ${e.caption?.text || e.queries?.[0] || ""}`}>
+                   title={`${e.kind} · ${label}`}>
                 {rev && <span className="rev">⚑ </span>}
-                {e.kind === "caption_card" ? (e.caption?.text || "card") : (e.queries?.[0] || e.kind)}
+                {label}
               </div>
             );
           })}

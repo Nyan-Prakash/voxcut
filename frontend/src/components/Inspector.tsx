@@ -110,7 +110,9 @@ function InspectorBody({ ev, applyOps }: { ev: EdlEvent; applyOps: (ops: any[]) 
                        await api.rebuildPreview(project!.id);
                        useStore.getState().refreshEdl();
                      }}>
-                  <div>#{i + 1} · score {m.score?.toFixed?.(2)}</div>
+                  <div>#{i + 1} · {m.visual != null
+                    ? `vision ${m.visual.toFixed(2)}`
+                    : `score ${m.score?.toFixed?.(2)}`}</div>
                   <div className="muted">{m.in_s.toFixed(1)}s → {m.out_s.toFixed(1)}s</div>
                 </div>
               );
