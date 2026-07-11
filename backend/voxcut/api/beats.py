@@ -64,7 +64,8 @@ def _recompute_times(project_id: str, beats: list[dict], db: Session) -> None:
                     gist=b.get("gist", ""), tone=b.get("tone", "neutral"),
                     emphasis=b.get("emphasis", 0.4),
                     concrete_entities=b.get("concrete_entities", []),
-                    visual_affinity=b.get("visual_affinity", "literal"))
+                    visual_affinity=b.get("visual_affinity", "literal"),
+                    rhythm=b.get("rhythm", "flow"))
             for b in beats]
     recomputed = _finalize(raws, words, silences, duration)
     # Preserve ids and locked flags from the originals.

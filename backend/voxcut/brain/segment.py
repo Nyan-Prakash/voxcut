@@ -23,7 +23,11 @@ DENSITY = {
 }
 WINDOW_S = 90.0
 OVERLAP_S = 15.0
-MIN_BEAT_S = 0.8
+# Quick-cut beats (genuine lists / escalating rants) may run short; everything
+# else holds at least ~1s on screen (operator-confirmed 2026-07-14).
+MIN_BEAT_S = 1.0
+PROTECTED_MIN_S = 0.2   # operator chose cut-per-item even for very fast lists
+PROTECTED_RHYTHMS = {"list_item", "escalation"}
 MAX_BEAT_S = 12.0
 SILENCE_CUT = 0.12
 GAP_CUT = 0.06
@@ -46,6 +50,7 @@ class RawBeat:
     emphasis: float = 0.4
     concrete_entities: list[str] = None  # type: ignore
     visual_affinity: str = "literal"
+    rhythm: str = "flow"
 
     def __post_init__(self):
         if self.concrete_entities is None:
@@ -70,6 +75,7 @@ def segment(words: list[W], silences: list[tuple[float, float]],
         raw = _heuristic_segment(words, silences, min_w, max_w)
 
     raw = _validate(raw, words)
+    raw = _explode_lists(raw, words)
     raw = _density_fit(raw, words, target_len)
     return _finalize(raw, words, silences, duration)
 
@@ -194,6 +200,33 @@ def _validate(beats: list[RawBeat], words: list[W]) -> list[RawBeat]:
     return fixed
 
 
+# ---------------------------------------------------------------- list explode
+def _explode_lists(beats: list[RawBeat], words: list[W]) -> list[RawBeat]:
+    """A list_item beat containing several comma-separated items becomes one
+    beat per item — the LLM marks WHERE the list is; code guarantees the
+    one-clip-per-item rhythm deterministically. Only list_item beats are
+    touched; flow/escalation pass through unchanged."""
+    wmap = {w.idx: w for w in words}
+    out: list[RawBeat] = []
+    for b in beats:
+        if b.rhythm != "list_item" or b.end_word <= b.start_word:
+            out.append(b)
+            continue
+        cut_after = [i for i in range(b.start_word, b.end_word)
+                     if wmap[i].text.strip().rstrip('"').endswith((",", ";"))]
+        if not cut_after:
+            out.append(b)
+            continue
+        bounds = [b.start_word - 1] + cut_after + [b.end_word]
+        for lo, hi in zip(bounds, bounds[1:]):
+            if hi <= lo:
+                continue
+            out.append(RawBeat(lo + 1, hi, b.gist, b.tone, b.emphasis,
+                               list(b.concrete_entities), b.visual_affinity,
+                               "list_item"))
+    return out
+
+
 # ---------------------------------------------------------------- density fit
 def _beat_seconds(b: RawBeat, wmap: dict[int, W]) -> float:
     return wmap[b.end_word].end_s - wmap[b.start_word].start_s
@@ -202,12 +235,17 @@ def _beat_seconds(b: RawBeat, wmap: dict[int, W]) -> float:
 def _density_fit(beats: list[RawBeat], words: list[W], target_len: float) -> list[RawBeat]:
     wmap = {w.idx: w for w in words}
 
-    # Merge beats shorter than MIN_BEAT_S into the lower-emphasis neighbor.
+    def min_for(b: RawBeat) -> float:
+        # Quick-cut beats (lists/escalations) may run short; only true slivers
+        # get merged. Everything else holds >= MIN_BEAT_S on screen.
+        return PROTECTED_MIN_S if b.rhythm in PROTECTED_RHYTHMS else MIN_BEAT_S
+
+    # Merge too-short beats into the lower-emphasis neighbor.
     changed = True
     while changed and len(beats) > 1:
         changed = False
         for i, b in enumerate(beats):
-            if _beat_seconds(b, wmap) < MIN_BEAT_S:
+            if _beat_seconds(b, wmap) < min_for(b):
                 j = i - 1 if i > 0 and (i == len(beats) - 1 or
                                         beats[i - 1].emphasis <= beats[i + 1].emphasis) else i + 1
                 lo, hi = sorted((i, j))
@@ -218,7 +256,9 @@ def _density_fit(beats: list[RawBeat], words: list[W], target_len: float) -> lis
                     emphasis=max(beats[lo].emphasis, beats[hi].emphasis),
                     concrete_entities=list({*beats[lo].concrete_entities,
                                             *beats[hi].concrete_entities}),
-                    visual_affinity=beats[lo].visual_affinity)
+                    visual_affinity=beats[lo].visual_affinity,
+                    rhythm=beats[lo].rhythm if beats[lo].rhythm in PROTECTED_RHYTHMS
+                    else beats[hi].rhythm)
                 beats = beats[:lo] + [merged] + beats[hi + 1:]
                 changed = True
                 break
@@ -229,9 +269,11 @@ def _density_fit(beats: list[RawBeat], words: list[W], target_len: float) -> lis
         if _beat_seconds(b, wmap) > MAX_BEAT_S and b.end_word > b.start_word:
             mid = (b.start_word + b.end_word) // 2
             out.append(RawBeat(b.start_word, mid, b.gist, b.tone, b.emphasis,
-                               list(b.concrete_entities), b.visual_affinity))
+                               list(b.concrete_entities), b.visual_affinity,
+                               b.rhythm))
             out.append(RawBeat(mid + 1, b.end_word, b.gist, b.tone, b.emphasis,
-                               list(b.concrete_entities), b.visual_affinity))
+                               list(b.concrete_entities), b.visual_affinity,
+                               b.rhythm))
         else:
             out.append(b)
     return out
@@ -278,6 +320,7 @@ def _finalize(beats: list[RawBeat], words: list[W],
             "tone": b.tone,
             "concrete_entities": b.concrete_entities,
             "visual_affinity": b.visual_affinity,
+            "rhythm": b.rhythm,
             "emphasis": round(float(b.emphasis), 3),
             "locked": False,
         })

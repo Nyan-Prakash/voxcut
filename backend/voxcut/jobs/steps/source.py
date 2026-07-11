@@ -39,7 +39,11 @@ async def run_source(ctx: JobContext) -> None:
     if beats_path.exists():
         for b in json.loads(beats_path.read_text())["beats"]:
             txt = b.get("text") or b.get("gist", "")
-            if b.get("emphasis", 0) >= 0.7:
+            if b.get("rhythm") == "list_item":
+                txt += (" [LIST ITEM in a rapid-fire list — a plain literal "
+                        "shot of exactly this item is IDEAL; simple stock "
+                        "footage scores high here]")
+            elif b.get("emphasis", 0) >= 0.7:
                 txt += " [PUNCHLINE beat — wants a chaotic, high-energy visual]"
             elif b.get("emphasis", 1) < 0.4:
                 txt += " [setup beat — calm/medium footage is right]"

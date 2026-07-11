@@ -34,13 +34,15 @@ assert beats[0]["start_s"] == 0.0
 assert beats[-1]["end_s"] <= duration + 1e-6
 
 # 3. Min beat length enforced (allow the very last remainder to be short).
+#    Quick-cut beats (list_item/escalation) may run to 0.3s; flow holds >= 1s.
 for bt in beats[:-1]:
-    assert bt["end_s"] - bt["start_s"] >= 0.8 - 1e-6, bt
+    floor = 0.2 if bt.get("rhythm") in ("list_item", "escalation") else 1.0
+    assert bt["end_s"] - bt["start_s"] >= floor - 1e-6, bt
 
 # 4. Every beat has required fields.
 for bt in beats:
     for f in ("id", "gist", "tone", "emphasis", "visual_affinity",
-              "concrete_entities", "locked"):
+              "concrete_entities", "locked", "rhythm"):
         assert f in bt, (f, bt)
 
 print(f"OK — {len(beats)} beats, coverage 0..39, all invariants hold")

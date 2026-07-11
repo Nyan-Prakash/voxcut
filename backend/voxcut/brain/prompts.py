@@ -13,14 +13,23 @@ question is posed; a list item begins; the narrator's stance/emotion shifts.
 between an adjective and its noun, mid-idiom, mid-name).
 3. Beats are typically {min_words}-{max_words} words for the requested density. \
 A huge laugh-line may be shorter; connective tissue may be longer.
-4. Mark emphasis 0..1: 1.0 = the punchline/peak of a joke, 0.2 = setup/filler.
-5. concrete_entities: only things that could literally be shown on screen.
-6. visual_affinity: "literal" (show the named thing), "reactive" (show a \
+4. EXCEPTION — quick-cut structures. Exactly two sentence shapes may break the \
+typical length and cut faster:
+   - LISTS: when the narrator rattles off items ("food, houses, clothes"), \
+each listed item gets its OWN beat, however short. Tag rhythm="list_item".
+   - ESCALATING RANTS: when the narrator piles on steps ("and then… AND \
+THEN…"), each escalation step is its own beat. Tag rhythm="escalation".
+Everything else is rhythm="flow" and MUST stay in the typical length range — \
+do NOT shorten normal narration, setups, or punchlines; this exception is \
+only for genuine lists and pile-ons.
+5. Mark emphasis 0..1: 1.0 = the punchline/peak of a joke, 0.2 = setup/filler.
+6. concrete_entities: only things that could literally be shown on screen.
+7. visual_affinity: "literal" (show the named thing), "reactive" (show a \
 reaction to what's said), "abstract" (no obvious literal visual).
 
 Input words are numbered. Return beats as {{start_word, end_word (inclusive), \
-gist, tone, emphasis, concrete_entities, visual_affinity}}. Every word must be \
-covered exactly once, in order. Do not skip or reuse word indices."""
+gist, tone, emphasis, concrete_entities, visual_affinity, rhythm}}. Every word \
+must be covered exactly once, in order. Do not skip or reuse word indices."""
 
 SEGMENTATION_USER = """\
 Context about the video: {context}

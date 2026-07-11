@@ -57,6 +57,12 @@ is the worst outcome — go clearly literal or clearly joke, never in between.
 (emphasis <0.5) want calm/medium footage; punchlines (>=0.7) want chaotic \
 high-energy visuals (crashes, explosions, freakouts, sprinting). Do not put \
 chaos under setup lines or calm stock under a punchline.
+2b. QUICK-CUT BEATS: beats tagged rhythm=list_item are rapid-fire one-item \
+beats — each wants a PLAIN, instantly-readable literal shot of exactly that \
+item ("popcorn" → popcorn close-up). Simple stock footage is CORRECT here; the \
+speed of the cuts is the joke, so rule 1's never-mediocre law does not apply \
+to list items. Write ONE dead-simple query naming the item. rhythm=escalation \
+beats want visuals whose energy rises with each step.
 3. FLAVOR MIX (measured): movie/TV scenes + viral clips are the backbone \
 (~half the video), stock footage/photos ~20% (deliberately cheap or \
 watermarked stock allowed as an ironic gag), anime + cartoons ~15% as \
@@ -140,7 +146,8 @@ def _llm_plan(beats: list[dict], brief: dict) -> list[dict]:
     KINDS = {"clip_literal", "clip_reaction", "meme_image", "caption_card", "broll"}
 
     beats_block = "\n".join(
-        f"{b['id']} | emph={b['emphasis']} | affinity={b['visual_affinity']} | "
+        f"{b['id']} | emph={b['emphasis']} | rhythm={b.get('rhythm', 'flow')} | "
+        f"affinity={b['visual_affinity']} | "
         f"entities={b.get('concrete_entities')} | {b['text']}" for b in beats)
     system = PLAN_SYSTEM.format(avoid=avoid)
     user = PLAN_USER.format(context=context, avoid=avoid, beats_block=beats_block)

@@ -21,9 +21,11 @@ SEGMENTATION_SCHEMA = {
                     "concrete_entities": {"type": "array", "items": {"type": "string"}},
                     "visual_affinity": {"type": "string",
                                         "enum": ["literal", "reactive", "abstract"]},
+                    "rhythm": {"type": "string",
+                               "enum": ["list_item", "escalation", "flow"]},
                 },
                 "required": ["start_word", "end_word", "gist", "tone", "emphasis",
-                             "concrete_entities", "visual_affinity"],
+                             "concrete_entities", "visual_affinity", "rhythm"],
             },
         }
     },
