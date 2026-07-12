@@ -13,17 +13,16 @@ import math
 from .config import settings
 from .media.probe import ffprobe
 
-MOODS = ["chill", "whimsical", "hype", "tense", "dramatic", "sad"]
-# Beat tone (brain/segment) → track mood to hunt for.
-TONE_TO_MOOD = {
-    "deadpan": "chill",
-    "neutral": "chill",
-    "sarcastic": "whimsical",
-    "absurd": "whimsical",
-    "hype": "hype",
-    "serious": "tense",
-}
-MIN_SECTION_S = 20.0   # don't switch tracks faster than this
+MOODS = ["chill", "whimsical", "hype", "tense", "dramatic", "sad", "angry"]
+# The bed: normal narration plays these tracks at natural length, in order.
+BASELINE_MOODS = ["chill", "whimsical"]
+# Emotional sections interrupt the bed only when sustained this long.
+EMO_MIN_S = 8.0
+# No track tagged with the wanted mood → try these before giving up
+# (giving up = the normal bed just keeps playing).
+EMO_FALLBACK = {"angry": ["tense", "dramatic"],
+                "sad": ["tense"],
+                "dramatic": ["tense", "angry"]}
 AUDIO_EXTS = {".mp3", ".m4a", ".aac", ".wav", ".ogg", ".flac"}
 
 # Music plays at one constant level — ducking/swell removed entirely
@@ -83,63 +82,110 @@ def track_path(name: str):
 
 # ---------------------------------------------------------------- suggestion
 
+def _beat_emotion(b: dict) -> str:
+    """One label per beat: which music the narration wants right now.
+    'normal' = the baseline bed; only sustained runs of the others
+    interrupt it (rants → angry, sad stretches → sad, heavy → dramatic)."""
+    if b.get("rhythm") == "escalation":  # pile-on rant
+        return "angry"
+    tone = b.get("tone", "neutral")
+    emph = float(b.get("emphasis", 0.4))
+    if tone in ("hype", "sarcastic") and emph >= 0.7:
+        return "angry"
+    if tone == "serious":
+        return "dramatic" if emph >= 0.6 else "sad"
+    return "normal"
+
+
 def suggest_regions(beats: list[dict], tracks: list[dict],
                     duration: float) -> list[dict]:
-    """Deterministic theme-matching: group beats into tone sections (>=20s),
-    map each section's dominant tone to a mood, pick the operator's best
-    matching track (round-robin on ties so one track doesn't hog the video)."""
+    """One normal song plays as the bed — uncut, resuming after interruptions,
+    chaining to the next normal song only when it naturally ends. Sustained
+    emotional stretches (>= EMO_MIN_S) cut to a matching angry/sad/dramatic
+    track, then the bed picks up where it left off (region offset_s)."""
     tagged = [t for t in tracks if t.get("mood")]
     if not tagged or duration <= 0:
         return []
-
-    # Sections: runs of same target mood, merged up to the minimum length.
-    sections: list[dict] = []
-    for b in beats:
-        mood = TONE_TO_MOOD.get(b.get("tone", "neutral"), "chill")
-        if sections and (sections[-1]["mood"] == mood
-                         or b["end_s"] - sections[-1]["start_s"] < MIN_SECTION_S):
-            sections[-1]["end_s"] = b["end_s"]
-            sections[-1]["tones"].append(mood)
-        else:
-            sections.append({"start_s": b["start_s"], "end_s": b["end_s"],
-                             "mood": mood, "tones": [mood]})
-    for sec in sections:  # dominant mood across everything merged in
-        sec["mood"] = max(set(sec["tones"]), key=sec["tones"].count)
-    # A trailing short section folds into its neighbor.
-    if len(sections) > 1 and (sections[-1]["end_s"] - sections[-1]["start_s"]) < MIN_SECTION_S:
-        sections[-2]["end_s"] = sections[-1]["end_s"]
-        sections.pop()
-
     by_mood: dict[str, list[dict]] = {}
     for t in tagged:
         by_mood.setdefault(t["mood"], []).append(t)
-    FALLBACK = {"chill": ["whimsical", "sad"], "whimsical": ["chill", "hype"],
-                "hype": ["whimsical", "dramatic"], "tense": ["dramatic", "chill"],
-                "dramatic": ["tense", "hype"], "sad": ["chill", "tense"]}
+    normal_pool = [t for m in BASELINE_MOODS for t in by_mood.get(m, [])] or tagged
+
     rr: dict[str, int] = {}
 
-    def pick(mood: str) -> dict:
-        for m in [mood, *FALLBACK.get(mood, []), *MOODS]:
+    def pick_emotional(mood: str) -> dict | None:
+        for m in [mood, *EMO_FALLBACK.get(mood, [])]:
             pool = by_mood.get(m)
             if pool:
                 i = rr.get(m, 0)
                 rr[m] = i + 1
                 return pool[i % len(pool)]
-        return tagged[0]
+        return None
 
-    regions = []
-    prev_name = None
-    for i, sec in enumerate(sections):
-        t = pick(sec["mood"])
-        end = duration if i == len(sections) - 1 else sec["end_s"]
-        # Same track chosen twice in a row → one continuous region instead.
-        if prev_name == t["name"] and regions:
-            regions[-1]["end_s"] = round(end, 3)
+    # 1. Beat labels → contiguous sections.
+    sections: list[dict] = []
+    for b in beats:
+        mood = _beat_emotion(b)
+        if sections and sections[-1]["mood"] == mood:
+            sections[-1]["end_s"] = b["end_s"]
+        else:
+            sections.append({"mood": mood, "start_s": b["start_s"],
+                             "end_s": b["end_s"]})
+    if not sections:
+        return []
+    # 2. Too-short emotional blips (and moods with no track at all) stay on
+    #    the bed; then merge adjacent normals back together.
+    for s in sections:
+        if s["mood"] != "normal" and (
+                s["end_s"] - s["start_s"] < EMO_MIN_S
+                or pick_emotional(s["mood"]) is None):
+            s["mood"] = "normal"
+    rr.clear()  # the probe picks above must not skew round-robin
+    merged: list[dict] = []
+    for s in sections:
+        if merged and merged[-1]["mood"] == s["mood"]:
+            merged[-1]["end_s"] = s["end_s"]
+        else:
+            merged.append(s)
+    merged[0]["start_s"] = 0.0
+    merged[-1]["end_s"] = max(duration, merged[-1]["end_s"])
+
+    # 3. Lay out regions. The bed keeps its own position (track index +
+    #    offset) across interruptions — it resumes, never restarts.
+    regions: list[dict] = []
+    bed_i, bed_off = 0, 0.0
+    rid = 0
+
+    def emit(track: dict, t0: float, t1: float, offset: float = 0.0) -> None:
+        nonlocal rid
+        regions.append({"id": f"mr_{rid}", "file": track["name"],
+                        "start_s": round(t0, 3), "end_s": round(t1, 3),
+                        "gain_db": 0.0, "offset_s": round(offset, 3)})
+        rid += 1
+
+    for sec in merged:
+        if sec["mood"] != "normal":
+            tr = pick_emotional(sec["mood"])  # never None (demoted above)
+            emit(tr, sec["start_s"], sec["end_s"])
             continue
-        regions.append({"id": f"mr_{i}", "file": t["name"],
-                        "start_s": round(max(0.0, sec["start_s"]), 3),
-                        "end_s": round(end, 3), "gain_db": 0.0})
-        prev_name = t["name"]
+        t0 = sec["start_s"]
+        while sec["end_s"] - t0 > 0.5:
+            tr = normal_pool[bed_i % len(normal_pool)]
+            tdur = float(tr.get("duration_s") or 0)
+            if tdur > 1 and tdur - bed_off < 8.0:
+                # Not enough left in this song for a meaningful stretch —
+                # it has effectively ended; move to the next normal song.
+                bed_i += 1
+                bed_off = 0.0
+                continue
+            seg = (sec["end_s"] - t0 if tdur <= 1
+                   else min(tdur - bed_off, sec["end_s"] - t0))
+            emit(tr, t0, t0 + seg, offset=bed_off)
+            bed_off += seg
+            t0 += seg
+            if tdur > 1 and bed_off >= tdur - 1.0:
+                bed_i += 1
+                bed_off = 0.0
     return regions
 
 

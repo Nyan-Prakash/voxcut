@@ -215,17 +215,22 @@ def _mux_final(video_only: Path, master_path: Path, overlays: list[tuple[dict, s
     base_db = float(cfg.get("volume_db", -25.0)) if regions else 0.0
     for k, r in enumerate(regions):
         dur = r["end_s"] - r["start_s"]
+        # offset_s: where playback starts inside the track — lets the normal
+        # bed RESUME after an emotional interruption instead of restarting.
+        off = max(0.0, float(r.get("offset_s", 0.0)))
         try:
             track_dur = float(ffprobe(Path(r["path"])).get("format", {})
                               .get("duration") or 0)
         except Exception:  # noqa: BLE001
             track_dur = 0.0
-        cmd += ["-stream_loop", str(loops_needed(track_dur, dur)), "-i", r["path"]]
+        cmd += ["-stream_loop", str(loops_needed(track_dur, off + dur)),
+                "-i", r["path"]]
         gain_db = base_db + float(r.get("gain_db", 0.0))
         fade_out = max(0.0, dur - 0.8)
         delay = int(round(r["start_s"] * 1000))
         parts.append(
-            f"[{n_in}:a]atrim=0:{dur:.3f},asetpts=PTS-STARTPTS,{AFMT},"
+            f"[{n_in}:a]atrim=start={off:.3f}:end={off + dur:.3f},"
+            f"asetpts=PTS-STARTPTS,{AFMT},"
             f"afade=t=in:d=0.8,afade=t=out:st={fade_out:.3f}:d=0.8,"
             f"volume={gain_db:.1f}dB,"
             f"adelay={delay}|{delay}[mx{k}]")
