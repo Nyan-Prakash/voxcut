@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import { useStore } from "../store";
-import { Timeline } from "./Timeline";
+import { MusicTimeline, Timeline } from "./Timeline";
 import { Inspector } from "./Inspector";
+import { MusicSection } from "./Library";
 
 export function Editor() {
-  const { project, edl, words } = useStore();
+  const { project, edl, words, stage } = useStore();
   const gen = async () => {
     if (!project) return;
     await api.generate(project.id);
@@ -14,6 +15,8 @@ export function Editor() {
 
   if (!project) return null;
   const hasTranscript = words.length > 0;
+
+  if (stage === "music" && edl) return <MusicStage />;
 
   return (
     <div className="editor" style={{ height: "100%" }}>
@@ -37,6 +40,37 @@ export function Editor() {
               : "Transcribing your voiceover… the timeline appears when it's done."}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function MusicStage() {
+  const { project, setStage } = useStore();
+  return (
+    <div className="editor" style={{ height: "100%" }}>
+      <div className="editor-top">
+        <Preview />
+        <div className="inspector">
+          <h2>Music</h2>
+          <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+            Score the accepted cut: drag on the lane below to place a track,
+            or ✨ Suggest to match your tagged tracks to the video's tones.
+          </div>
+          <MusicSection compact />
+        </div>
+      </div>
+      <div className="timeline-wrap">
+        <div className="row" style={{ marginBottom: 6 }}>
+          <button className="sec" onClick={() => setStage("clips")}>← Back to clips</button>
+          <button className="sec" onClick={async () => {
+            await api.rebuildPreview(project!.id);
+            useStore.getState().setToast("Rebuilding preview with music…");
+          }}>▶ Rebuild preview</button>
+          <div className="spacer" />
+          <ExportButton />
+        </div>
+        <MusicTimeline />
       </div>
     </div>
   );
@@ -77,7 +111,10 @@ function EditorToolbar() {
       <button className="ghost" onClick={() => refreshEdl()}>refresh</button>
       <ReviewNav />
       <div className="spacer" />
-      <ExportButton />
+      <button onClick={() => useStore.getState().setStage("music")}
+              title="Happy with the clips? Move on to scoring the video with music.">
+        ✓ Accept clips → Music
+      </button>
     </div>
   );
 }

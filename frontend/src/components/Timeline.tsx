@@ -77,8 +77,6 @@ export function Timeline() {
           ))}
         </div>
       </div>
-      {/* Music lane */}
-      <MusicLane width={width} dur={dur} />
       {/* Video track */}
       <div className="track-label">video</div>
       <div className="track" style={{ height: 56 }}>
@@ -122,7 +120,38 @@ export function Timeline() {
   );
 }
 
-function MusicLane({ width, dur }: { width: number; dur: number }) {
+/** Music section timeline: waveform + beat ruler for reference, music lane
+ *  for editing. The video track lives in the clips section only. */
+export function MusicTimeline() {
+  const { edl, beats, project, playheadS, seek } = useStore();
+  const dur = project?.duration_s || (edl ? Math.max(...edl.events.map((e) => e.end_s)) : 0);
+  const width = Math.max(600, dur * PX_PER_S);
+
+  const seekAt = (e: React.MouseEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    seek((e.clientX - rect.left) / PX_PER_S);
+  };
+
+  return (
+    <div className="tl-root" style={{ minWidth: width, position: "relative" }}
+         onClick={seekAt}>
+      <div className="playhead" style={{ left: playheadS * PX_PER_S }} />
+      <Wave width={width} />
+      <div className="track" style={{ height: 14 }}>
+        <div className="tl-inner">
+          {beats.map((b) => (
+            <div key={b.id} className="beatmark"
+                 style={{ left: b.start_s * PX_PER_S, width: (b.end_s - b.start_s) * PX_PER_S }}
+                 title={b.gist} />
+          ))}
+        </div>
+      </div>
+      <MusicLane width={width} dur={dur} tall />
+    </div>
+  );
+}
+
+function MusicLane({ width, dur, tall }: { width: number; dur: number; tall?: boolean }) {
   const { project, updateMusic, setToast } = useStore();
   const laneRef = useRef<HTMLDivElement>(null);
   const [tracks, setTracks] = useState<any[]>([]);
@@ -250,7 +279,7 @@ function MusicLane({ width, dur }: { width: number; dur: number }) {
         </span>
       </div>
       <div className={`track music-lane ${music.enabled ? "" : "disabled"}`}
-           ref={laneRef} style={{ height: 30 }}
+           ref={laneRef} style={{ height: tall ? 52 : 30 }}
            onMouseDown={onLaneDown} onMouseMove={onMove}
            onMouseUp={onUp} onMouseLeave={() => setDrag(null)}
            onClick={(e) => e.stopPropagation()}>

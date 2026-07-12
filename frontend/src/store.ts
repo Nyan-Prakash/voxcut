@@ -19,6 +19,7 @@ interface State {
   playheadS: number;
   videoEl: HTMLVideoElement | null;
   tool: "select" | "cut" | "add";
+  stage: "clips" | "music";
 
   setView: (v: State["view"]) => void;
   loadProjects: () => Promise<void>;
@@ -28,6 +29,7 @@ interface State {
   applyOps: (ops: any[]) => Promise<void>;
   undo: () => Promise<void>;
   setTool: (t: State["tool"]) => void;
+  setStage: (s: State["stage"]) => void;
   splitAt: (eventId: string, atS: number) => Promise<void>;
   addSegmentRange: (startS: number, endS: number) => Promise<void>;
   reroll: (eventIds: string[], hint?: string) => Promise<void>;
@@ -57,15 +59,18 @@ export const useStore = create<State>((set, get) => ({
   playheadS: 0,
   videoEl: null,
   tool: "select",
+  stage: "clips",
 
   setView: (v) => set({ view: v }),
   setTool: (t) => set({ tool: t }),
+  setStage: (s) => set({ stage: s, selectedEventId: null, selectedEventIds: [] }),
 
   loadProjects: async () => set({ projects: await api.listProjects() }),
 
   openProject: async (id) => {
     const project = await api.getProject(id);
-    set({ project, view: "editor", selectedEventId: null, selectedEventIds: [] });
+    set({ project, view: "editor", selectedEventId: null, selectedEventIds: [],
+          stage: "clips" });
     try { set({ waveform: await api.waveform(id) }); } catch { /* not ready */ }
     try { const t = await api.transcript(id); set({ words: t.words }); } catch { /* */ }
     try { const b = await api.getBeats(id); set({ beats: b.beats }); } catch { /* */ }

@@ -8,7 +8,7 @@ function fmtBytes(n: number): string {
   return `${(n / 1e9).toFixed(2)} GB`;
 }
 
-function MusicSection() {
+export function MusicSection({ compact = false }: { compact?: boolean }) {
   const setToast = useStore((s) => s.setToast);
   const [data, setData] = useState<{ tracks: any[]; moods: string[] }>({ tracks: [], moods: [] });
 
@@ -23,18 +23,20 @@ function MusicSection() {
 
   return (
     <>
-      <div className="row" style={{ justifyContent: "space-between", marginTop: 28 }}>
-        <h1>Music</h1>
+      <div className="row" style={{ justifyContent: "space-between", marginTop: compact ? 12 : 28 }}>
+        {compact ? <strong>Your tracks</strong> : <h1>Music</h1>}
         <label className="sec" style={{ padding: "8px 14px", borderRadius: 7, cursor: "pointer", width: "auto", margin: 0, color: "var(--text)" }}>
           Upload track
           <input type="file" accept="audio/*" style={{ display: "none" }}
                  onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
         </label>
       </div>
-      <div className="muted" style={{ fontSize: 12, margin: "4px 0 10px" }}>
-        Your tracks only — VOXCUT never bundles or fetches music. Tag each with a
-        mood so “Suggest” can match them to the video’s tone.
-      </div>
+      {!compact && (
+        <div className="muted" style={{ fontSize: 12, margin: "4px 0 10px" }}>
+          Your tracks only — VOXCUT never bundles or fetches music. Tag each with a
+          mood so “Suggest” can match them to the video’s tone.
+        </div>
+      )}
       <div className="grid">
         {data.tracks.map((t) => (
           <div key={t.name} className="card" style={{ margin: 0 }}>
