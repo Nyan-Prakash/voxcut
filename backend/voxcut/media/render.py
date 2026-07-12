@@ -297,9 +297,10 @@ def _render_locked(project_id: str, edl: dict, master_path: Path | None,
     out_name = "preview_proxy.mp4" if proxy else "export.mp4"
     out = project_dir / out_name
     if master_path and Path(master_path).exists():
-        # Export only: normalize to the YouTube loudness target. Preview keeps
-        # the raw mix so rebuilds stay fast.
-        norm_af = (["-af", f"{LOUDNORM},aresample=48000"] if not proxy else [])
+        # Normalize preview AND export to the YouTube loudness target, so what
+        # the operator hears while editing is what ships (quiet VO recordings
+        # otherwise make the whole video feel weak).
+        norm_af = ["-af", f"{LOUDNORM},aresample=48000"]
         overlays = _audio_overlays(events)
         try:
             music = _music_regions(project_id, project_dir)
@@ -309,7 +310,7 @@ def _render_locked(project_id: str, edl: dict, master_path: Path | None,
         if overlays or music[0]:
             try:
                 _mux_final(video_only, master_path, overlays, music, out,
-                           loudnorm=not proxy)
+                           loudnorm=True)
                 done = True
             except Exception:  # noqa: BLE001 — overlay mix fails → plain VO mux
                 pass
