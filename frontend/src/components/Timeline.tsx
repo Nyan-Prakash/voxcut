@@ -157,13 +157,12 @@ function MusicLane({ width, dur, tall }: { width: number; dur: number; tall?: bo
   const [tracks, setTracks] = useState<any[]>([]);
   const [selTrack, setSelTrack] = useState("");
   const [vol, setVol] = useState<number | null>(null);
-  const [duck, setDuck] = useState<number | null>(null);
   const [drag, setDrag] = useState<null | {
     kind: "create" | "move" | "resizeL" | "resizeR";
     id?: string; anchor: number; cur: number; orig?: MusicRegion;
   }>(null);
 
-  const music = { enabled: true, volume_db: -25, duck_db: 0, regions: [] as MusicRegion[],
+  const music = { enabled: true, volume_db: -25, regions: [] as MusicRegion[],
                   ...(project?.settings?.music || {}) };
   const regions: MusicRegion[] = music.regions || [];
 
@@ -268,10 +267,6 @@ function MusicLane({ width, dur, tall }: { width: number; dur: number; tall?: bo
                      value={vol ?? music.volume_db}
                      onChange={(e) => setVol(Number(e.target.value))}
                      onMouseUp={() => { if (vol != null) { updateMusic({ volume_db: vol }); setVol(null); } }} />
-          duck <input type="range" min={0} max={15} step={1}
-                      value={duck ?? music.duck_db}
-                      onChange={(e) => setDuck(Number(e.target.value))}
-                      onMouseUp={() => { if (duck != null) { updateMusic({ duck_db: duck }); setDuck(null); } }} />
           <button className="ghost" style={{ padding: "0 6px" }} onClick={suggest}
                   title="Match your mood-tagged tracks to the video's tone sections. Only fills the lane — everything stays editable.">
             ✨ Suggest

@@ -26,10 +26,9 @@ TONE_TO_MOOD = {
 MIN_SECTION_S = 20.0   # don't switch tracks faster than this
 AUDIO_EXTS = {".mp3", ".m4a", ".aac", ".wav", ".ogg", ".flac"}
 
-# duck_db 0 = solid constant level under the whole VO (operator preference);
-# raise it to make music swell up in VO pauses.
-DEFAULT_MUSIC = {"enabled": True, "volume_db": -25.0, "duck_db": 0.0,
-                 "regions": []}
+# Music plays at one constant level — ducking/swell removed entirely
+# (operator preference 2026-07-12).
+DEFAULT_MUSIC = {"enabled": True, "volume_db": -25.0, "regions": []}
 
 
 def music_dir():
@@ -80,42 +79,6 @@ def set_mood(name: str, mood: str | None) -> None:
 def track_path(name: str):
     p = music_dir() / name
     return p if p.exists() and p.suffix.lower() in AUDIO_EXTS else None
-
-
-# ------------------------------------------------------------- duck envelope
-
-def duck_envelope_expr(silences: list[tuple[float, float]], region_start: float,
-                       region_dur: float, base_db: float, swell_db: float,
-                       ramp: float = 0.15, min_gap: float = 0.5,
-                       max_terms: int = 80) -> str:
-    """ffmpeg volume expression (region-local t): music sits at base_db under
-    speech and swells by swell_db inside VO silences, with linear ramps."""
-    base = 10 ** (base_db / 20)
-    if abs(swell_db) < 0.01:  # solid level — no envelope at all
-        return f"{base:.6f}"
-    swell = 10 ** ((base_db + swell_db) / 20) - base
-
-    # Silences overlapping this region, region-local, merged if nearly touching.
-    local: list[list[float]] = []
-    for s, e in sorted(silences):
-        s, e = s - region_start, e - region_start
-        s, e = max(s, 0.0), min(e, region_dur)
-        if e - s < min_gap:
-            continue
-        if local and s - local[-1][1] < 2 * ramp:
-            local[-1][1] = e
-        else:
-            local.append([s, e])
-    local = sorted(local, key=lambda x: x[1] - x[0], reverse=True)[:max_terms]
-    local.sort()
-    if not local:
-        return f"{base:.6f}"
-
-    terms = [
-        f"min(max((t-{s:.3f})/{ramp},0),1)*min(max(({e:.3f}-t)/{ramp},0),1)"
-        for s, e in local
-    ]
-    return f"{base:.6f}+{swell:.6f}*({'+'.join(terms)})"
 
 
 # ---------------------------------------------------------------- suggestion
