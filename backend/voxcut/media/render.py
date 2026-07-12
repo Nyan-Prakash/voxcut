@@ -165,12 +165,41 @@ def _audio_overlays(events: list[dict]) -> list[tuple[dict, str]]:
     return out
 
 
-def _mux_with_overlays(video_only: Path, master_path: Path, overlays: list[tuple[dict, str]],
-                       out: Path, loudnorm: bool = False) -> None:
-    """VO + per-event source-audio slices, time-aligned and mixed.
-    keep → 0 dB; duck → the event's duck_db (default -18) under the VO."""
+def _music_regions(project_id: str, project_dir: Path) -> tuple[list[dict], dict, list]:
+    """Enabled music regions from project settings + the VO silence map."""
+    import json as _json
+
+    from ..db import session_scope
+    from ..models import Project
+    with session_scope() as db:
+        p = db.get(Project, project_id)
+        cfg = (_json.loads(p.settings or "{}") if p else {}).get("music") or {}
+    if not cfg.get("enabled", True):
+        return [], cfg, []
+    from ..music import track_path
+    regions = []
+    for r in cfg.get("regions", []):
+        path = track_path(r.get("file", ""))
+        if path and r.get("end_s", 0) - r.get("start_s", 0) >= 1.0:
+            regions.append({**r, "path": str(path)})
+    sil_path = project_dir / "silences.json"
+    silences = ([tuple(s) for s in _json.loads(sil_path.read_text())["silences"]]
+                if sil_path.exists() else [])
+    return regions, cfg, silences
+
+
+def _mux_final(video_only: Path, master_path: Path, overlays: list[tuple[dict, str]],
+               music: tuple[list[dict], dict, list], out: Path,
+               loudnorm: bool = False) -> None:
+    """Final audio mix: VO + keep/duck event audio + ducked music regions.
+    Overlays: keep → 0 dB; duck → the event's duck_db (default -18).
+    Music: base volume under speech, swells in VO silences (duck envelope)."""
+    from ..music import duck_envelope_expr, loops_needed
+    regions, cfg, silences = music
     cmd = [ffmpeg(), "-y", "-i", str(video_only), "-i", str(master_path)]
     parts, labels = [], []
+    n_in = 2
+
     for k, (ev, path) in enumerate(overlays):
         cmd += ["-i", path]
         src = ev["source"]
@@ -180,10 +209,34 @@ def _mux_with_overlays(video_only: Path, master_path: Path, overlays: list[tuple
             ev["audio"].get("duck_db", -18))
         delay = int(round(ev["start_s"] * 1000))
         parts.append(
-            f"[{k + 2}:a]atrim=start={in_s:.3f}:end={in_s + dur:.3f},"
+            f"[{n_in}:a]atrim=start={in_s:.3f}:end={in_s + dur:.3f},"
             f"asetpts=PTS-STARTPTS,{AFMT},volume={gain:.1f}dB,"
             f"adelay={delay}|{delay}[ax{k}]")
         labels.append(f"[ax{k}]")
+        n_in += 1
+
+    base_db = float(cfg.get("volume_db", -25.0)) if regions else 0.0
+    swell_db = float(cfg.get("duck_db", 8.0)) if regions else 0.0
+    for k, r in enumerate(regions):
+        dur = r["end_s"] - r["start_s"]
+        try:
+            track_dur = float(ffprobe(Path(r["path"])).get("format", {})
+                              .get("duration") or 0)
+        except Exception:  # noqa: BLE001
+            track_dur = 0.0
+        cmd += ["-stream_loop", str(loops_needed(track_dur, dur)), "-i", r["path"]]
+        env = duck_envelope_expr(silences, r["start_s"], dur,
+                                 base_db + float(r.get("gain_db", 0.0)), swell_db)
+        fade_out = max(0.0, dur - 0.8)
+        delay = int(round(r["start_s"] * 1000))
+        parts.append(
+            f"[{n_in}:a]atrim=0:{dur:.3f},asetpts=PTS-STARTPTS,{AFMT},"
+            f"afade=t=in:d=0.8,afade=t=out:st={fade_out:.3f}:d=0.8,"
+            f"volume=volume='{env}':eval=frame,"
+            f"adelay={delay}|{delay}[mx{k}]")
+        labels.append(f"[mx{k}]")
+        n_in += 1
+
     parts.append(f"[1:a]{AFMT}[voa]")
     # normalize=0: overlays ADD to the VO instead of dividing everyone's level.
     tail = f",{LOUDNORM},aresample=48000" if loudnorm else ""
@@ -248,11 +301,15 @@ def _render_locked(project_id: str, edl: dict, master_path: Path | None,
         # the raw mix so rebuilds stay fast.
         norm_af = (["-af", f"{LOUDNORM},aresample=48000"] if not proxy else [])
         overlays = _audio_overlays(events)
+        try:
+            music = _music_regions(project_id, project_dir)
+        except Exception:  # noqa: BLE001 — bad music config must not kill renders
+            music = ([], {}, [])
         done = False
-        if overlays:
+        if overlays or music[0]:
             try:
-                _mux_with_overlays(video_only, master_path, overlays, out,
-                                   loudnorm=not proxy)
+                _mux_final(video_only, master_path, overlays, music, out,
+                           loudnorm=not proxy)
                 done = True
             except Exception:  # noqa: BLE001 — overlay mix fails → plain VO mux
                 pass

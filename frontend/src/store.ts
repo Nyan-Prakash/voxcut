@@ -31,6 +31,7 @@ interface State {
   splitAt: (eventId: string, atS: number) => Promise<void>;
   addSegmentRange: (startS: number, endS: number) => Promise<void>;
   reroll: (eventIds: string[], hint?: string) => Promise<void>;
+  updateMusic: (patch: Record<string, any>) => Promise<void>;
   onEvent: (ev: any) => void;
   setToast: (t: string | null) => void;
   bumpPreview: () => void;
@@ -147,6 +148,20 @@ export const useStore = create<State>((set, get) => ({
       set({ edl: res.edl, selectedEventId: res.new_event_id, tool: "select" });
       try { const b = await api.getBeats(project.id); set({ beats: b.beats }); } catch { /* */ }
       get().setToast("Segment added — search or reroll to fill it");
+      await api.rebuildPreview(project.id);
+    } catch (e: any) { get().setToast(e.message); }
+  },
+
+  updateMusic: async (patch) => {
+    const { project } = get();
+    if (!project) return;
+    const music = { enabled: true, volume_db: -25, duck_db: 8, regions: [],
+                    ...(project.settings?.music || {}), ...patch };
+    try {
+      const p = await api.updateProject(project.id, {
+        settings: { ...project.settings, music },
+      });
+      set({ project: p });
       await api.rebuildPreview(project.id);
     } catch (e: any) { get().setToast(e.message); }
   },

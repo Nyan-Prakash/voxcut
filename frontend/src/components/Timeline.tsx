@@ -4,6 +4,10 @@ import { useStore } from "../store";
 
 const PX_PER_S = 60;
 
+interface MusicRegion {
+  id: string; file: string; start_s: number; end_s: number; gain_db?: number;
+}
+
 export function Timeline() {
   const { edl, beats, project, selectedEventIds, select, playheadS, seek,
           tool, splitAt, addSegmentRange, reroll } = useStore();
@@ -73,6 +77,8 @@ export function Timeline() {
           ))}
         </div>
       </div>
+      {/* Music lane */}
+      <MusicLane width={width} dur={dur} />
       {/* Video track */}
       <div className="track-label">video</div>
       <div className="track" style={{ height: 56 }}>
@@ -113,6 +119,164 @@ export function Timeline() {
         </div>
       </div>
     </div>
+  );
+}
+
+function MusicLane({ width, dur }: { width: number; dur: number }) {
+  const { project, updateMusic, setToast } = useStore();
+  const laneRef = useRef<HTMLDivElement>(null);
+  const [tracks, setTracks] = useState<any[]>([]);
+  const [selTrack, setSelTrack] = useState("");
+  const [vol, setVol] = useState<number | null>(null);
+  const [duck, setDuck] = useState<number | null>(null);
+  const [drag, setDrag] = useState<null | {
+    kind: "create" | "move" | "resizeL" | "resizeR";
+    id?: string; anchor: number; cur: number; orig?: MusicRegion;
+  }>(null);
+
+  const music = { enabled: true, volume_db: -25, duck_db: 8, regions: [] as MusicRegion[],
+                  ...(project?.settings?.music || {}) };
+  const regions: MusicRegion[] = music.regions || [];
+
+  useEffect(() => {
+    api.musicList().then((d) => {
+      setTracks(d.tracks);
+      setSelTrack((cur) => cur || d.tracks[0]?.name || "");
+    }).catch(() => {});
+  }, []);
+
+  const tAt = (e: React.MouseEvent) => {
+    const r = laneRef.current!.getBoundingClientRect();
+    return Math.max(0, Math.min(dur, (e.clientX - r.left) / PX_PER_S));
+  };
+
+  // Live view of regions while dragging (committed on mouseup).
+  const view: MusicRegion[] = regions.map((r) => {
+    if (!drag || drag.id !== r.id || !drag.orig) return r;
+    const d = drag.cur - drag.anchor;
+    const o = drag.orig;
+    if (drag.kind === "move") {
+      const len = o.end_s - o.start_s;
+      const s = Math.max(0, Math.min(dur - len, o.start_s + d));
+      return { ...r, start_s: s, end_s: s + len };
+    }
+    if (drag.kind === "resizeL") return { ...r, start_s: Math.min(Math.max(0, o.start_s + d), o.end_s - 2) };
+    return { ...r, end_s: Math.max(Math.min(dur, o.end_s + d), o.start_s + 2) };
+  });
+
+  const commit = (regs: MusicRegion[]) => {
+    const clean = regs.map((r) => ({ ...r, start_s: Math.round(r.start_s * 100) / 100,
+                                     end_s: Math.round(r.end_s * 100) / 100 }))
+      .filter((r) => r.end_s - r.start_s >= 2);
+    updateMusic({ regions: clean });
+  };
+
+  const onLaneDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if ((e.target as HTMLElement).closest(".mreg")) return;
+    if (!selTrack) { setToast("Upload a track in Library → Music first"); return; }
+    const t = tAt(e);
+    setDrag({ kind: "create", anchor: t, cur: t });
+  };
+  const onRegionDown = (e: React.MouseEvent, r: MusicRegion) => {
+    e.stopPropagation();
+    const el = e.currentTarget as HTMLElement;
+    const x = e.clientX - el.getBoundingClientRect().left;
+    const kind = x < 9 ? "resizeL" : x > el.clientWidth - 9 ? "resizeR" : "move";
+    setDrag({ kind, id: r.id, anchor: tAt(e), cur: tAt(e), orig: { ...r } });
+  };
+  const onMove = (e: React.MouseEvent) => {
+    if (!drag) return;
+    e.stopPropagation();
+    setDrag({ ...drag, cur: tAt(e) });
+  };
+  const onUp = (e: React.MouseEvent) => {
+    if (!drag) return;
+    e.stopPropagation();
+    if (drag.kind === "create") {
+      const [a, b] = [Math.min(drag.anchor, drag.cur), Math.max(drag.anchor, drag.cur)];
+      if (b - a >= 2) {
+        commit([...regions, { id: `mr_${Date.now()}`, file: selTrack,
+                              start_s: a, end_s: b, gain_db: 0 }]);
+      }
+    } else {
+      commit(view);
+    }
+    setDrag(null);
+  };
+
+  const suggest = async () => {
+    if (!project) return;
+    try {
+      await api.musicSuggest(project.id);
+      const p = await api.getProject(project.id);
+      useStore.setState({ project: p });
+      setToast("🎵 Music suggested from the video's tones — drag to adjust");
+      await api.rebuildPreview(project.id);
+    } catch (e: any) { setToast(e.message); }
+  };
+
+  const createView = drag?.kind === "create"
+    ? { a: Math.min(drag.anchor, drag.cur), b: Math.max(drag.anchor, drag.cur) } : null;
+  const short = (f: string) => f.replace(/\.[^.]+$/, "");
+
+  return (
+    <>
+      <div className="track-label" style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <span>music</span>
+        <span className="music-controls" onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}>
+          <label style={{ margin: 0, display: "inline" }}>
+            <input type="checkbox" style={{ width: "auto" }} checked={!!music.enabled}
+                   onChange={(e) => updateMusic({ enabled: e.target.checked })} /> on
+          </label>
+          <select value={selTrack} onChange={(e) => setSelTrack(e.target.value)}
+                  style={{ width: 130, padding: "1px 4px", fontSize: 10 }}>
+            {tracks.length === 0 && <option value="">no tracks — Library → Music</option>}
+            {tracks.map((t) => <option key={t.name} value={t.name}>{short(t.name)}</option>)}
+          </select>
+          vol <input type="range" min={-35} max={-12} step={1}
+                     value={vol ?? music.volume_db}
+                     onChange={(e) => setVol(Number(e.target.value))}
+                     onMouseUp={() => { if (vol != null) { updateMusic({ volume_db: vol }); setVol(null); } }} />
+          duck <input type="range" min={0} max={15} step={1}
+                      value={duck ?? music.duck_db}
+                      onChange={(e) => setDuck(Number(e.target.value))}
+                      onMouseUp={() => { if (duck != null) { updateMusic({ duck_db: duck }); setDuck(null); } }} />
+          <button className="ghost" style={{ padding: "0 6px" }} onClick={suggest}
+                  title="Match your mood-tagged tracks to the video's tone sections. Only fills the lane — everything stays editable.">
+            ✨ Suggest
+          </button>
+        </span>
+      </div>
+      <div className={`track music-lane ${music.enabled ? "" : "disabled"}`}
+           ref={laneRef} style={{ height: 30 }}
+           onMouseDown={onLaneDown} onMouseMove={onMove}
+           onMouseUp={onUp} onMouseLeave={() => setDrag(null)}
+           onClick={(e) => e.stopPropagation()}>
+        <div className="tl-inner">
+          {createView && (
+            <div className="mreg ghost-reg"
+                 style={{ left: createView.a * PX_PER_S,
+                          width: (createView.b - createView.a) * PX_PER_S }} />
+          )}
+          {view.map((r) => (
+            <div key={r.id} className="mreg"
+                 style={{ left: r.start_s * PX_PER_S,
+                          width: Math.max(10, (r.end_s - r.start_s) * PX_PER_S) }}
+                 onMouseDown={(e) => onRegionDown(e, r)}
+                 title={`${r.file} · ${r.start_s.toFixed(1)}–${r.end_s.toFixed(1)}s (drag to move, edges to resize)`}>
+              <span className="mreg-label">♪ {short(r.file)}</span>
+              <button className="mreg-x" title="remove"
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => { e.stopPropagation(); commit(regions.filter((x) => x.id !== r.id)); }}>
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
   );
 }
 

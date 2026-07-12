@@ -8,6 +8,59 @@ function fmtBytes(n: number): string {
   return `${(n / 1e9).toFixed(2)} GB`;
 }
 
+function MusicSection() {
+  const setToast = useStore((s) => s.setToast);
+  const [data, setData] = useState<{ tracks: any[]; moods: string[] }>({ tracks: [], moods: [] });
+
+  const load = () => api.musicList().then(setData).catch(() => {});
+  useEffect(() => { load(); }, []);
+
+  const upload = async (f: File) => {
+    setToast("Adding track…");
+    try { await api.musicUpload(f); setToast("Track added — tag its mood"); load(); }
+    catch (e: any) { setToast(e.message); }
+  };
+
+  return (
+    <>
+      <div className="row" style={{ justifyContent: "space-between", marginTop: 28 }}>
+        <h1>Music</h1>
+        <label className="sec" style={{ padding: "8px 14px", borderRadius: 7, cursor: "pointer", width: "auto", margin: 0, color: "var(--text)" }}>
+          Upload track
+          <input type="file" accept="audio/*" style={{ display: "none" }}
+                 onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
+        </label>
+      </div>
+      <div className="muted" style={{ fontSize: 12, margin: "4px 0 10px" }}>
+        Your tracks only — VOXCUT never bundles or fetches music. Tag each with a
+        mood so “Suggest” can match them to the video’s tone.
+      </div>
+      <div className="grid">
+        {data.tracks.map((t) => (
+          <div key={t.name} className="card" style={{ margin: 0 }}>
+            <strong style={{ fontSize: 13 }}>♪ {t.name}</strong>
+            <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+              {t.duration_s?.toFixed(0)}s · {fmtBytes(t.size_bytes)}
+            </div>
+            <div className="row" style={{ marginTop: 8 }}>
+              <select value={t.mood || ""} style={{ flex: 1 }}
+                      onChange={async (e) => { await api.musicMood(t.name, e.target.value || null); load(); }}>
+                <option value="">mood…</option>
+                {data.moods.map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
+              <button className="ghost" style={{ color: "var(--bad)" }}
+                      onClick={async () => { await api.musicDelete(t.name); load(); }}>✕</button>
+            </div>
+          </div>
+        ))}
+        {data.tracks.length === 0 && (
+          <div className="muted">No tracks yet. Upload royalty-free music you own the rights to use.</div>
+        )}
+      </div>
+    </>
+  );
+}
+
 export function LibraryView() {
   const setToast = useStore((s) => s.setToast);
   const [data, setData] = useState<{ assets: any[]; disk_usage_bytes: number }>({ assets: [], disk_usage_bytes: 0 });
@@ -64,6 +117,7 @@ export function LibraryView() {
         ))}
         {data.assets.length === 0 && <div className="muted">Library is empty. Clips download here as you generate.</div>}
       </div>
+      <MusicSection />
     </div>
   );
 }

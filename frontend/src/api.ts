@@ -121,6 +121,25 @@ export const api = {
       method: "POST", body: JSON.stringify({ asset_id, in_s, out_s }),
     }),
 
+  musicList: () => req<{ tracks: any[]; moods: string[] }>("/music"),
+  musicUpload: async (file: File) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch(url("/music/upload"), {
+      method: "POST", headers: { "x-voxcut-token": token }, body: fd,
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json() as Promise<{ tracks: any[] }>;
+  },
+  musicDelete: (name: string) =>
+    req<{ tracks: any[] }>(`/music/${encodeURIComponent(name)}`, { method: "DELETE" }),
+  musicMood: (name: string, mood: string | null) =>
+    req<{ tracks: any[] }>(`/music/${encodeURIComponent(name)}/mood`, {
+      method: "POST", body: JSON.stringify({ mood }),
+    }),
+  musicSuggest: (id: string) =>
+    req<{ music: any }>(`/projects/${id}/music/suggest`, { method: "POST" }),
+
   getJob: (jobId: string) => req<Job>(`/jobs/${jobId}`),
   exportProject: (id: string, resolution: string) =>
     req<{ job_id: string }>(`/projects/${id}/export`, {
