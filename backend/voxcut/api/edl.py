@@ -133,6 +133,13 @@ def undo(project_id: str) -> dict:
     return prev
 
 
+@router.post("/{project_id}/qc")
+async def qc(project_id: str) -> dict:
+    """Audit the finished edit: flag mediocre-middle clips for review."""
+    job_id = await runner.submit("qc", project_id=project_id)
+    return {"job_id": job_id}
+
+
 @router.post("/{project_id}/preview/rebuild")
 async def rebuild_preview(project_id: str) -> dict:
     job_id = await runner.submit("assemble", project_id=project_id)

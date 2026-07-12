@@ -117,6 +117,76 @@ Video: {video_title}
 {n} candidate windows; frame i is from the middle of window i."""
 
 
+QC_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "verdicts": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "index": {"type": "integer"},
+                    "verdict": {"type": "string",
+                                "enum": ["literal", "joke", "middle"]},
+                    "reason": {"type": "string"},
+                },
+                "required": ["index", "verdict", "reason"],
+            },
+        }
+    },
+    "required": ["verdicts"],
+}
+
+QC_SYSTEM = """\
+You audit the FINISHED edit of a fast-cut comedy commentary video. For each
+numbered frame (one per clip, taken from the exact moment that plays) and the
+narration line it plays under, apply the one law of this style:
+
+Every clip must be either CLEARLY THE THING or CLEARLY A JOKE — never the
+mediocre middle. Judge as muted footage (the narrator's voice plays over it).
+
+- literal: the frame clearly SHOWS the specific thing the narration names.
+  Plain and calm is fine — setup lines want literal grounding. What matters
+  is that a viewer instantly goes "that's the thing he just said."
+- joke: the frame clearly reads as a gag — absurd non-sequitur, exaggerated
+  or chaotic version, expressive reaction, ironic understatement, or a
+  recognizable meme moment. A viewer instantly gets that it's a bit.
+- middle: the failure mode. Semi-related generic footage that neither shows
+  the named thing nor lands as a joke: thematically-adjacent stock, a scene
+  whose connection needs explaining, people vaguely doing things, footage
+  that would make a viewer think "…that's not anything." Be harsh — when
+  torn between joke and middle, ask whether the humor is actually VISIBLE
+  in the frame; if you have to assume context, it's middle.
+
+One verdict per frame index, each index exactly once, with a one-sentence
+reason a video editor could act on."""
+
+QC_USER = """\
+{n} clips. For each, the narration line it plays under:
+{lines}"""
+
+
+def judge_qc(entries: list[tuple[str, str, str]]) -> list[dict | None]:
+    """entries: (beat_text, kind, frame_data_url) per clip, in order.
+    Returns per-entry {verdict, reason} (None where the judge skipped one).
+    Raises BrainError on failure."""
+    lines = "\n".join(f'{i}: [{kind}] "{text}"'
+                      for i, (text, kind, _u) in enumerate(entries))
+    images = [(f"Frame {i}:", url) for i, (_t, _k, url) in enumerate(entries)]
+    out = structured(
+        QC_SYSTEM, QC_USER.format(n=len(entries), lines=lines),
+        QC_SCHEMA, schema_name="qc_audit", temperature=0.2,
+        max_tokens=2500, images=images)
+    verdicts: list[dict | None] = [None] * len(entries)
+    for v in out.get("verdicts", []):
+        if 0 <= v["index"] < len(entries):
+            verdicts[v["index"]] = {"verdict": v["verdict"],
+                                    "reason": v["reason"]}
+    return verdicts
+
+
 def judge_frames(beat_text: str, intent: str, video_title: str,
                  frames: list[str]) -> list[float]:
     """frames: list of data-URL jpegs, one per candidate window (in order).

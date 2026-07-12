@@ -57,6 +57,7 @@ export interface EdlEvent {
   moment_candidates?: EdlSource[];
   source_candidates?: any[];
   finalists?: any[];
+  qc?: { verdict: string; reason: string };
 }
 
 export interface Edl {

@@ -121,6 +121,8 @@ export const api = {
       method: "POST", body: JSON.stringify({ asset_id, in_s, out_s }),
     }),
 
+  runQc: (id: string) => req<{ job_id: string }>(`/projects/${id}/qc`, { method: "POST" }),
+
   musicList: () => req<{ tracks: any[]; moods: string[] }>("/music"),
   musicUpload: async (file: File) => {
     const fd = new FormData();

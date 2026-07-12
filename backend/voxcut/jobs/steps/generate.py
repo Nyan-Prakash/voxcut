@@ -32,3 +32,9 @@ async def run_generate(ctx: JobContext) -> None:
         await run_source(ctx)
         await run_moment(ctx)
     await run_assemble(ctx)
+    if not ctx.payload.get("skip_sourcing"):
+        try:
+            from .qc import run_qc
+            await run_qc(ctx)  # flag-only audit; never fails the generate
+        except Exception:  # noqa: BLE001
+            pass

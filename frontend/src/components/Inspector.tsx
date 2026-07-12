@@ -85,6 +85,13 @@ function InspectorBody({ ev, applyOps }: { ev: EdlEvent; applyOps: (ops: any[]) 
           {ev.flags.map((f) => <span key={f} className={`flag ${f.split(":")[0]}`}>{f}</span>)}
         </div>
       )}
+      {ev.qc && (
+        <div className="muted" style={{ fontSize: 12, marginTop: 6,
+              color: ev.qc.verdict === "middle" ? "var(--bad)" : undefined }}>
+          QC: {ev.qc.verdict === "middle" ? "mediocre middle" : ev.qc.verdict}
+          {" — "}{ev.qc.reason}
+        </div>
+      )}
 
       <label>Direction for the new clip (optional)</label>
       <input value={hint} onChange={(e) => setHint(e.target.value)}

@@ -110,6 +110,11 @@ function EditorToolbar() {
       <button className="ghost" onClick={() => undo()}>↶ undo</button>
       <button className="ghost" onClick={() => refreshEdl()}>refresh</button>
       <ReviewNav />
+      <button className="ghost" title="Vision-audit every clip against the never-mediocre law; weak ones get flagged ⚑ for you to reroll"
+              onClick={async () => {
+                await api.runQc(project!.id);
+                useStore.getState().setToast("🔎 QC: auditing clips against the never-mediocre law…");
+              }}>🔎 QC</button>
       <div className="spacer" />
       <button onClick={() => useStore.getState().setStage("music")}
               title="Happy with the clips? Move on to scoring the video with music.">
@@ -121,7 +126,7 @@ function EditorToolbar() {
 
 function ReviewNav() {
   const { edl, select } = useStore();
-  const FLAGS = ["needs_review", "gap_unfilled", "close_call"];
+  const FLAGS = ["needs_review", "gap_unfilled", "close_call", "qc_middle"];
   const flagged = () => edl
     ? edl.events.filter((e) => e.flags?.some((f) => FLAGS.includes(f)))
     : [];
