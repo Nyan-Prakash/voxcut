@@ -92,8 +92,11 @@ export function Timeline() {
                    onClick={(me) => onEventClick(me, e.id)}
                    title={tool === "cut" ? "click to cut here" : `${e.kind} · ${label}`}>
                 {e.asset_id && project && (
-                  <img loading="lazy" alt=""
-                       src={api.mediaUrl(`/projects/${project.id}/thumb/${e.id}`)}
+                  <img alt=""
+                       // Cache-buster tracks the footage: new asset or new
+                       // moment → new URL → browser refetches the thumbnail.
+                       src={api.mediaUrl(`/projects/${project.id}/thumb/${e.id}`)
+                            + `&v=${e.asset_id}-${e.source?.in_s ?? 0}`}
                        onError={(ev) => ((ev.target as HTMLElement).style.display = "none")} />
                 )}
                 {rev && <span className="rev">⚑</span>}

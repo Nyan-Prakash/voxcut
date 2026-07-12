@@ -10,6 +10,16 @@ from ..jobs.runner import runner
 router = APIRouter(prefix="/api/projects", tags=["candidates"])
 
 
+def _drop_render_cache(project_id: str, event_id: str) -> None:
+    """The event's footage changed: cached segment renders and the timeline
+    thumbnail are stale — delete so they regenerate from the new source."""
+    from ..config import settings
+    for sub in ("segments", "segments_full"):
+        seg_dir = settings().project_dir(project_id) / sub
+        for name in (f"{event_id}.mp4", f"{event_id}.ass", f"thumb_{event_id}.jpg"):
+            (seg_dir / name).unlink(missing_ok=True)
+
+
 @router.get("/{project_id}/candidates/{event_id}")
 def get_candidates(project_id: str, event_id: str) -> dict:
     edl = load_edl(project_id)
@@ -46,10 +56,7 @@ def pick_finalist(project_id: str, event_id: str, body: PickFinalist) -> dict:
     ev["source"] = src
     ev["flags"] = [f for f in ev.get("flags", [])
                    if f not in ("close_call", "needs_review")]
-    from ..config import settings
-    seg = settings().project_dir(project_id) / "segments"
-    for ext in (".mp4", ".ass"):
-        (seg / f"{event_id}{ext}").unlink(missing_ok=True)
+    _drop_render_cache(project_id, event_id)
     save_edl(project_id, edl)
     return {"ok": True, "asset_id": body.asset_id, "source": ev["source"]}
 
@@ -69,11 +76,7 @@ def pick_moment(project_id: str, event_id: str, body: PickMoment) -> dict:
     src.update({"in_s": body.in_s, "out_s": body.out_s})
     ev["source"] = src
     ev["flags"] = [f for f in ev.get("flags", []) if f != "needs_review"]
-    # Invalidate this event's cached proxy segment (§11.2).
-    from ..config import settings
-    seg = settings().project_dir(project_id) / "segments"
-    for ext in (".mp4", ".ass"):
-        (seg / f"{event_id}{ext}").unlink(missing_ok=True)
+    _drop_render_cache(project_id, event_id)
     save_edl(project_id, edl)
     return {"ok": True, "source": ev["source"]}
 
@@ -132,6 +135,7 @@ async def research(project_id: str, event_id: str, body: ReSource) -> dict:
         ev["kind"] = "clip_literal"
     ev["asset_id"] = None
     ev["source"] = None
+    _drop_render_cache(project_id, event_id)
     save_edl(project_id, edl)
     job_id = await runner.submit("source", project_id=project_id,
                                  payload={"only_event": event_id})

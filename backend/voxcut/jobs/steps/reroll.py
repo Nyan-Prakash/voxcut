@@ -82,6 +82,12 @@ async def run_reroll(ctx: JobContext) -> None:
             ev.pop(key, None)
         ev["flags"] = [f for f in ev.get("flags", [])
                        if f not in ("needs_review", "close_call", "gap_unfilled")]
+        # The footage is changing: drop the cached segment + timeline
+        # thumbnail so both regenerate from the new clip.
+        for sub in ("segments", "segments_full"):
+            seg_dir = settings().project_dir(project_id) / sub
+            (seg_dir / f"{ev['id']}.mp4").unlink(missing_ok=True)
+            (seg_dir / f"thumb_{ev['id']}.jpg").unlink(missing_ok=True)
     save_edl(project_id, edl)
     await ctx.finish_step(step, f"{replanned}/{len(events)} beats re-planned")
 
