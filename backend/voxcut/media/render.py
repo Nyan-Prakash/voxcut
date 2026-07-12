@@ -137,6 +137,61 @@ def render_proxy(project_id: str, edl: dict, master_path: Path | None,
                               proxy, on_progress)
 
 
+def _has_audio(path: str) -> bool:
+    try:
+        info = ffprobe(Path(path))
+    except Exception:  # noqa: BLE001
+        return False
+    return any(s.get("codec_type") == "audio" for s in info.get("streams", []))
+
+
+AFMT = "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo"
+
+
+def _audio_overlays(events: list[dict]) -> list[tuple[dict, str]]:
+    """Events whose source audio plays in the final mix: (event, asset_path)
+    for audio.mode keep (full volume) or duck (attenuated under the VO)."""
+    out = []
+    for ev in events:
+        mode = (ev.get("audio") or {}).get("mode", "mute")
+        if mode not in ("keep", "duck") or not ev.get("asset_id") or not ev.get("source"):
+            continue
+        path, _dur = _resolve_asset(ev["asset_id"])
+        if path and Path(path).exists() and _has_audio(path):
+            out.append((ev, path))
+    return out
+
+
+def _mux_with_overlays(video_only: Path, master_path: Path, overlays: list[tuple[dict, str]],
+                       out: Path) -> None:
+    """VO + per-event source-audio slices, time-aligned and mixed.
+    keep → 0 dB; duck → the event's duck_db (default -18) under the VO."""
+    cmd = [ffmpeg(), "-y", "-i", str(video_only), "-i", str(master_path)]
+    parts, labels = [], []
+    for k, (ev, path) in enumerate(overlays):
+        cmd += ["-i", path]
+        src = ev["source"]
+        in_s = float(src.get("in_s", 0.0))
+        dur = max(0.05, ev["end_s"] - ev["start_s"])
+        gain = 0.0 if ev["audio"].get("mode") == "keep" else float(
+            ev["audio"].get("duck_db", -18))
+        delay = int(round(ev["start_s"] * 1000))
+        parts.append(
+            f"[{k + 2}:a]atrim=start={in_s:.3f}:end={in_s + dur:.3f},"
+            f"asetpts=PTS-STARTPTS,{AFMT},volume={gain:.1f}dB,"
+            f"adelay={delay}|{delay}[ax{k}]")
+        labels.append(f"[ax{k}]")
+    parts.append(f"[1:a]{AFMT}[voa]")
+    # normalize=0: overlays ADD to the VO instead of dividing everyone's level.
+    parts.append(f"[voa]{''.join(labels)}amix=inputs={len(labels) + 1}:"
+                 f"duration=first:normalize=0[aout]")
+    cmd += ["-filter_complex", ";".join(parts),
+            "-map", "0:v:0", "-map", "[aout]",
+            "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
+            "-shortest", "-movflags", "+faststart", str(out)]
+    _run_atomic(cmd, out)
+
+
 def _render_locked(project_id: str, edl: dict, master_path: Path | None,
                    project_dir: Path, proxy: bool, on_progress) -> Path:
     aspect = edl.get("aspect", "16:9")
@@ -185,19 +240,28 @@ def _render_locked(project_id: str, edl: dict, master_path: Path | None,
     out_name = "preview_proxy.mp4" if proxy else "export.mp4"
     out = project_dir / out_name
     if master_path and Path(master_path).exists():
-        try:
-            _run_atomic([ffmpeg(), "-y", "-i", str(video_only),
-                         "-i", str(master_path),
-                         "-map", "0:v:0", "-map", "1:a:0",
-                         "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
-                         "-shortest", "-movflags", "+faststart", str(out)], out)
-        except Exception:  # noqa: BLE001 — mux fallback: re-encode video
-            _run_atomic([ffmpeg(), "-y", "-i", str(video_only),
-                         "-i", str(master_path),
-                         "-map", "0:v:0", "-map", "1:a:0",
-                         "-c:v", "libx264", "-preset", preset, "-crf", crf,
-                         "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
-                         "-shortest", "-movflags", "+faststart", str(out)], out)
+        overlays = _audio_overlays(events)
+        done = False
+        if overlays:
+            try:
+                _mux_with_overlays(video_only, master_path, overlays, out)
+                done = True
+            except Exception:  # noqa: BLE001 — overlay mix fails → plain VO mux
+                pass
+        if not done:
+            try:
+                _run_atomic([ffmpeg(), "-y", "-i", str(video_only),
+                             "-i", str(master_path),
+                             "-map", "0:v:0", "-map", "1:a:0",
+                             "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
+                             "-shortest", "-movflags", "+faststart", str(out)], out)
+            except Exception:  # noqa: BLE001 — mux fallback: re-encode video
+                _run_atomic([ffmpeg(), "-y", "-i", str(video_only),
+                             "-i", str(master_path),
+                             "-map", "0:v:0", "-map", "1:a:0",
+                             "-c:v", "libx264", "-preset", preset, "-crf", crf,
+                             "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
+                             "-shortest", "-movflags", "+faststart", str(out)], out)
     else:
         _run_atomic([ffmpeg(), "-y", "-i", str(video_only), "-c", "copy",
                      "-movflags", "+faststart", str(out)], out)
