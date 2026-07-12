@@ -134,7 +134,7 @@ function MusicLane({ width, dur }: { width: number; dur: number }) {
     id?: string; anchor: number; cur: number; orig?: MusicRegion;
   }>(null);
 
-  const music = { enabled: true, volume_db: -25, duck_db: 8, regions: [] as MusicRegion[],
+  const music = { enabled: true, volume_db: -25, duck_db: 0, regions: [] as MusicRegion[],
                   ...(project?.settings?.music || {}) };
   const regions: MusicRegion[] = music.regions || [];
 

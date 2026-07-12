@@ -81,7 +81,7 @@ def suggest(project_id: str) -> dict:
     music = proj_settings.get("music") or {}
     music.setdefault("enabled", True)
     music.setdefault("volume_db", -25.0)
-    music.setdefault("duck_db", 8.0)
+    music.setdefault("duck_db", 0.0)  # solid level by default
     music["regions"] = regions
     proj_settings["music"] = music
     with session_scope() as db:

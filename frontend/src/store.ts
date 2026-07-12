@@ -155,7 +155,7 @@ export const useStore = create<State>((set, get) => ({
   updateMusic: async (patch) => {
     const { project } = get();
     if (!project) return;
-    const music = { enabled: true, volume_db: -25, duck_db: 8, regions: [],
+    const music = { enabled: true, volume_db: -25, duck_db: 0, regions: [],
                     ...(project.settings?.music || {}), ...patch };
     try {
       const p = await api.updateProject(project.id, {

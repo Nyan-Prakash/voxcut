@@ -26,7 +26,9 @@ TONE_TO_MOOD = {
 MIN_SECTION_S = 20.0   # don't switch tracks faster than this
 AUDIO_EXTS = {".mp3", ".m4a", ".aac", ".wav", ".ogg", ".flac"}
 
-DEFAULT_MUSIC = {"enabled": True, "volume_db": -25.0, "duck_db": 8.0,
+# duck_db 0 = solid constant level under the whole VO (operator preference);
+# raise it to make music swell up in VO pauses.
+DEFAULT_MUSIC = {"enabled": True, "volume_db": -25.0, "duck_db": 0.0,
                  "regions": []}
 
 
@@ -89,6 +91,8 @@ def duck_envelope_expr(silences: list[tuple[float, float]], region_start: float,
     """ffmpeg volume expression (region-local t): music sits at base_db under
     speech and swells by swell_db inside VO silences, with linear ramps."""
     base = 10 ** (base_db / 20)
+    if abs(swell_db) < 0.01:  # solid level — no envelope at all
+        return f"{base:.6f}"
     swell = 10 ** ((base_db + swell_db) / 20) - base
 
     # Silences overlapping this region, region-local, merged if nearly touching.
