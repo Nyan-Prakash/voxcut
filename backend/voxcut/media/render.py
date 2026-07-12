@@ -146,6 +146,9 @@ def _has_audio(path: str) -> bool:
 
 
 AFMT = "aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo"
+# Export loudness target (YouTube normalizes to ~-14 LUFS; matching it keeps
+# every upload consistent). loudnorm resamples internally, so pin 48k after.
+LOUDNORM = "loudnorm=I=-14:TP=-1.5:LRA=11"
 
 
 def _audio_overlays(events: list[dict]) -> list[tuple[dict, str]]:
@@ -163,7 +166,7 @@ def _audio_overlays(events: list[dict]) -> list[tuple[dict, str]]:
 
 
 def _mux_with_overlays(video_only: Path, master_path: Path, overlays: list[tuple[dict, str]],
-                       out: Path) -> None:
+                       out: Path, loudnorm: bool = False) -> None:
     """VO + per-event source-audio slices, time-aligned and mixed.
     keep → 0 dB; duck → the event's duck_db (default -18) under the VO."""
     cmd = [ffmpeg(), "-y", "-i", str(video_only), "-i", str(master_path)]
@@ -183,8 +186,9 @@ def _mux_with_overlays(video_only: Path, master_path: Path, overlays: list[tuple
         labels.append(f"[ax{k}]")
     parts.append(f"[1:a]{AFMT}[voa]")
     # normalize=0: overlays ADD to the VO instead of dividing everyone's level.
+    tail = f",{LOUDNORM},aresample=48000" if loudnorm else ""
     parts.append(f"[voa]{''.join(labels)}amix=inputs={len(labels) + 1}:"
-                 f"duration=first:normalize=0[aout]")
+                 f"duration=first:normalize=0{tail}[aout]")
     cmd += ["-filter_complex", ";".join(parts),
             "-map", "0:v:0", "-map", "[aout]",
             "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
@@ -240,11 +244,15 @@ def _render_locked(project_id: str, edl: dict, master_path: Path | None,
     out_name = "preview_proxy.mp4" if proxy else "export.mp4"
     out = project_dir / out_name
     if master_path and Path(master_path).exists():
+        # Export only: normalize to the YouTube loudness target. Preview keeps
+        # the raw mix so rebuilds stay fast.
+        norm_af = (["-af", f"{LOUDNORM},aresample=48000"] if not proxy else [])
         overlays = _audio_overlays(events)
         done = False
         if overlays:
             try:
-                _mux_with_overlays(video_only, master_path, overlays, out)
+                _mux_with_overlays(video_only, master_path, overlays, out,
+                                   loudnorm=not proxy)
                 done = True
             except Exception:  # noqa: BLE001 — overlay mix fails → plain VO mux
                 pass
@@ -252,13 +260,13 @@ def _render_locked(project_id: str, edl: dict, master_path: Path | None,
             try:
                 _run_atomic([ffmpeg(), "-y", "-i", str(video_only),
                              "-i", str(master_path),
-                             "-map", "0:v:0", "-map", "1:a:0",
+                             "-map", "0:v:0", "-map", "1:a:0", *norm_af,
                              "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
                              "-shortest", "-movflags", "+faststart", str(out)], out)
             except Exception:  # noqa: BLE001 — mux fallback: re-encode video
                 _run_atomic([ffmpeg(), "-y", "-i", str(video_only),
                              "-i", str(master_path),
-                             "-map", "0:v:0", "-map", "1:a:0",
+                             "-map", "0:v:0", "-map", "1:a:0", *norm_af,
                              "-c:v", "libx264", "-preset", preset, "-crf", crf,
                              "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
                              "-shortest", "-movflags", "+faststart", str(out)], out)
