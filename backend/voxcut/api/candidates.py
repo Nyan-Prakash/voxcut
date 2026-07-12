@@ -78,32 +78,41 @@ def pick_moment(project_id: str, event_id: str, body: PickMoment) -> dict:
     return {"ok": True, "source": ev["source"]}
 
 
+class RerollOneBody(BaseModel):
+    hint: str | None = None  # optional operator direction for the new clip
+
+
 class RerollBody(BaseModel):
     event_ids: list[str]
+    hint: str | None = None
 
 
 @router.post("/{project_id}/events/{event_id}/reroll")
-async def reroll_one(project_id: str, event_id: str) -> dict:
+async def reroll_one(project_id: str, event_id: str,
+                     body: RerollOneBody | None = None) -> dict:
     """Regenerate one clip from scratch: re-plan the beat (fresh angle +
-    queries), re-run the tournament, excluding the current footage."""
+    queries), re-run the tournament, excluding the current footage.
+    Optional hint steers the re-plan ("make this the anime version")."""
     edl = load_edl(project_id)
     if not any(e["id"] == event_id for e in edl["events"]):
         raise HTTPException(404, "event not found")
     job_id = await runner.submit("reroll", project_id=project_id,
-                                 payload={"only_events": [event_id]})
+                                 payload={"only_events": [event_id],
+                                          "hint": (body.hint if body else None)})
     return {"job_id": job_id}
 
 
 @router.post("/{project_id}/events/reroll")
 async def reroll_many(project_id: str, body: RerollBody) -> dict:
-    """Regenerate several clips in one job (e.g. the halves of a fresh cut)."""
+    """Regenerate several clips in one job (multi-select reroll). An optional
+    hint applies to every selected clip."""
     edl = load_edl(project_id)
     known = {e["id"] for e in edl["events"]}
     ids = [i for i in body.event_ids if i in known]
     if not ids:
         raise HTTPException(404, "no matching events")
     job_id = await runner.submit("reroll", project_id=project_id,
-                                 payload={"only_events": ids})
+                                 payload={"only_events": ids, "hint": body.hint})
     return {"job_id": job_id}
 
 

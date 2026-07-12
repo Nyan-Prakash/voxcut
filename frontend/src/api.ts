@@ -96,11 +96,13 @@ export const api = {
       `/projects/${id}/edl/add_segment`, {
         method: "POST", body: JSON.stringify({ start_s, end_s }),
       }),
-  reroll: (id: string, eventIds: string[]) =>
+  reroll: (id: string, eventIds: string[], hint?: string) =>
     eventIds.length === 1
-      ? req<{ job_id: string }>(`/projects/${id}/events/${eventIds[0]}/reroll`, { method: "POST" })
+      ? req<{ job_id: string }>(`/projects/${id}/events/${eventIds[0]}/reroll`, {
+          method: "POST", body: JSON.stringify({ hint: hint || null }),
+        })
       : req<{ job_id: string }>(`/projects/${id}/events/reroll`, {
-          method: "POST", body: JSON.stringify({ event_ids: eventIds }),
+          method: "POST", body: JSON.stringify({ event_ids: eventIds, hint: hint || null }),
         }),
   rebuildPreview: (id: string) => req<{ job_id: string }>(`/projects/${id}/preview/rebuild`, { method: "POST" }),
   previewUrl: (id: string) => url(`/projects/${id}/preview`),

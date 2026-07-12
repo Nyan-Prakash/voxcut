@@ -56,19 +56,26 @@ async def run_reroll(ctx: JobContext) -> None:
             if a.title:
                 avoid_titles.append(a.title)
 
-    await ctx.report(step, 0.1, f"Re-planning {len(events)} beats")
+    hint = (ctx.payload.get("hint") or "").strip() or None
+    await ctx.report(step, 0.1, f"Re-planning {len(events)} beats"
+                     + (" (with your direction)" if hint else ""))
     replanned = 0
     for ev in events:
         beat = beats.get(ev.get("beat_id"))
         if beat and is_available():
             try:
                 from ...brain.plan import plan_one
-                fresh = plan_one(beat, brief, avoid_extra=avoid_titles)
+                fresh = plan_one(beat, brief, avoid_extra=avoid_titles, hint=hint)
                 for key in ("kind", "queries", "joke_queries", "audio"):
                     ev[key] = fresh[key]
                 replanned += 1
             except BrainError:
-                pass  # keep old queries; re-sourcing with avoid still rerolls
+                if hint:  # no LLM: the direction becomes the search itself
+                    ev["queries"] = [hint]
+                    ev["joke_queries"] = []
+        elif hint:
+            ev["queries"] = [hint]
+            ev["joke_queries"] = []
         ev["asset_id"] = None
         ev["source"] = None
         for key in RESET_KEYS:

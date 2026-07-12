@@ -5,7 +5,7 @@ import { useStore } from "../store";
 const PX_PER_S = 60;
 
 export function Timeline() {
-  const { edl, beats, project, selectedEventId, select, playheadS, seek,
+  const { edl, beats, project, selectedEventIds, select, playheadS, seek,
           tool, splitAt, addSegmentRange, reroll } = useStore();
   const [drag, setDrag] = useState<{ a: number; b: number } | null>(null);
   const dur = project?.duration_s || (edl ? Math.max(...edl.events.map((e) => e.end_s)) : 0);
@@ -28,7 +28,8 @@ export function Timeline() {
       const rect = (e.currentTarget as HTMLElement).closest(".tl-root")!.getBoundingClientRect();
       splitAt(evId, (e.clientX - rect.left) / PX_PER_S);
     } else {
-      select(evId);
+      // cmd/ctrl-click toggles a clip in the selection; shift-click selects a range.
+      select(evId, e.metaKey || e.ctrlKey ? "toggle" : e.shiftKey ? "range" : "single");
     }
   };
 
@@ -85,7 +86,7 @@ export function Timeline() {
               || (e.flags?.includes("user_added") ? "new segment — search or reroll" : e.kind);
             return (
               <div key={e.id}
-                   className={`evt ${cls} ${selectedEventId === e.id ? "sel" : ""}`}
+                   className={`evt ${cls} ${selectedEventIds.includes(e.id) ? "sel" : ""}`}
                    style={{ left: e.start_s * PX_PER_S,
                             width: Math.max(8, (e.end_s - e.start_s) * PX_PER_S) }}
                    onClick={(me) => onEventClick(me, e.id)}

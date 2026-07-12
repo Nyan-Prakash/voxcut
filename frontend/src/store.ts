@@ -11,6 +11,7 @@ interface State {
   words: Word[];
   waveform: Waveform | null;
   selectedEventId: string | null;
+  selectedEventIds: string[];
   jobs: Record<string, Job>;
   activeJobId: string | null;
   previewNonce: number;
@@ -23,13 +24,13 @@ interface State {
   loadProjects: () => Promise<void>;
   openProject: (id: string) => Promise<void>;
   refreshEdl: () => Promise<void>;
-  select: (id: string | null) => void;
+  select: (id: string | null, mode?: "single" | "toggle" | "range") => void;
   applyOps: (ops: any[]) => Promise<void>;
   undo: () => Promise<void>;
   setTool: (t: State["tool"]) => void;
   splitAt: (eventId: string, atS: number) => Promise<void>;
   addSegmentRange: (startS: number, endS: number) => Promise<void>;
-  reroll: (eventIds: string[]) => Promise<void>;
+  reroll: (eventIds: string[], hint?: string) => Promise<void>;
   onEvent: (ev: any) => void;
   setToast: (t: string | null) => void;
   bumpPreview: () => void;
@@ -47,6 +48,7 @@ export const useStore = create<State>((set, get) => ({
   words: [],
   waveform: null,
   selectedEventId: null,
+  selectedEventIds: [],
   jobs: {},
   activeJobId: null,
   previewNonce: 0,
@@ -62,7 +64,7 @@ export const useStore = create<State>((set, get) => ({
 
   openProject: async (id) => {
     const project = await api.getProject(id);
-    set({ project, view: "editor", selectedEventId: null });
+    set({ project, view: "editor", selectedEventId: null, selectedEventIds: [] });
     try { set({ waveform: await api.waveform(id) }); } catch { /* not ready */ }
     try { const t = await api.transcript(id); set({ words: t.words }); } catch { /* */ }
     try { const b = await api.getBeats(id); set({ beats: b.beats }); } catch { /* */ }
@@ -81,7 +83,32 @@ export const useStore = create<State>((set, get) => ({
     try { set({ project: await api.getProject(project.id) }); } catch { /* */ }
   },
 
-  select: (id) => set({ selectedEventId: id }),
+  select: (id, mode = "single") => {
+    if (id === null) {
+      set({ selectedEventId: null, selectedEventIds: [] });
+      return;
+    }
+    const { selectedEventIds, selectedEventId, edl } = get();
+    if (mode === "toggle") {
+      const ids = selectedEventIds.includes(id)
+        ? selectedEventIds.filter((x) => x !== id)
+        : [...selectedEventIds, id];
+      set({ selectedEventIds: ids, selectedEventId: ids[ids.length - 1] || null });
+    } else if (mode === "range" && selectedEventId && edl) {
+      // Everything between the last-selected clip and this one, in timeline order.
+      const order = [...edl.events].sort((a, b) => a.start_s - b.start_s).map((e) => e.id);
+      const [a, b] = [order.indexOf(selectedEventId), order.indexOf(id)];
+      if (a === -1 || b === -1) {
+        set({ selectedEventId: id, selectedEventIds: [id] });
+        return;
+      }
+      const span = order.slice(Math.min(a, b), Math.max(a, b) + 1);
+      const ids = [...new Set([...get().selectedEventIds, ...span])];
+      set({ selectedEventIds: ids, selectedEventId: id });
+    } else {
+      set({ selectedEventId: id, selectedEventIds: [id] });
+    }
+  },
 
   applyOps: async (ops) => {
     const { project, edl } = get();
@@ -124,14 +151,15 @@ export const useStore = create<State>((set, get) => ({
     } catch (e: any) { get().setToast(e.message); }
   },
 
-  reroll: async (eventIds) => {
+  reroll: async (eventIds, hint) => {
     const { project } = get();
     if (!project || !eventIds.length) return;
     try {
-      await api.reroll(project.id, eventIds);
+      await api.reroll(project.id, eventIds, hint);
+      const dir = hint?.trim() ? " with your direction" : "";
       get().setToast(eventIds.length === 1
-        ? "🎲 Rerolling clip — fresh plan, fresh footage…"
-        : `🎲 Rerolling ${eventIds.length} clips…`);
+        ? `🎲 Rerolling clip${dir} — fresh plan, fresh footage…`
+        : `🎲 Rerolling ${eventIds.length} clips${dir}…`);
     } catch (e: any) { get().setToast(e.message); }
   },
 

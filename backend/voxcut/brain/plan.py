@@ -182,9 +182,11 @@ def _item_to_event(beat: dict, it: dict) -> dict:
     )
 
 
-def plan_one(beat: dict, brief: dict, avoid_extra: list[str] | None = None) -> dict:
+def plan_one(beat: dict, brief: dict, avoid_extra: list[str] | None = None,
+             hint: str | None = None) -> dict:
     """Re-plan a single beat (per-clip reroll). Returns a fresh event for the
-    beat with new queries/kind. Raises BrainError when the LLM is unavailable."""
+    beat with new queries/kind. An optional operator hint steers the plan.
+    Raises BrainError when the LLM is unavailable."""
     from .steps_helpers import brief_summary  # lazy to avoid cycle
     avoid = ", ".join((brief.get("avoid") or []) + (avoid_extra or [])) or "(none)"
     context = brief_summary(brief)
@@ -192,8 +194,12 @@ def plan_one(beat: dict, brief: dict, avoid_extra: list[str] | None = None) -> d
         f"{beat['id']} | emph={beat['emphasis']} | rhythm={beat.get('rhythm', 'flow')} | "
         f"affinity={beat.get('visual_affinity', 'literal')} | "
         f"entities={beat.get('concrete_entities')} | {beat.get('text', beat.get('gist', ''))}")
-    system = PLAN_SYSTEM.format(avoid=avoid)
     user = PLAN_USER.format(context=context, avoid=avoid, beats_block=beats_block)
+    if hint and hint.strip():
+        user += (f"\n\nOPERATOR DIRECTION for this beat — follow it; it wins over "
+                 f"every playbook rule above, but keep queries SPECIFIC and "
+                 f"YouTube-searchable: {hint.strip()}")
+    system = PLAN_SYSTEM.format(avoid=avoid)
     out = structured(system, user, PLAN_SCHEMA, schema_name="edit_plan",
                      temperature=0.8, max_tokens=1200)
     items = out.get("items") or []
