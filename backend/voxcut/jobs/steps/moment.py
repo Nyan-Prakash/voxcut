@@ -34,7 +34,7 @@ async def run_moment(ctx: JobContext) -> None:
         return
 
     done = {"n": 0}
-    sem = asyncio.Semaphore(3)  # vision calls + occasional escalation downloads
+    sem = asyncio.Semaphore(6)  # vision calls + occasional escalation downloads
 
     async def handle(ev: dict) -> None:
         try:
@@ -58,10 +58,18 @@ async def run_moment(ctx: JobContext) -> None:
 # measure ~0.3-0.4; real visual gags 0.7+.)
 ESCALATE_BELOW = 0.45
 REVIEW_BELOW = 0.5
+# Cold open: the hook is held to a higher bar and gets more retries — a weak
+# first clip costs more watch time than a weak clip anywhere else.
+COLD_ESCALATE_BELOW = 0.65
+COLD_MAX_ESCALATIONS = 3
 VISION_WEIGHT = 0.7   # final window score = 0.7*vision + 0.3*signal fusion
 CLOSE_CALL_GAP = 0.1  # finalists within this vision margin → flag for review
-COARSE_MAX_FRAMES = 20
+COARSE_MAX_FRAMES = 12
 COARSE_KEEP = 0.4     # coarse regions below this score aren't worth refining
+
+
+ANALYZE_MAX_S = 900.0  # never analyze past 15 min — protects against the
+                        # oversized sources already cached in the library
 
 
 def _signal_moments(ev: dict, asset: Asset, query: str, entities: list[str]):
@@ -69,7 +77,8 @@ def _signal_moments(ev: dict, asset: Asset, query: str, entities: list[str]):
     beat_dur = ev["end_s"] - ev["start_s"]
     return select_moments(
         video=Path(asset.file_path), cache_dir=cache_dir,
-        duration=asset.duration_s or 0.0, beat_query=query, entities=entities,
+        duration=min(asset.duration_s or 0.0, ANALYZE_MAX_S),
+        beat_query=query, entities=entities,
         intent=intent_for(ev["kind"]), beat_dur=beat_dur,
         subs_path=Path(asset.subs_path) if asset.subs_path else None,
         heatmap_path=Path(asset.heatmap_path) if asset.heatmap_path else None,
@@ -110,10 +119,10 @@ def _coarse_windows(ev: dict, asset: Asset, beat: dict,
     lives, independent of subtitle/heatmap/audio signals. Fixes the
     'window misses the gag entirely' failure — weak signals can no longer
     strand the search in the wrong region."""
-    dur = asset.duration_s or 0.0
+    dur = min(asset.duration_s or 0.0, ANALYZE_MAX_S)
     if dur <= beat_dur * 4:  # short clip — fine windows already cover it
         return []
-    n = min(COARSE_MAX_FRAMES, max(6, int(dur // 8)))
+    n = min(COARSE_MAX_FRAMES, max(6, int(dur // 15)))
     step = dur / n
     windows = []
     for i in range(n):
@@ -203,12 +212,21 @@ def _place_one(ev: dict, beats: dict) -> None:
     ])).strip() or (ev.get("queries") or ["clip"])[0]
     entities = beat.get("concrete_entities", [])
 
-    # Tournament: verify every downloaded finalist (both comedic angles).
+    # Tournament, lazily: verify finalist #1 first and only spend on the next
+    # finalist when the current best hasn't clearly nailed it (vision < 0.7).
+    # Halves the per-beat work on the common case with no quality loss — a
+    # 0.7+ verified moment never loses to the runner-up by enough to matter.
     finalist_ids = list(dict.fromkeys(
         ev.get("finalist_asset_ids") or
         ([ev["asset_id"]] if ev.get("asset_id") else [])))
     results: list[dict] = []
     for aid in finalist_ids:
+        if results:
+            best = max((r["best_vision"] or 0) for r in results
+                       if r["best_vision"] is not None) if any(
+                r["best_vision"] is not None for r in results) else None
+            if best is not None and best >= 0.7:
+                break  # already verified-great; skip remaining finalists
         with session_scope() as db:
             asset = db.get(Asset, aid)
         if not asset or not Path(asset.file_path).exists():
@@ -223,23 +241,32 @@ def _place_one(ev: dict, beats: dict) -> None:
     results.sort(key=_score_of, reverse=True)
     winner = results[0]
 
-    # Escalation net: if even the tournament winner verifiably misses, try one
-    # more judge-approved source before settling.
-    if (winner["best_vision"] is not None
-            and winner["best_vision"] < ESCALATE_BELOW):
-        tried = {r["asset"].source_id for r in results}
+    # Escalation net: if even the tournament winner verifiably misses, try
+    # more judge-approved sources before settling. The cold open escalates
+    # harder: higher bar, up to 3 extra sources.
+    cold = "cold_open" in (ev.get("flags") or [])
+    escalate_below = COLD_ESCALATE_BELOW if cold else ESCALATE_BELOW
+    attempts = COLD_MAX_ESCALATIONS if cold else 1
+    tried = {r["asset"].source_id for r in results}
+    while (attempts > 0 and winner["best_vision"] is not None
+           and winner["best_vision"] < escalate_below):
+        attempts -= 1
         nxt = next((c for c in ev.get("source_candidates", [])
                     if c.get("source_id") and c["source_id"] not in tried
                     and c.get("url")), None)
-        alt_asset = _fetch_candidate(nxt) if nxt else None
-        if alt_asset and Path(alt_asset.file_path).exists():
-            try:
-                alt = _try_asset(ev, alt_asset, beat, query, entities)
-                results.append(alt)
-                results.sort(key=_score_of, reverse=True)
-                winner = results[0]
-            except Exception:  # noqa: BLE001
-                pass
+        if not nxt:
+            break
+        tried.add(nxt["source_id"])
+        alt_asset = _fetch_candidate(nxt)
+        if not alt_asset or not Path(alt_asset.file_path).exists():
+            continue
+        try:
+            alt = _try_asset(ev, alt_asset, beat, query, entities)
+            results.append(alt)
+            results.sort(key=_score_of, reverse=True)
+            winner = results[0]
+        except Exception:  # noqa: BLE001
+            continue
 
     ev["asset_id"] = winner["asset"].id
     best = winner["moments"][0]
@@ -258,13 +285,17 @@ def _place_one(ev: dict, beats: dict) -> None:
     } for r in results[:3]]
 
     flags = [f for f in ev.get("flags", [])
-             if f not in ("needs_review", "close_call")]
+             if f not in ("needs_review", "close_call", "cold_open_weak")]
     from ...moments.select import CONF_THRESHOLD
     needs_review = (winner["best_vision"] < REVIEW_BELOW
                     if winner["best_vision"] is not None
                     else winner["conf"] < CONF_THRESHOLD)
     if needs_review:
         flags.append("needs_review")
+    # The hook may never resolve weak silently — flag it front and center.
+    if cold and (winner["best_vision"] is None
+                 or winner["best_vision"] < COLD_ESCALATE_BELOW):
+        flags.append("cold_open_weak")
     # Close call: two finalists verified nearly equal — worth a human eyeball.
     if (len(results) > 1
             and results[0]["best_vision"] is not None

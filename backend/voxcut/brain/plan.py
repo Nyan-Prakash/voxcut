@@ -91,6 +91,10 @@ beat gets real queries.
 5. Respect the avoid-list: {avoid}.
 6. Source audio: mute by default; "keep" only when the source's own audio IS \
 the joke.
+7. COLD OPEN — the FIRST beat is the hook; the viewer decides to stay in the \
+first five seconds. Give it your single strongest visual idea: the most \
+recognizable iconic moment or the most instantly-absurd gag available for \
+that line — never warm-up b-roll, never generic scene-setting footage.
 
 Return one plan item per beat, in order, referencing beat_id."""
 
@@ -141,6 +145,8 @@ def plan(beats: list[dict], brief: dict, aspect: str = "16:9",
             events = _heuristic_plan(beats)
     else:
         events = _heuristic_plan(beats)
+    if events:  # the hook gets the deeper tournament (source/moment steps)
+        events[0]["flags"].append("cold_open")
     return {"version": 1, "aspect": aspect, "events": events}
 
 

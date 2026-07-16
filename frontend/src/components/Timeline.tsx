@@ -84,7 +84,7 @@ export function Timeline() {
           {edl.events.map((e) => {
             const cls = e.flags?.includes("gap_unfilled") ? "gap" : "clip";
             const rev = e.flags?.includes("needs_review") || e.flags?.includes("close_call")
-              || e.flags?.includes("qc_middle");
+              || e.flags?.includes("qc_middle") || e.flags?.includes("cold_open_weak");
             // Label with what actually PLAYS (tournament winner), not the query.
             const winner = e.finalists?.find((f: any) => f.asset_id === e.asset_id);
             const label = winner?.title || e.queries?.[0]

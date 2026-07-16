@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 
 from ...config import settings
 from ...db import session_scope
@@ -19,8 +20,17 @@ from ...sourcing.youtube import YouTubeProvider
 from ..runner import JobContext, register
 
 SOURCING_KINDS = {"clip_literal", "clip_reaction", "meme_image", "broll"}
-DOWNLOAD_CONCURRENCY = 3
+DOWNLOAD_CONCURRENCY = 5
 SEARCH_N = 8
+# Cold open (first beat): retention is decided in the first 5 seconds, so the
+# hook gets a deeper tournament — more results, more candidates, more finalists.
+COLD_SEARCH_N = 12
+COLD_RANK_KEEP = 20
+
+_COMPILATION_RE = re.compile(
+    r"compilation|top\s*\d+|best of|funn(y|iest)\s.*moments|moments that|"
+    r"try not to laugh|memes? (that|to|of the)|ultimate .*(memes?|moments)",
+    re.IGNORECASE)
 
 
 @register("source")
@@ -66,6 +76,9 @@ async def run_source(ctx: JobContext) -> None:
     # Variety guard: one asset per run. Reroll seeds this with the footage it
     # is replacing, so "regenerate" never hands back the same clip.
     used_sources: set[str] = set(ctx.payload.get("avoid_source_ids") or [])
+    # Franchise fatigue guard: the judge sees these counts and downranks a
+    # 3rd+ appearance of the same show/creator in one video.
+    franchise_counts: dict[str, int] = {}
 
     async def handle(ev: dict) -> None:
         reaction = ev["kind"] == "clip_reaction"
@@ -74,7 +87,8 @@ async def run_source(ctx: JobContext) -> None:
             async with sem:
                 asset_id, source, candidates, finalist_ids = await asyncio.to_thread(
                     _source_one, project_id, ev, provider, filters,
-                    beat_text.get(ev.get("beat_id"), ""), used_sources)
+                    beat_text.get(ev.get("beat_id"), ""), used_sources,
+                    franchise_counts)
             if asset_id:
                 ev["asset_id"] = asset_id
                 ev["source"] = source
@@ -124,7 +138,8 @@ def _mark_gap(ev: dict, beat_text: str = "") -> None:
 
 
 def _source_one(project_id: str, ev: dict, provider, filters: Filters,
-                beat_text: str = "", used_sources: set[str] | None = None):
+                beat_text: str = "", used_sources: set[str] | None = None,
+                franchise_counts: dict[str, int] | None = None):
     """Blocking tournament sourcing: search BOTH comedic angles (primary
     queries + joke_queries) → merge → rank → LLM relevance judge → download the
     top approved candidate from EACH angle. The moment step frame-verifies all
@@ -135,6 +150,10 @@ def _source_one(project_id: str, ev: dict, provider, filters: Filters,
     from ...brain.client import BrainError, is_available
     from ...brain.judge import judge_candidates
     from ...sourcing.rank import rank
+
+    cold = "cold_open" in (ev.get("flags") or [])
+    search_n = COLD_SEARCH_N if cold else SEARCH_N
+    rank_keep = COLD_RANK_KEEP if cold else 14
 
     queries = [q for q in ev.get("queries", []) if q.strip()][:3]
     joke_queries = [q for q in ev.get("joke_queries", []) if q.strip()][:2]
@@ -147,7 +166,7 @@ def _source_one(project_id: str, ev: dict, provider, filters: Filters,
     for angle, qs in (("primary", queries), ("joke", joke_queries)):
         for q in qs:
             try:
-                for c in provider.search(q, SEARCH_N, filters):
+                for c in provider.search(q, search_n, filters):
                     if c.source_id not in merged:
                         merged[c.source_id] = c
                         angle_of[c.source_id] = angle
@@ -157,11 +176,22 @@ def _source_one(project_id: str, ev: dict, provider, filters: Filters,
         return None, None, [], []
 
     # Heuristic rank (embeddings + metadata) against the primary query.
-    ranked = rank(queries[0], list(merged.values()), filters)[:14]
+    ranked = rank(queries[0], list(merged.values()), filters)[:rank_keep]
+
+    # Compilation hard-filter: grab-bag uploads keyword-match everything but
+    # rarely contain the wanted two seconds. Keep them only when nothing else
+    # survives or the beat itself is about compilations/montages.
+    beat_wants_montage = bool(re.search(r"compilation|montage",
+                                        f"{beat_text} {' '.join(queries)}",
+                                        re.IGNORECASE))
+    if not beat_wants_montage:
+        clean = [c for c in ranked if not _COMPILATION_RE.search(c.title or "")]
+        ranked = clean or ranked
 
     # LLM judge: score actual relevance to the narration. Order = judge order.
     order = ranked
     judged_by_id: dict[str, float] = {}
+    franchise_of: dict[str, str] = {}
     if is_available() and beat_text:
         try:
             picks = judge_candidates(
@@ -169,9 +199,11 @@ def _source_one(project_id: str, ev: dict, provider, filters: Filters,
                 [{"title": c.title, "channel": c.channel,
                   "duration_s": c.duration_s, "views": c.view_count,
                   "thumbnail": c.thumbnail}
-                 for c in ranked])
-            order = [ranked[i] for i, _rel in picks]
-            judged_by_id = {ranked[i].source_id: rel for i, rel in picks}
+                 for c in ranked],
+                franchise_counts=franchise_counts)
+            order = [ranked[i] for i, _rel, _fr in picks]
+            judged_by_id = {ranked[i].source_id: rel for i, rel, _fr in picks}
+            franchise_of = {ranked[i].source_id: fr for i, _rel, fr in picks if fr}
         except BrainError:
             pass  # judge unavailable → fall back to heuristic order
 
@@ -189,7 +221,9 @@ def _source_one(project_id: str, ev: dict, provider, filters: Filters,
         order = fresh or order
 
     # Tournament: best approved candidate PER ANGLE (judge order preserved),
-    # plus the runner-up of the primary angle as a fallback pool.
+    # plus the runner-up of the primary angle as a fallback pool. The cold
+    # open downloads one extra finalist — the hook deserves a deeper bench.
+    max_finalists = 3 if cold else 2
     picks_by_angle: dict[str, list] = {"primary": [], "joke": []}
     for c in order:
         picks_by_angle[angle_of.get(c.source_id, "primary")].append(c)
@@ -198,8 +232,10 @@ def _source_one(project_id: str, ev: dict, provider, filters: Filters,
         wanted.append(picks_by_angle["primary"][0])
     if picks_by_angle["joke"]:
         wanted.append(picks_by_angle["joke"][0])
-    if len(wanted) < 2 and len(picks_by_angle["primary"]) > 1:
-        wanted.append(picks_by_angle["primary"][1])
+    for extra in picks_by_angle["primary"][1:]:
+        if len(wanted) >= max_finalists:
+            break
+        wanted.append(extra)
 
     finalist_ids: list[str] = []
     for cand in wanted:
@@ -219,6 +255,13 @@ def _source_one(project_id: str, ev: dict, provider, filters: Filters,
                 break
     if not finalist_ids:
         return None, None, cand_meta, []
+
+    # Count the primary pick's franchise for the fatigue guard. Best-effort:
+    # events source concurrently, so counts trail slightly — that's fine.
+    if franchise_counts is not None and wanted:
+        fr = franchise_of.get(wanted[0].source_id, "")
+        if fr:
+            franchise_counts[fr] = franchise_counts.get(fr, 0) + 1
 
     with session_scope() as db:
         first = db.get(Asset, finalist_ids[0])

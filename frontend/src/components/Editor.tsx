@@ -126,7 +126,8 @@ function EditorToolbar() {
 
 function ReviewNav() {
   const { edl, select } = useStore();
-  const FLAGS = ["needs_review", "gap_unfilled", "close_call", "qc_middle"];
+  const FLAGS = ["needs_review", "gap_unfilled", "close_call", "qc_middle",
+                 "cold_open_weak"];
   const flagged = () => edl
     ? edl.events.filter((e) => e.flags?.some((f) => FLAGS.includes(f)))
     : [];

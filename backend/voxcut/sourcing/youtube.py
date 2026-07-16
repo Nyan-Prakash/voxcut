@@ -10,7 +10,7 @@ from pathlib import Path
 from ..media.probe import ffprobe
 from .base import Candidate, Filters
 
-_FMT = "bv*[height<=1080][ext=mp4]+ba[ext=m4a]/b[height<=1080]/b"
+_FMT = "bv*[height<=720][ext=mp4]+ba[ext=m4a]/b[height<=720]/b"
 
 
 def _ytdlp() -> str:
@@ -52,6 +52,8 @@ class YouTubeProvider:
             )
             if c.duration_s and c.duration_s < filters.min_duration_s:
                 continue
+            if c.duration_s and c.duration_s > filters.max_duration_s:
+                continue  # hard block: hour-long streams/compilations
             out.append(c)
         return out
 
@@ -65,6 +67,7 @@ class YouTubeProvider:
         dest.mkdir(parents=True, exist_ok=True)
         proc = subprocess.run(
             [_ytdlp(), "-f", _FMT, "--merge-output-format", "mp4",
+             "--match-filter", "duration<=900 | !duration",
              "--write-auto-subs", "--write-subs", "--sub-langs", "en.*",
              "--write-info-json", "--write-thumbnail", "--no-playlist",
              "--continue", "--no-warnings",

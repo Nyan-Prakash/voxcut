@@ -80,8 +80,11 @@ async def run_reroll(ctx: JobContext) -> None:
         ev["source"] = None
         for key in RESET_KEYS:
             ev.pop(key, None)
+        ev.pop("qc", None)  # old verdict is about the old footage
         ev["flags"] = [f for f in ev.get("flags", [])
-                       if f not in ("needs_review", "close_call", "gap_unfilled")]
+                       if f not in ("needs_review", "close_call",
+                                    "gap_unfilled", "qc_middle",
+                                    "cold_open_weak")]
         # The footage is changing: drop the cached segment + timeline
         # thumbnail so both regenerate from the new clip.
         for sub in ("segments", "segments_full"):

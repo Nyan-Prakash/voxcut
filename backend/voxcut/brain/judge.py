@@ -23,13 +23,21 @@ JUDGE_SCHEMA = {
                     "index": {"type": "integer"},
                     "relevance": {"type": "number"},
                     "reason": {"type": "string"},
+                    "franchise": {
+                        "type": "string",
+                        "description": "franchise/show/creator the clip is "
+                                       "from (e.g. 'SpongeBob', 'The Office'),"
+                                       " or '' if none/unclear"},
                 },
-                "required": ["index", "relevance", "reason"],
+                "required": ["index", "relevance", "reason", "franchise"],
             },
         }
     },
     "required": ["picks"],
 }
+
+# The frame judge reuses the same schema; franchise is ignored there.
+FRAME_SCHEMA = JUDGE_SCHEMA
 
 JUDGE_SYSTEM = """\
 You vet YouTube search results for a fast-cut commentary video editor.
@@ -73,7 +81,15 @@ Judging rules:
 - Podcasts, hour-long discussions, news recaps, lyric videos, and tutorials are
   almost never good b-roll for a joke — score them low unless the beat is
   literally about them.
-- Compilations are acceptable only if the wanted moment is clearly the subject.
+- COMPILATIONS ("TOP 100 MEMES", "best of…", "funny moments", "try not to
+  laugh"): score <= 0.4. Finding the wanted two seconds inside a 10-minute
+  grab-bag rarely works, and compilation frames look recycled. Exception:
+  the narration itself is about montages/compilations.
+- FRANCHISE FATIGUE: you are told which franchises this video already uses.
+  A franchise already used 2+ times scores <= 0.4 unless this candidate is
+  uniquely perfect — three SpongeBob cutaways in one video reads lazy.
+- Name each pick's "franchise" (show/film/creator, e.g. 'SpongeBob',
+  'The Office'); use '' when it's stock/generic/unclear.
 - TONE: this is a comedy edit. Reject footage of real tragedy — death, violent
   crime, accidents, disasters, grief — regardless of relevance. A funny beat
   cut against someone's real misfortune reads as offensive, not funny.
@@ -87,6 +103,7 @@ JUDGE_USER = """\
 Narration beat: "{beat_text}"
 Visual intent: {intent}
 Search queries used: {queries}
+Franchises already used in this video: {franchises}
 
 Results:
 {results}"""
@@ -206,9 +223,12 @@ def judge_frames(beat_text: str, intent: str, video_title: str,
 
 
 def judge_candidates(beat_text: str, intent: str, queries: list[str],
-                     candidates: list[dict]) -> list[tuple[int, float]]:
-    """Returns [(candidate_index, relevance)] best-first, only relevance >= 0.5.
-    Raises BrainError if the LLM is unavailable/fails (caller falls back).
+                     candidates: list[dict],
+                     franchise_counts: dict[str, int] | None = None,
+                     ) -> list[tuple[int, float, str]]:
+    """Returns [(candidate_index, relevance, franchise)] best-first, only
+    relevance >= 0.5. Raises BrainError if the LLM is unavailable/fails
+    (caller falls back).
 
     Candidates may include a 'thumbnail' URL — shown to the model so it judges
     what the footage LOOKS like, not just what the title claims."""
@@ -219,13 +239,17 @@ def judge_candidates(beat_text: str, intent: str, queries: list[str],
     images = [(f"Thumbnail for result {i}:", c["thumbnail"])
               for i, c in enumerate(candidates)
               if c.get("thumbnail", "").startswith("http")]
+    franchises = ", ".join(f"{k} ×{v}" for k, v in (franchise_counts or {}).items()
+                           if v) or "(none yet)"
     out = structured(
         JUDGE_SYSTEM,
         JUDGE_USER.format(beat_text=beat_text, intent=intent,
-                          queries=", ".join(queries), results=results),
+                          queries=", ".join(queries), results=results,
+                          franchises=franchises),
         JUDGE_SCHEMA, schema_name="source_judge", temperature=0.2,
         max_tokens=2000, images=images or None)
-    picks = [(p["index"], float(p["relevance"])) for p in out.get("picks", [])
+    picks = [(p["index"], float(p["relevance"]), (p.get("franchise") or "").strip())
+             for p in out.get("picks", [])
              if 0 <= p["index"] < len(candidates) and p["relevance"] >= 0.5]
     picks.sort(key=lambda t: t[1], reverse=True)
     return picks

@@ -104,8 +104,8 @@ def _load_energy_envelope(video: Path, cache: Path):
     # Extract 16k mono wav, compute RMS + flux at 100ms hops.
     wav = cache.with_suffix(".wav")
     proc = subprocess.run(
-        [ffmpeg(), "-y", "-i", str(video), "-ac", "1", "-ar", "16000",
-         "-c:a", "pcm_s16le", str(wav)],
+        [ffmpeg(), "-y", "-i", str(video), "-t", "900",
+         "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", str(wav)],
         capture_output=True, text=True, check=False)
     if proc.returncode != 0 or not wav.exists():
         return None
