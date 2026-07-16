@@ -5,6 +5,7 @@ import json
 import re
 import shutil
 import subprocess
+import time
 from pathlib import Path
 
 from ..media.probe import ffprobe
@@ -24,14 +25,24 @@ class YouTubeProvider:
     name = "youtube"
 
     def search(self, query: str, n: int, filters: Filters) -> list[Candidate]:
-        proc = subprocess.run(
-            [_ytdlp(), f"ytsearch{n}:{query}", "--flat-playlist", "-J",
-             "--no-warnings"],
-            capture_output=True, text=True, check=False, timeout=90,
-        )
-        if proc.returncode != 0 or not proc.stdout.strip():
+        # YouTube throttles search bursts (a full generate fires 100+ searches);
+        # a throttled search returns empty, which used to become a silent gap.
+        # Retry once with backoff before giving up.
+        data = None
+        for attempt in range(2):
+            proc = subprocess.run(
+                [_ytdlp(), f"ytsearch{n}:{query}", "--flat-playlist", "-J",
+                 "--no-warnings"],
+                capture_output=True, text=True, check=False, timeout=90,
+            )
+            if proc.returncode == 0 and proc.stdout.strip():
+                data = json.loads(proc.stdout)
+                if data.get("entries"):
+                    break
+            if attempt == 0:
+                time.sleep(5)
+        if not data:
             return []
-        data = json.loads(proc.stdout)
         out: list[Candidate] = []
         for e in data.get("entries", []) or []:
             if not e or not e.get("id"):

@@ -9,6 +9,8 @@ from __future__ import annotations
 import asyncio
 import json
 import re
+import threading
+import time
 
 from ...config import settings
 from ...db import session_scope
@@ -21,6 +23,9 @@ from ..runner import JobContext, register
 
 SOURCING_KINDS = {"clip_literal", "clip_reaction", "meme_image", "broll"}
 DOWNLOAD_CONCURRENCY = 5
+# Searches hit YouTube's burst limits long before downloads do: gate them to
+# 2 concurrent with a small stagger, independent of download parallelism.
+_SEARCH_GATE = threading.Semaphore(2)
 SEARCH_N = 8
 # Cold open (first beat): retention is decided in the first 5 seconds, so the
 # hook gets a deeper tournament — more results, more candidates, more finalists.
@@ -166,7 +171,10 @@ def _source_one(project_id: str, ev: dict, provider, filters: Filters,
     for angle, qs in (("primary", queries), ("joke", joke_queries)):
         for q in qs:
             try:
-                for c in provider.search(q, search_n, filters):
+                with _SEARCH_GATE:
+                    results = provider.search(q, search_n, filters)
+                    time.sleep(0.4)  # stagger: stay under the burst radar
+                for c in results:
                     if c.source_id not in merged:
                         merged[c.source_id] = c
                         angle_of[c.source_id] = angle
