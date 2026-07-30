@@ -82,6 +82,20 @@ export interface Job {
   error: string | null;
 }
 
+export interface HighlightClip {
+  index: number;
+  start_beat: number;
+  end_beat: number;
+  start_s: number;
+  end_s: number;
+  duration_s: number;
+  title: string;
+  hook: string;
+  reason: string;
+  score: number;
+  exported: boolean;
+}
+
 export interface Waveform {
   version: number;
   buckets_per_s: number;

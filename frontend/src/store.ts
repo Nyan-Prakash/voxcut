@@ -19,7 +19,8 @@ interface State {
   playheadS: number;
   videoEl: HTMLVideoElement | null;
   tool: "select" | "cut" | "add";
-  stage: "clips" | "music";
+  stage: "clips" | "music" | "tiktok";
+  highlightsNonce: number;
 
   setView: (v: State["view"]) => void;
   loadProjects: () => Promise<void>;
@@ -60,6 +61,7 @@ export const useStore = create<State>((set, get) => ({
   videoEl: null,
   tool: "select",
   stage: "clips",
+  highlightsNonce: 0,
 
   setView: (v) => set({ view: v }),
   setTool: (t) => set({ tool: t }),
@@ -204,6 +206,11 @@ export const useStore = create<State>((set, get) => ({
     }
     if (ev.type === "preview_updated" && project && ev.project_id === project.id) {
       get().bumpPreview();
+    }
+    if ((ev.type === "highlights_ready" || ev.type === "clip_ready")
+        && project && ev.project_id === project.id) {
+      set((s) => ({ highlightsNonce: s.highlightsNonce + 1 }));
+      if (ev.type === "clip_ready") get().setToast("📱 TikTok clip exported — download is ready");
     }
   },
 

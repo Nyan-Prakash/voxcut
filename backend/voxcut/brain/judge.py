@@ -185,6 +185,92 @@ QC_USER = """\
 {lines}"""
 
 
+HIGHLIGHT_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "clips": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "start_beat": {"type": "integer"},
+                    "end_beat": {"type": "integer"},
+                    "title": {"type": "string",
+                              "description": "short punchy caption/title for "
+                                             "the clip (<= 8 words)"},
+                    "hook": {"type": "string",
+                             "description": "the opening line that stops the "
+                                            "scroll, quoted from the narration"},
+                    "reason": {"type": "string"},
+                    "score": {"type": "number"},
+                },
+                "required": ["start_beat", "end_beat", "title", "hook",
+                             "reason", "score"],
+            },
+        }
+    },
+    "required": ["clips"],
+}
+
+HIGHLIGHT_SYSTEM = """\
+You scout a FINISHED fast-cut commentary video for TikTok-worthy clips.
+
+You are given the video's narration as numbered beats (each with its start
+time and duration) and, when available, one frame per beat showing what plays
+on screen during it. Propose up to 6 clips, each a contiguous beat range
+[start_beat..end_beat], that would work as standalone TikToks.
+
+What makes a clip TikTok-worthy:
+- HOOK FIRST: the opening beat must grab in under 2 seconds — a bold claim,
+  a question, a punchline setup, chaos on screen. If a viewer needs the
+  previous 30 seconds to get it, it is NOT a clip.
+- SELF-CONTAINED: the range tells a complete micro-story — setup and payoff
+  both inside the range. Never start mid-reference ("and THAT'S why...") and
+  never end on an unresolved setup.
+- END ON THE PAYOFF: cut right after the punchline/reveal lands. Trailing
+  wind-down beats kill rewatch value.
+- LENGTH: 8–60 seconds total. 15–35s is the sweet spot.
+- VISUALS COUNT: when frames are provided, favor ranges whose footage is
+  expressive and readable on a phone (action, reactions, memes) over ranges
+  of generic b-roll.
+
+Scoring (0..1, be harsh):
+- 0.8+: you would bet on this clip — killer hook, tight arc, strong visuals.
+- 0.5–0.8: solid, worth posting.
+- below 0.5: don't return it.
+Fewer great clips beat many mediocre ones. Zero clips is a valid answer when
+nothing stands alone. Clips may not overlap. Order best-first."""
+
+HIGHLIGHT_USER = """\
+Video duration: {total_s:.0f}s, {n} beats.
+
+Beats (index: [tone] "narration" — starts at Xs, lasts Ys):
+{lines}"""
+
+
+def judge_highlights(beats: list[dict],
+                     frames: list[str | None] | None = None) -> list[dict]:
+    """beats: beat dicts (start_s, end_s, text, tone) in timeline order.
+    frames: optional per-beat data-URL frame from the finished edit (None
+    where extraction failed). Returns raw clip proposals with beat indices;
+    the caller snaps/validates. Raises BrainError on failure."""
+    lines = "\n".join(
+        f'{i}: [{b.get("tone", "")}] "{b.get("text", "")}" — starts at '
+        f'{b["start_s"]:.1f}s, lasts {b["end_s"] - b["start_s"]:.1f}s'
+        for i, b in enumerate(beats))
+    images = [(f"Frame for beat {i}:", url)
+              for i, url in enumerate(frames or []) if url]
+    total_s = beats[-1]["end_s"] if beats else 0.0
+    out = structured(
+        HIGHLIGHT_SYSTEM,
+        HIGHLIGHT_USER.format(total_s=total_s, n=len(beats), lines=lines),
+        HIGHLIGHT_SCHEMA, schema_name="highlight_scout", temperature=0.3,
+        max_tokens=2500, images=images or None)
+    return out.get("clips", [])
+
+
 def judge_qc(entries: list[tuple[str, str, str]]) -> list[dict | None]:
     """entries: (beat_text, kind, frame_data_url) per clip, in order.
     Returns per-entry {verdict, reason} (None where the judge skipped one).

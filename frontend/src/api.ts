@@ -1,4 +1,4 @@
-import type { Beat, Edl, Job, Project, Waveform, Word } from "./types";
+import type { Beat, Edl, HighlightClip, Job, Project, Waveform, Word } from "./types";
 
 const token = new URLSearchParams(location.search).get("t") || "";
 
@@ -122,6 +122,15 @@ export const api = {
     }),
 
   runQc: (id: string) => req<{ job_id: string }>(`/projects/${id}/qc`, { method: "POST" }),
+
+  getHighlights: (id: string) =>
+    req<{ analyzed: boolean; clips: HighlightClip[] }>(`/projects/${id}/highlights`),
+  analyzeHighlights: (id: string) =>
+    req<{ job_id: string }>(`/projects/${id}/highlights/analyze`, { method: "POST" }),
+  exportHighlight: (id: string, index: number) =>
+    req<{ job_id: string }>(`/projects/${id}/highlights/${index}/export`, { method: "POST" }),
+  highlightDownloadUrl: (id: string, index: number) =>
+    url(`/projects/${id}/highlights/${index}/download`),
 
   musicList: () => req<{ tracks: any[]; moods: string[] }>("/music"),
   musicUpload: async (file: File) => {

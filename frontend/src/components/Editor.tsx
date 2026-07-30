@@ -4,6 +4,7 @@ import { useStore } from "../store";
 import { MusicTimeline, Timeline } from "./Timeline";
 import { Inspector } from "./Inspector";
 import { MusicSection } from "./Library";
+import { HighlightsPanel } from "./Highlights";
 
 export function Editor() {
   const { project, edl, words, stage } = useStore();
@@ -17,6 +18,7 @@ export function Editor() {
   const hasTranscript = words.length > 0;
 
   if (stage === "music" && edl) return <MusicStage />;
+  if (stage === "tiktok" && edl) return <TikTokStage />;
 
   return (
     <div className="editor" style={{ height: "100%" }}>
@@ -76,6 +78,26 @@ function MusicStage() {
   );
 }
 
+function TikTokStage() {
+  const { setStage } = useStore();
+  return (
+    <div className="editor" style={{ height: "100%" }}>
+      <div className="editor-top">
+        <Preview />
+        <HighlightsPanel />
+      </div>
+      <div className="timeline-wrap">
+        <div className="row" style={{ marginBottom: 6 }}>
+          <button className="sec" onClick={() => setStage("clips")}>← Back to clips</button>
+          <div className="spacer" />
+          <ExportButton />
+        </div>
+        <Timeline />
+      </div>
+    </div>
+  );
+}
+
 function ToolSwitch() {
   const { tool, setTool } = useStore();
   const TOOLS: Array<{ id: typeof tool; label: string; hint: string }> = [
@@ -116,6 +138,10 @@ function EditorToolbar() {
                 useStore.getState().setToast("🔎 QC: auditing clips against the never-mediocre law…");
               }}>🔎 QC</button>
       <div className="spacer" />
+      <button className="sec" onClick={() => useStore.getState().setStage("tiktok")}
+              title="AI-scout the finished edit for hook-first moments worth posting as vertical clips">
+        📱 TikTok clips
+      </button>
       <button onClick={() => useStore.getState().setStage("music")}
               title="Happy with the clips? Move on to scoring the video with music.">
         ✓ Accept clips → Music
