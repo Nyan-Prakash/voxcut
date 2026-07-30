@@ -196,6 +196,16 @@ async def export(project_id: str, body: ExportBody) -> dict:
     return {"job_id": job_id}
 
 
+@router.get("/{project_id}/export/status")
+def export_status(project_id: str) -> dict:
+    """Whether a finished full-quality export exists (and how fresh it is)."""
+    path = settings().project_dir(project_id) / "export.mp4"
+    if not path.exists():
+        return {"ready": False}
+    st = path.stat()
+    return {"ready": True, "bytes": st.st_size, "mtime": st.st_mtime}
+
+
 @router.get("/{project_id}/export/download")
 def export_download(project_id: str) -> FileResponse:
     path = settings().project_dir(project_id) / "export.mp4"

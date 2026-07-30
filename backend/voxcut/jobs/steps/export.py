@@ -26,8 +26,9 @@ async def run_export(ctx: JobContext) -> None:
         p = db.get(Project, project_id)
         master = p.voiceover_path if p else None
 
+    resolution = ctx.payload.get("resolution") or "1080p"
     step = ctx.add_step("export")
-    await ctx.report(step, 0.02, "Rendering full-quality export")
+    await ctx.report(step, 0.02, f"Rendering full-quality export ({resolution})")
     loop = asyncio.get_running_loop()
 
     def on_progress(frac: float) -> None:
@@ -36,7 +37,7 @@ async def run_export(ctx: JobContext) -> None:
 
     out = await asyncio.to_thread(
         render_proxy, project_id, edl,
-        Path(master) if master else None, pdir, False, on_progress)
+        Path(master) if master else None, pdir, False, on_progress, resolution)
 
     await ctx.finish_step(step, f"Export ready: {out.name}")
     await bus.publish({"type": "export_ready", "project_id": project_id,

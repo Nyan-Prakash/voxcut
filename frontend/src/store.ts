@@ -21,6 +21,7 @@ interface State {
   tool: "select" | "cut" | "add";
   stage: "clips" | "music" | "tiktok";
   highlightsNonce: number;
+  exportNonce: number;
 
   setView: (v: State["view"]) => void;
   loadProjects: () => Promise<void>;
@@ -62,6 +63,7 @@ export const useStore = create<State>((set, get) => ({
   tool: "select",
   stage: "clips",
   highlightsNonce: 0,
+  exportNonce: 0,
 
   setView: (v) => set({ view: v }),
   setTool: (t) => set({ tool: t }),
@@ -206,6 +208,9 @@ export const useStore = create<State>((set, get) => ({
     }
     if (ev.type === "preview_updated" && project && ev.project_id === project.id) {
       get().bumpPreview();
+    }
+    if (ev.type === "export_ready" && project && ev.project_id === project.id) {
+      set((s) => ({ exportNonce: s.exportNonce + 1 }));
     }
     if ((ev.type === "highlights_ready" || ev.type === "clip_ready")
         && project && ev.project_id === project.id) {

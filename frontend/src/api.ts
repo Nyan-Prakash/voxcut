@@ -157,6 +157,8 @@ export const api = {
       method: "POST", body: JSON.stringify({ resolution }),
     }),
   exportUrl: (id: string) => url(`/projects/${id}/export/download`),
+  exportStatus: (id: string) =>
+    req<{ ready: boolean; bytes?: number; mtime?: number }>(`/projects/${id}/export/status`),
 };
 
 export function subscribeEvents(onEvent: (ev: any) => void): EventSource {

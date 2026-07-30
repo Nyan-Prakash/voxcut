@@ -5,6 +5,7 @@ import { MusicTimeline, Timeline } from "./Timeline";
 import { Inspector } from "./Inspector";
 import { MusicSection } from "./Library";
 import { HighlightsPanel } from "./Highlights";
+import { ExportModal } from "./ExportModal";
 
 export function Editor() {
   const { project, edl, words, stage } = useStore();
@@ -175,17 +176,16 @@ function ReviewNav() {
 }
 
 function ExportButton() {
-  const { project } = useStore();
-  const [busy, setBusy] = useState(false);
-  const go = async () => {
-    setBusy(true);
-    try {
-      await api.exportProject(project!.id, "1080p");
-      useStore.getState().setToast("Exporting 1080p… download appears when ready");
-    } catch (e: any) { useStore.getState().setToast(e.message); }
-    finally { setBusy(false); }
-  };
-  return <button onClick={go} disabled={busy}>⬇ Export 1080p</button>;
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button onClick={() => setOpen(true)}
+              title="Export the full video or AI-scouted short-form verticals">
+        ⬇ Export
+      </button>
+      {open && <ExportModal onClose={() => setOpen(false)} />}
+    </>
+  );
 }
 
 function Preview() {

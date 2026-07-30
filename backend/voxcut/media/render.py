@@ -130,11 +130,17 @@ def render_event_segment(ev: dict, seg_dir: Path, w: int, h: int,
     return _render_blank(dur, out, w, h, crf, preset)
 
 
+# Export resolution as a multiplier on the full-quality dims (16:9 base
+# 1920x1080, 9:16 base 1080x1920). Proxy renders ignore it.
+RES_SCALE = {"720p": 2 / 3, "1080p": 1.0, "4k": 2.0}
+
+
 def render_proxy(project_id: str, edl: dict, master_path: Path | None,
-                 project_dir: Path, proxy: bool = True, on_progress=None) -> Path:
+                 project_dir: Path, proxy: bool = True, on_progress=None,
+                 resolution: str | None = None) -> Path:
     with _RENDER_LOCKS[f"{project_id}:{proxy}"]:
         return _render_locked(project_id, edl, master_path, project_dir,
-                              proxy, on_progress)
+                              proxy, on_progress, resolution)
 
 
 def _has_audio(path: str) -> bool:
@@ -250,11 +256,23 @@ def _mux_final(video_only: Path, master_path: Path, overlays: list[tuple[dict, s
 
 
 def _render_locked(project_id: str, edl: dict, master_path: Path | None,
-                   project_dir: Path, proxy: bool, on_progress) -> Path:
+                   project_dir: Path, proxy: bool, on_progress,
+                   resolution: str | None = None) -> Path:
     aspect = edl.get("aspect", "16:9")
     w, h = dims(aspect, proxy)
     seg_dir = project_dir / ("segments" if proxy else "segments_full")
     seg_dir.mkdir(exist_ok=True)
+    if not proxy:
+        res = resolution if resolution in RES_SCALE else "1080p"
+        scale = RES_SCALE[res]
+        w, h = int(w * scale / 2) * 2, int(h * scale / 2) * 2
+        # Cached full segments are resolution-specific — a res change would
+        # poison the concat with mixed-size segments, so wipe them.
+        marker = seg_dir / ".res"
+        if marker.exists() and marker.read_text().strip() != res:
+            for f in seg_dir.glob("*.mp4"):
+                f.unlink(missing_ok=True)
+        marker.write_text(res)
     crf = "28" if proxy else "18"
     preset = "ultrafast" if proxy else "medium"
 
