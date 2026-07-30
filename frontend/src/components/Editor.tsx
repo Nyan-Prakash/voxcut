@@ -70,6 +70,10 @@ function MusicStage() {
             useStore.getState().setToast("Rebuilding preview with music…");
           }}>▶ Rebuild preview</button>
           <div className="spacer" />
+          <button className="sec" onClick={() => setStage("tiktok")}
+                  title="AI-scout the finished edit for hook-first moments worth posting as vertical clips">
+            📱 TikTok clips
+          </button>
           <ExportButton />
         </div>
         <MusicTimeline />
