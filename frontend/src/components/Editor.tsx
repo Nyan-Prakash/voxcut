@@ -71,10 +71,6 @@ function MusicStage() {
             useStore.getState().setToast("Rebuilding preview with music…");
           }}>▶ Rebuild preview</button>
           <div className="spacer" />
-          <button className="sec" onClick={() => setStage("tiktok")}
-                  title="AI-scout the finished edit for hook-first moments worth posting as vertical clips">
-            📱 TikTok clips
-          </button>
           <ExportButton />
         </div>
         <MusicTimeline />
@@ -143,10 +139,7 @@ function EditorToolbar() {
                 useStore.getState().setToast("🔎 QC: auditing clips against the never-mediocre law…");
               }}>🔎 QC</button>
       <div className="spacer" />
-      <button className="sec" onClick={() => useStore.getState().setStage("tiktok")}
-              title="AI-scout the finished edit for hook-first moments worth posting as vertical clips">
-        📱 TikTok clips
-      </button>
+      <ExportButton />
       <button onClick={() => useStore.getState().setStage("music")}
               title="Happy with the clips? Move on to scoring the video with music.">
         ✓ Accept clips → Music
