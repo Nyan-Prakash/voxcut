@@ -116,7 +116,8 @@ export function ExportModal({ onClose }: { onClose: () => void }) {
           </div>
           <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
             AI-scouted TikTok/Shorts moments, cut from the full-quality master
-            and center-cropped to 1080×1920.
+            into 1080×1920 verticals — full video centered, blurred backdrop
+            filling the top and bottom.
           </div>
           {!analyzed && (
             <div className="row" style={{ marginTop: 10 }}>

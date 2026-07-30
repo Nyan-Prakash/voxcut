@@ -153,9 +153,14 @@ async def run_export_clip(ctx: JobContext) -> None:
     out.parent.mkdir(exist_ok=True)
     dur = max(0.5, clip["end_s"] - clip["start_s"])
     await ctx.report(step, 0.8, f"Cutting {dur:.0f}s vertical clip")
-    # Center-crop to 9:16 then scale to 1080x1920 (crop width forced even).
-    vf = ("crop='min(iw,trunc(ih*9/16/2)*2)':ih,"
-          "scale=1080:1920,setsar=1")
+    # Nothing gets cropped out: the full video sits centered in the 9:16
+    # frame, and a blown-up, blurred, slightly darkened copy of it fills the
+    # space above and below (the classic TikTok letterbox).
+    vf = ("split[bg][fg];"
+          "[bg]scale=1080:1920:force_original_aspect_ratio=increase,"
+          "crop=1080:1920,gblur=sigma=30,eq=brightness=-0.08[bgb];"
+          "[fg]scale=1080:-2[fgs];"
+          "[bgb][fgs]overlay=(W-w)/2:(H-h)/2,setsar=1")
     await asyncio.to_thread(run, [
         ffmpeg(), "-y", "-ss", f"{clip['start_s']:.3f}", "-t", f"{dur:.3f}",
         "-i", str(export), "-vf", vf,

@@ -37,8 +37,8 @@ export function HighlightsPanel() {
       <h2>📱 TikTok clips</h2>
       <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
         The AI watches the finished edit and picks hook-first, self-contained
-        moments that stand alone as TikToks. Export cuts a 9:16 vertical with
-        the final audio mix.
+        moments that stand alone as TikToks. Export cuts a 9:16 vertical —
+        full video centered over a blurred backdrop, final audio mix.
       </div>
       <div className="row" style={{ marginTop: 10 }}>
         <button onClick={analyze} disabled={busy}>
@@ -95,7 +95,7 @@ function ClipCard({ clip, onWatch }: { clip: HighlightClip; onWatch: () => void 
           ▶ Watch
         </button>
         <button className="sec" onClick={doExport} disabled={busy}
-                title="Cut this range from the full-quality export, center-cropped to 9:16 1080x1920">
+                title="Cut this range from the full-quality export into a 1080x1920 vertical — full video centered, blurred backdrop above and below">
           ⬇ Export 9:16
         </button>
         {clip.exported && (
