@@ -163,7 +163,9 @@ the intent describes — setup optional, punchline mandatory, no dead air:
 - CALIBRATION: 0.5 means "usable — a complete, intelligible payload that
   fits the intent reasonably well"; reserve 0.8+ for the exact canonical
   moment. Do NOT score a usable window below 0.4 for being merely imperfect.
-Score every frame index exactly once."""
+This is NOT a selection — it is an exhaustive scoring pass. Return one entry
+for EVERY window index from 0 to n-1, including the bad ones (give those an
+explicit low score with the reason). Never omit a window."""
 
 INTERJECT_FRAME_USER = """\
 The interjection's intent: {intent}
@@ -245,12 +247,38 @@ def judge_interject_candidates(intent: str, before: str, after: str,
     return picks
 
 
+# Dedicated exhaustive-scoring schema: the shared JUDGE_SCHEMA's "picks"
+# framing reads as a SELECTION, and the model omits windows it wouldn't
+# pick — omissions parsed as 0.0 produced "everything scored 0.0" runs.
+FRAME_SCORE_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "scores": {
+            "type": "array",
+            "description": "exactly one entry per window index, 0..n-1",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "index": {"type": "integer"},
+                    "score": {"type": "number"},
+                    "reason": {"type": "string"},
+                },
+                "required": ["index", "score", "reason"],
+            },
+        }
+    },
+    "required": ["scores"],
+}
+
+
 def judge_interject_frames(intent: str, video_title: str, frames: list[str],
                            energies: list[float],
                            transcripts: list[str] | None = None) -> list[float]:
     """Score candidate windows (frame + audio energy + transcript of what is
-    actually said in each). Returns a 0..1 score per window. Raises
-    BrainError on failure."""
+    actually said in each). Exhaustive: every window gets a score. Returns a
+    0..1 score per window. Raises BrainError on failure."""
     images = [(f"Frame {i}:", url) for i, url in enumerate(frames)]
     en = ", ".join(f"{i}: {e:.2f}" for i, e in enumerate(energies))
     tr = "\n".join(f'{i}: "{(t or "(no speech)").strip()}"'
@@ -260,10 +288,10 @@ def judge_interject_frames(intent: str, video_title: str, frames: list[str],
         INTERJECT_FRAME_USER.format(intent=intent, video_title=video_title,
                                     n=len(frames), energies=en,
                                     transcripts=tr),
-        JUDGE_SCHEMA, schema_name="interject_frame", temperature=0.2,
-        max_tokens=1500, images=images)
+        FRAME_SCORE_SCHEMA, schema_name="interject_frame_scores",
+        temperature=0.2, max_tokens=1500, images=images)
     scores = [0.0] * len(frames)
-    for p in out.get("picks", []):
+    for p in out.get("scores", []):
         if 0 <= p["index"] < len(frames):
-            scores[p["index"]] = max(0.0, min(1.0, float(p["relevance"])))
+            scores[p["index"]] = max(0.0, min(1.0, float(p["score"])))
     return scores

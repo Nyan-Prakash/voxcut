@@ -64,12 +64,35 @@ MIN_WINDOW_SCORE = 0.4
 SALVAGE_SCORE = 0.3
 
 
+def _dedupe_rolling(cues: list[dict]) -> list[dict]:
+    """YouTube auto-captions ROLL: consecutive cues overlap in time and
+    repeat the previous cue's tail ("...mr. Toby yeah" / "mr. Toby yeah why
+    don't you..."). Strip each cue down to its genuinely new words, so
+    utterance windows don't stutter duplicated text."""
+    out: list[dict] = []
+    prev_words: list[str] = []
+    for c in cues:
+        words = c["text"].split()
+        overlap = 0
+        for j in range(min(len(prev_words), len(words)), 0, -1):
+            if prev_words[-j:] == [w for w in words[:j]]:
+                overlap = j
+                break
+        prev_words = words
+        fresh = words[overlap:]
+        if fresh:
+            out.append({**c, "text": " ".join(fresh)})
+    return out
+
+
 def _asset_cues(asset: Asset) -> list[dict]:
-    """Parsed subtitle cues ({start, end, text}) captured at download time."""
+    """Parsed subtitle cues ({start, end, text}) captured at download time,
+    de-rolled so each cue carries only its new words."""
     if asset.subs_path and Path(asset.subs_path).exists():
         try:
-            return [c for c in json.loads(Path(asset.subs_path).read_text())
-                    if c.get("text")]
+            return _dedupe_rolling(
+                [c for c in json.loads(Path(asset.subs_path).read_text())
+                 if c.get("text")])
         except Exception:  # noqa: BLE001
             return []
     return []
@@ -102,6 +125,72 @@ def _transcribe_span(video: Path, a: float, b: float, work: Path) -> str:
         return ""
     finally:
         wav.unlink(missing_ok=True)
+
+
+LONG_CUE_S = 6.0  # auto-captions sometimes emit one rolling 15s mega-cue
+
+
+def _whisper_segments(video: Path, a: float, b: float,
+                      cache_dir: Path) -> list[dict]:
+    """Split [a, b] into real utterance segments via whisper (cached per
+    span). YouTube auto-captions can lump a whole scene into one rolling
+    cue — the payload line in its MIDDLE is unreachable from cue boundaries
+    without this. Returns [{start, end, text}] in absolute video time."""
+    import subprocess
+
+    from ...asr.transcribe import _get_model, _pick_model
+    from ...media.probe import ffmpeg
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache = cache_dir / f"whisper_w_{a:.1f}_{b:.1f}.json"
+    if cache.exists():
+        try:
+            return json.loads(cache.read_text())
+        except Exception:  # noqa: BLE001
+            pass
+    wav = cache_dir / f"span_{a:.1f}_{b:.1f}.wav"
+    segs: list[dict] = []
+    try:
+        proc = subprocess.run(
+            [ffmpeg(), "-y", "-ss", f"{max(0.0, a):.3f}", "-t", f"{b - a:.3f}",
+             "-i", str(video), "-vn", "-ac", "1", "-ar", "16000",
+             "-c:a", "pcm_s16le", str(wav)],
+            capture_output=True, check=False, timeout=180)
+        if proc.returncode == 0 and wav.exists():
+            model = _get_model(_pick_model("fast"))
+            # WORD-level cues: whisper's segments can be one long run-on
+            # (screams especially), but word times are solid — and the
+            # utterance grouping downstream merges words back into natural
+            # windows at real speech gaps.
+            raw, _info = model.transcribe(
+                str(wav), language="en", beam_size=1, word_timestamps=True,
+                condition_on_previous_text=False)
+            for s in raw:
+                for w in (s.words or []):
+                    if w.word.strip():
+                        segs.append({"start": round(a + w.start, 2),
+                                     "end": round(a + w.end, 2),
+                                     "text": w.word.strip()})
+    except Exception:  # noqa: BLE001 — fall back to the blob cue
+        segs = []
+    finally:
+        wav.unlink(missing_ok=True)
+    try:
+        cache.write_text(json.dumps(segs))
+    except Exception:  # noqa: BLE001
+        pass
+    return segs
+
+
+def _split_long_cues(cues: list[dict], video: Path,
+                     cache_dir: Path) -> list[dict]:
+    out: list[dict] = []
+    for c in cues:
+        if c["end"] - c["start"] <= LONG_CUE_S:
+            out.append(c)
+            continue
+        segs = _whisper_segments(video, c["start"], c["end"], cache_dir)
+        out.extend(segs or [c])
+    return out
 
 
 def _win_energy(env, a: float, b: float) -> float:
@@ -138,7 +227,9 @@ def _propose_windows(asset: Asset, idea: dict,
         return round(a, 3), round(max(b, a + 0.8), 3)
 
     out: list[dict] = []
-    cues = _asset_cues(asset)
+    cues = _split_long_cues(
+        _asset_cues(asset), Path(asset.file_path),
+        settings().library_dir / asset.source_id / "verify" / "spans")
     if cues:
         groups: list[list[dict]] = []
         for c in cues:
@@ -165,12 +256,36 @@ def _propose_windows(asset: Asset, idea: dict,
             else:
                 order = sorted(range(len(cands)),
                                key=lambda i: cands[i]["energy"], reverse=True)
-            out = [cands[i] for i in order[:5]]
+            # Rolling captions overlap in TIME too — suppress windows that
+            # mostly re-cover an already-kept one (best-relevance wins).
+            for i in order:
+                c = cands[i]
+                span = c["out_s"] - c["in_s"]
+                if any(min(c["out_s"], k["out_s"]) - max(c["in_s"], k["in_s"])
+                       > 0.5 * span for k in out):
+                    continue
+                out.append(c)
+                if len(out) >= 5:
+                    break
+
+    def snap_to_cues(a: float, b: float) -> tuple[float, float]:
+        """Nudge energy-window edges onto word/cue boundaries so the window
+        plays complete words instead of clipping one at each end."""
+        if fixed_dur_s:
+            return a, b
+        for c in cues:
+            if c["start"] < a < c["end"] and a - c["start"] <= 0.6:
+                a = c["start"] - 0.1
+            if c["start"] < b < c["end"] and c["end"] - b <= 0.6:
+                b = c["end"] + 0.15
+        a = max(0.0, round(a, 3))
+        return a, round(min(dur, min(b, a + MAX_GAP_S)), 3)
 
     win_s = fixed_dur_s or (lo + hi) / 2
     for a, b, e in top_energy_windows(env, win_s, n=6):
         if len(out) >= MAX_WINDOWS:
             break
+        a, b = snap_to_cues(a, b)
         if any(abs(a - w["in_s"]) < 1.0 for w in out):
             continue
         if cues:
