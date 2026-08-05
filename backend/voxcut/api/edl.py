@@ -54,10 +54,24 @@ def apply_ops(project_id: str, body: OpsBody) -> dict:
     events = {e["id"]: e for e in edl["events"]}
     dirty: list[str] = []
 
+    # Deleting an interject event is structural: its inserted time leaves with
+    # it (ripple remove), restoring the original narration flow.
+    if len(body.ops) == 1 and body.ops[0].op == "delete":
+        from ..timeline_ops import INTERJECT_FLAG, remove_time
+        ev = events.get(body.ops[0].event_id or "")
+        if ev and INTERJECT_FLAG in (ev.get("flags") or []):
+            res = remove_time(project_id, ev["start_s"], ev["end_s"])
+            return {"edl": res["edl"], "dirty": res["removed"]}
+
     for op in body.ops:
         if op.op not in _ALLOWED:
             raise HTTPException(400, f"unknown op {op.op!r}")
         if op.op == "delete":
+            ev = events.get(op.event_id or "")
+            from ..timeline_ops import INTERJECT_FLAG
+            if ev and INTERJECT_FLAG in (ev.get("flags") or []):
+                raise HTTPException(400, "delete an interject clip on its own "
+                                         "(it removes its inserted time too)")
             edl["events"] = [e for e in edl["events"] if e["id"] != op.event_id]
             dirty.append(op.event_id or "")
             continue
@@ -119,6 +133,35 @@ def add_segment(project_id: str, body: AddSegmentBody) -> dict:
     return _add(project_id, body.start_s, body.end_s)
 
 
+class InterjectBody(BaseModel):
+    base_version: int | None = None
+    at_s: float
+    hint: str | None = None
+
+
+@router.post("/{project_id}/edl/interject")
+async def interject(project_id: str, body: InterjectBody) -> dict:
+    """Ripple-insert a provisional 2s gap at at_s (VO cut exactly there) and
+    launch the interject job: AI finds an unmuted clip whose audio is the
+    joke, resizes the gap to fit it, and fills it. On failure the gap rolls
+    back entirely — no orphaned silence."""
+    from ..timeline_ops import (PLACEHOLDER_GAP_S, insert_time,
+                                make_interject_event)
+    edl = load_edl(project_id)
+    if body.base_version is not None and body.base_version != edl.get("version"):
+        raise HTTPException(409, {"error": "version_conflict",
+                                  "current_version": edl.get("version"),
+                                  "edl": edl})
+    placeholder = make_interject_event(body.at_s, body.at_s + PLACEHOLDER_GAP_S)
+    res = insert_time(project_id, body.at_s, PLACEHOLDER_GAP_S,
+                      new_event=placeholder)
+    job_id = await runner.submit("interject", project_id=project_id,
+                                 payload={"event_id": res["new_event_id"],
+                                          "hint": body.hint})
+    return {"edl": res["edl"], "new_event_id": res["new_event_id"],
+            "job_id": job_id}
+
+
 @router.post("/{project_id}/edl/undo")
 def undo(project_id: str) -> dict:
     snaps = list_snapshots(project_id)
@@ -129,7 +172,11 @@ def undo(project_id: str) -> dict:
     prev = json.loads((pdir / f"edl.v{last}.json").read_text())
     (pdir / f"edl.v{last}.json").unlink(missing_ok=True)
     prev["version"] = last - 1  # save_edl will bump back to `last`
-    save_edl(project_id, prev, snapshot=False)
+    prev = save_edl(project_id, prev, snapshot=False)
+    # A ripple edit (Interject) also snapshotted the VO/beats/words world —
+    # restore it alongside the EDL so undo is atomic across all artifacts.
+    from ..struct_store import restore_struct
+    restore_struct(project_id, last)
     return prev
 
 

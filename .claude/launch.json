@@ -6,6 +6,12 @@
       "runtimeExecutable": "uv",
       "runtimeArgs": ["run", "--project", "backend", "uvicorn", "--app-dir", "backend", "voxcut.main:app", "--host", "127.0.0.1", "--port", "8489"],
       "port": 8489
+    },
+    {
+      "name": "voxcut-demo",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["VOXCUT_DATA_DIR=/private/tmp/claude-501/voxcut_demo", "uv", "run", "--project", "backend", "uvicorn", "--app-dir", "backend", "voxcut.main:app", "--host", "127.0.0.1", "--port", "8490"],
+      "port": 8490
     }
   ]
 }

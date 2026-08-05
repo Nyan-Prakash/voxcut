@@ -36,7 +36,10 @@ async def run_qc(ctx: JobContext) -> None:
     beats_path = settings().project_dir(project_id) / "beats.json"
     beats = ({b["id"]: b for b in json.loads(beats_path.read_text())["beats"]}
              if beats_path.exists() else {})
-    events = [e for e in edl["events"] if e.get("asset_id") and e.get("source")]
+    # Interject clips are intentionally unmuted punchlines — the muted-clip
+    # law does not apply to them, so they'd be false "middles" here.
+    events = [e for e in edl["events"] if e.get("asset_id") and e.get("source")
+              and "interject" not in (e.get("flags") or [])]
     if not events:
         await ctx.finish_step(step, "no placed clips to audit")
         return

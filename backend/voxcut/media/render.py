@@ -211,9 +211,13 @@ def _mux_final(video_only: Path, master_path: Path, overlays: list[tuple[dict, s
         gain = 0.0 if ev["audio"].get("mode") == "keep" else float(
             ev["audio"].get("duck_db", -18))
         delay = int(round(ev["start_s"] * 1000))
+        # Interjections play in narration silence at full volume — normalize
+        # them to the VO loudness target so they never blast or whisper.
+        norm = (f"{LOUDNORM},aresample=48000,"
+                if "interject" in (ev.get("flags") or []) else "")
         parts.append(
             f"[{n_in}:a]atrim=start={in_s:.3f}:end={in_s + dur:.3f},"
-            f"asetpts=PTS-STARTPTS,{AFMT},volume={gain:.1f}dB,"
+            f"asetpts=PTS-STARTPTS,{AFMT},{norm}volume={gain:.1f}dB,"
             f"adelay={delay}|{delay}[ax{k}]")
         labels.append(f"[ax{k}]")
         n_in += 1
@@ -234,11 +238,22 @@ def _mux_final(video_only: Path, master_path: Path, overlays: list[tuple[dict, s
         gain_db = base_db + float(r.get("gain_db", 0.0))
         fade_out = max(0.0, dur - 0.8)
         delay = int(round(r["start_s"] * 1000))
+        # Duck the bed under any interjection it spans — the clip's own audio
+        # is the moment; the music dips instead of fighting it.
+        ducks = ""
+        for ev, _p in overlays:
+            if "interject" not in (ev.get("flags") or []):
+                continue
+            lo = max(ev["start_s"], r["start_s"]) - r["start_s"]
+            hi = min(ev["end_s"], r["end_s"]) - r["start_s"]
+            if hi - lo > 0.05:
+                ducks += (f",volume=enable='between(t,{lo:.3f},{hi:.3f})'"
+                          f":volume=-12dB")
         parts.append(
             f"[{n_in}:a]atrim=start={off:.3f}:end={off + dur:.3f},"
             f"asetpts=PTS-STARTPTS,{AFMT},"
             f"afade=t=in:d=0.8,afade=t=out:st={fade_out:.3f}:d=0.8,"
-            f"volume={gain_db:.1f}dB,"
+            f"volume={gain_db:.1f}dB{ducks},"
             f"adelay={delay}|{delay}[mx{k}]")
         labels.append(f"[mx{k}]")
         n_in += 1

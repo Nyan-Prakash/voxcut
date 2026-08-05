@@ -57,6 +57,48 @@ async def run_reroll(ctx: JobContext) -> None:
                 avoid_titles.append(a.title)
 
     hint = (ctx.payload.get("hint") or "").strip() or None
+
+    # Interject clips reroll through their own audio-forward pipeline: the
+    # gap length is FIXED (no cascading re-shifts), the replacement moment is
+    # cut to fit, and a failed hunt keeps the current clip.
+    from ...timeline_ops import INTERJECT_FLAG
+    interject_evs = [e for e in events if INTERJECT_FLAG in (e.get("flags") or [])]
+    events = [e for e in events if e not in interject_evs]
+    swapped = 0
+    if interject_evs:
+        import asyncio
+
+        from .interject import source_interject_clip
+        await ctx.report(step, 0.05,
+                         f"Re-hunting {len(interject_evs)} interjection(s)")
+        for ev in interject_evs:
+            try:
+                result = await asyncio.to_thread(
+                    source_interject_clip, project_id, ev, hint,
+                    set(avoid_ids), ev["end_s"] - ev["start_s"])
+            except Exception:  # noqa: BLE001 — keep the current clip
+                result = None
+            if not result:
+                continue
+            ev["asset_id"] = result["asset_id"]
+            ev["source"] = {"in_s": result["in_s"], "out_s": result["out_s"],
+                            "chosen_rank": 1, "visual": result["vision"]}
+            ev["interject"] = {"intent": result["intent"],
+                               "vision": result["vision"]}
+            ev.pop("qc", None)
+            swapped += 1
+            for sub in ("segments", "segments_full"):
+                seg_dir = settings().project_dir(project_id) / sub
+                (seg_dir / f"{ev['id']}.mp4").unlink(missing_ok=True)
+                (seg_dir / f"thumb_{ev['id']}.jpg").unlink(missing_ok=True)
+        if not events:
+            save_edl(project_id, edl)
+            await ctx.finish_step(
+                step, f"{swapped}/{len(interject_evs)} interjection(s) swapped")
+            from .assemble import run_assemble
+            await run_assemble(ctx)
+            return
+
     await ctx.report(step, 0.1, f"Re-planning {len(events)} beats"
                      + (" (with your direction)" if hint else ""))
     replanned = 0
@@ -94,8 +136,10 @@ async def run_reroll(ctx: JobContext) -> None:
     save_edl(project_id, edl)
     await ctx.finish_step(step, f"{replanned}/{len(events)} beats re-planned")
 
-    # source → moment → assemble, limited to these events (source chains them).
-    ctx.payload["only_events"] = sorted(only)
+    # source → moment → assemble, limited to these events (source chains
+    # them). Interject events already swapped above — keep the visual moment
+    # pipeline away from them.
+    ctx.payload["only_events"] = sorted(e["id"] for e in events)
     ctx.payload.pop("only_event", None)
     ctx.payload["avoid_source_ids"] = sorted(set(avoid_ids))
     await run_source(ctx)

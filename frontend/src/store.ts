@@ -18,10 +18,11 @@ interface State {
   toast: string | null;
   playheadS: number;
   videoEl: HTMLVideoElement | null;
-  tool: "select" | "cut" | "add";
+  tool: "select" | "cut" | "add" | "interject";
   stage: "clips" | "music" | "tiktok";
   highlightsNonce: number;
   exportNonce: number;
+  interjectPending: boolean;
 
   setView: (v: State["view"]) => void;
   loadProjects: () => Promise<void>;
@@ -34,6 +35,7 @@ interface State {
   setStage: (s: State["stage"]) => void;
   splitAt: (eventId: string, atS: number) => Promise<void>;
   addSegmentRange: (startS: number, endS: number) => Promise<void>;
+  interjectAt: (atS: number) => Promise<void>;
   reroll: (eventIds: string[], hint?: string) => Promise<void>;
   updateMusic: (patch: Record<string, any>) => Promise<void>;
   onEvent: (ev: any) => void;
@@ -64,6 +66,7 @@ export const useStore = create<State>((set, get) => ({
   stage: "clips",
   highlightsNonce: 0,
   exportNonce: 0,
+  interjectPending: false,
 
   setView: (v) => set({ view: v }),
   setTool: (t) => set({ tool: t }),
@@ -134,6 +137,9 @@ export const useStore = create<State>((set, get) => ({
     if (!project) return;
     const edl = await api.undo(project.id);
     set({ edl });
+    // Undoing a ripple edit (Interject) also restores the VO/beats/duration —
+    // refresh everything, not just the EDL.
+    await get().refreshEdl();
     await api.rebuildPreview(project.id);
   },
 
@@ -159,6 +165,29 @@ export const useStore = create<State>((set, get) => ({
       get().setToast("Segment added — search or reroll to fill it");
       await api.rebuildPreview(project.id);
     } catch (e: any) { get().setToast(e.message); }
+  },
+
+  interjectAt: async (atS) => {
+    const { project, edl, interjectPending } = get();
+    if (!project || !edl) return;
+    if (interjectPending) {
+      get().setToast("⚡ Already finding a bit — hang on…");
+      return;
+    }
+    set({ interjectPending: true });
+    try {
+      const res = await api.interject(project.id, edl.version, atS);
+      set({ edl: res.edl, selectedEventId: res.new_event_id,
+            selectedEventIds: [res.new_event_id] });
+      // The VO, beats, and duration all moved — refresh the world.
+      try { const b = await api.getBeats(project.id); set({ beats: b.beats }); } catch { /* */ }
+      try { set({ waveform: await api.waveform(project.id) }); } catch { /* */ }
+      try { set({ project: await api.getProject(project.id) }); } catch { /* */ }
+      get().setToast("⚡ Voiceover cut — finding an unmuted bit to drop in…");
+    } catch (e: any) {
+      set({ interjectPending: false });
+      get().setToast(e.message);
+    }
   },
 
   updateMusic: async (patch) => {
@@ -208,6 +237,20 @@ export const useStore = create<State>((set, get) => ({
     }
     if (ev.type === "preview_updated" && project && ev.project_id === project.id) {
       get().bumpPreview();
+    }
+    if (ev.type === "interject_done" && project && ev.project_id === project.id) {
+      set({ interjectPending: false });
+      get().refreshEdl();
+      get().setToast(`⚡ Interjection landed${ev.intent ? ` — ${ev.intent}` : ""}. 🎲 reroll it if it doesn't hit`);
+    }
+    if (ev.type === "interject_failed" && project && ev.project_id === project.id) {
+      set({ interjectPending: false });
+      get().refreshEdl();
+      get().setToast(`⚡ ${ev.reason || "Couldn't find a good interjection here"}`);
+    }
+    if (ev.type === "job_failed" && ev.kind === "interject") {
+      set({ interjectPending: false });
+      if (project && ev.project_id === project.id) get().refreshEdl();
     }
     if (ev.type === "export_ready" && project && ev.project_id === project.id) {
       set((s) => ({ exportNonce: s.exportNonce + 1 }));

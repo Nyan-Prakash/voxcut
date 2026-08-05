@@ -85,6 +85,13 @@ function InspectorBody({ ev, applyOps }: { ev: EdlEvent; applyOps: (ops: any[]) 
           {ev.flags.map((f) => <span key={f} className={`flag ${f.split(":")[0]}`}>{f}</span>)}
         </div>
       )}
+      {ev.flags?.includes("interject") && (
+        <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>
+          ⚡ Unmuted interjection — the narration pauses while this plays.
+          {ev.interject?.intent ? <><br />“{ev.interject.intent}”</> : null}
+          <br />Deleting it also removes its inserted time.
+        </div>
+      )}
       {ev.qc && (
         <div className="muted" style={{ fontSize: 12, marginTop: 6,
               color: ev.qc.verdict === "middle" ? "var(--bad)" : undefined }}>

@@ -51,6 +51,10 @@ def _prune_snapshots(pdir) -> None:
                    key=lambda p: int(p.stem.split("v")[-1]))
     for old in snaps[:-UNDO_KEEP]:
         old.unlink(missing_ok=True)
+    # Struct snapshots (ripple edits) live and die with their edl snapshot.
+    from .struct_store import prune_struct_snapshots
+    kept = {int(p.stem.split("v")[-1]) for p in pdir.glob("edl.v*.json")}
+    prune_struct_snapshots(pdir.name, kept)
 
 
 def list_snapshots(project_id: str) -> list[int]:

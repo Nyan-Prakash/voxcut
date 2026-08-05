@@ -96,6 +96,11 @@ export const api = {
       `/projects/${id}/edl/add_segment`, {
         method: "POST", body: JSON.stringify({ start_s, end_s }),
       }),
+  interject: (id: string, base_version: number | null, at_s: number, hint?: string) =>
+    req<{ edl: Edl; new_event_id: string; job_id: string }>(
+      `/projects/${id}/edl/interject`, {
+        method: "POST", body: JSON.stringify({ base_version, at_s, hint: hint || null }),
+      }),
   reroll: (id: string, eventIds: string[], hint?: string) =>
     eventIds.length === 1
       ? req<{ job_id: string }>(`/projects/${id}/events/${eventIds[0]}/reroll`, {

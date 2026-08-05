@@ -105,6 +105,8 @@ function ToolSwitch() {
     { id: "select", label: "▣ Select", hint: "click clips to edit, click background to seek" },
     { id: "cut", label: "✂ Cut", hint: "click a clip to split it at that point (snaps to words)" },
     { id: "add", label: "＋ Segment", hint: "drag a range on the timeline to carve a new segment" },
+    { id: "interject", label: "⚡ Interject",
+      hint: "click the timeline to cut the voiceover and drop in an unmuted clip whose audio is the joke" },
   ];
   return (
     <div className="seg" role="toolbar">

@@ -10,7 +10,7 @@ interface MusicRegion {
 
 export function Timeline() {
   const { edl, beats, project, selectedEventIds, select, playheadS, seek,
-          tool, splitAt, addSegmentRange, reroll } = useStore();
+          tool, splitAt, addSegmentRange, interjectAt, reroll } = useStore();
   const [drag, setDrag] = useState<{ a: number; b: number } | null>(null);
   const dur = project?.duration_s || (edl ? Math.max(...edl.events.map((e) => e.end_s)) : 0);
   const width = Math.max(600, dur * PX_PER_S);
@@ -24,13 +24,21 @@ export function Timeline() {
 
   const onBackgroundClick = (e: React.MouseEvent) => {
     if (tool === "select") seek(tAt(e));
+    if (tool === "interject") interjectAt(tAt(e));
   };
 
   const onEventClick = (e: React.MouseEvent, evId: string) => {
     e.stopPropagation();
-    if (tool === "cut") {
+    const rootT = () => {
       const rect = (e.currentTarget as HTMLElement).closest(".tl-root")!.getBoundingClientRect();
-      splitAt(evId, (e.clientX - rect.left) / PX_PER_S);
+      return (e.clientX - rect.left) / PX_PER_S;
+    };
+    if (tool === "cut") {
+      splitAt(evId, rootT());
+    } else if (tool === "interject") {
+      // Clicking a clip interjects at that exact spot too — the x position
+      // is what matters, not the clip.
+      interjectAt(rootT());
     } else {
       // cmd/ctrl-click toggles a clip in the selection; shift-click selects a range.
       select(evId, e.metaKey || e.ctrlKey ? "toggle" : e.shiftKey ? "range" : "single");
@@ -82,20 +90,25 @@ export function Timeline() {
       <div className="track" style={{ height: 56 }}>
         <div className="tl-inner">
           {edl.events.map((e) => {
+            const interject = e.flags?.includes("interject");
+            const sourcing = e.flags?.includes("sourcing");
             const cls = e.flags?.includes("gap_unfilled") ? "gap" : "clip";
             const rev = e.flags?.includes("needs_review") || e.flags?.includes("close_call")
               || e.flags?.includes("qc_middle") || e.flags?.includes("cold_open_weak");
             // Label with what actually PLAYS (tournament winner), not the query.
             const winner = e.finalists?.find((f: any) => f.asset_id === e.asset_id);
-            const label = winner?.title || e.queries?.[0]
+            const label = sourcing ? "⚡ finding a bit…"
+              : (interject && e.interject?.intent) || winner?.title || e.queries?.[0]
               || (e.flags?.includes("user_added") ? "new segment — search or reroll" : e.kind);
             return (
               <div key={e.id}
-                   className={`evt ${cls} ${selectedEventIds.includes(e.id) ? "sel" : ""}`}
+                   className={`evt ${cls} ${interject ? "interject" : ""} ${sourcing ? "sourcing" : ""} ${selectedEventIds.includes(e.id) ? "sel" : ""}`}
                    style={{ left: e.start_s * PX_PER_S,
                             width: Math.max(8, (e.end_s - e.start_s) * PX_PER_S) }}
                    onClick={(me) => onEventClick(me, e.id)}
-                   title={tool === "cut" ? "click to cut here" : `${e.kind} · ${label}`}>
+                   title={tool === "cut" ? "click to cut here"
+                          : tool === "interject" ? "click to cut the voiceover and drop in an unmuted clip"
+                          : `${e.kind} · ${label}`}>
                 {e.asset_id && project && (
                   <img alt=""
                        // Cache-buster tracks the footage: new asset or new
@@ -105,8 +118,11 @@ export function Timeline() {
                        onError={(ev) => ((ev.target as HTMLElement).style.display = "none")} />
                 )}
                 {rev && <span className="rev">⚑</span>}
-                {tool === "select" && !e.locked && (
-                  <button className="dice" title="Reroll: fresh plan + fresh footage for this clip"
+                {e.asset_id && e.audio?.mode !== "mute" && <span className="aud">🔊</span>}
+                {tool === "select" && !e.locked && !sourcing && (
+                  <button className="dice" title={interject
+                            ? "Reroll: hunt a fresh unmuted bit for this gap"
+                            : "Reroll: fresh plan + fresh footage for this clip"}
                           onClick={(me) => { me.stopPropagation(); reroll([e.id]); }}>
                     🎲
                   </button>
