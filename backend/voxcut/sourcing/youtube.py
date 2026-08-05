@@ -78,7 +78,10 @@ class YouTubeProvider:
         dest.mkdir(parents=True, exist_ok=True)
         proc = subprocess.run(
             [_ytdlp(), "-f", _FMT, "--merge-output-format", "mp4",
-             "--match-filter", "duration<=900 | !duration",
+             # <=? means "missing or <=" — the old "duration<=900 | !duration"
+             # form started erroring ('<=' int vs str) on current yt-dlp,
+             # silently killing EVERY download.
+             "--match-filter", "duration <=? 900",
              "--write-auto-subs", "--write-subs", "--sub-langs", "en.*",
              "--write-info-json", "--write-thumbnail", "--no-playlist",
              "--continue", "--no-warnings",
