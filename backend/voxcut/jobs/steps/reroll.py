@@ -73,7 +73,7 @@ async def run_reroll(ctx: JobContext) -> None:
                          f"Re-hunting {len(interject_evs)} interjection(s)")
         for ev in interject_evs:
             try:
-                result = await asyncio.to_thread(
+                result, _why = await asyncio.to_thread(
                     source_interject_clip, project_id, ev, hint,
                     set(avoid_ids), ev["end_s"] - ev["start_s"],
                     avoid_titles)

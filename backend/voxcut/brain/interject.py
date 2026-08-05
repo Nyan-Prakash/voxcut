@@ -108,16 +108,19 @@ audio moment:
   not noise; score noise <= 0.2 unless the intent asks for exactly that.
 - COMPILATIONS ("top 100 memes", "best of…"): score <= 0.4 — finding the
   wanted two seconds inside a grab-bag rarely works.
-- ALREADY USED: you are told which clips this video already interjects.
+- ALREADY USED: you are told which clips were already interjected.
   REJECT (score 0) any result that is the same moment or scene — including a
   different upload of it under another title or channel. Repeating a
   punchline kills it.
-- FRANCHISE FATIGUE: a franchise already used in this video scores <= 0.4
-  unless uniquely perfect.
+- FRANCHISE FATIGUE, two tiers: a franchise already used in THIS video
+  scores <= 0.4 unless uniquely perfect. A franchise merely RECENT in the
+  editor's OTHER videos gets a mild penalty (about -0.15), NOT a rejection —
+  never blanket-ban a whole show because one clip of it ran last week.
 - Name each pick's "franchise" (show/film/creator), '' when unclear.
 - TONE: comedy only — reject real tragedy regardless of relevance.
-- When in doubt, score low. Zero picks is a valid answer: no interjection
-  beats a weak one.
+- When in doubt, score low — but reserve ZERO picks for genuinely unusable
+  result sets. A promising candidate at 0.5-0.6 is worth passing through:
+  the downstream window judge hears the actual audio and catches misses.
 
 Return picks ONLY for results scoring >= 0.5, ordered best-first."""
 
@@ -125,9 +128,10 @@ INTERJECT_JUDGE_USER = """\
 The interjection's intent: {intent}
 Narration around the cut: "{before}" [CLIP PLAYS HERE] "{after}"
 Search queries used: {queries}
-Clips already interjected in this video (reject the same moment in ANY
-upload): {used}
-Franchises already used in this video: {franchises}
+Clips already interjected (reject the same moment in ANY upload): {used}
+Franchises already used in THIS video: {franchises}
+Franchises recently used in the editor's OTHER videos (mild penalty only):
+{recent_franchises}
 
 Results:
 {results}"""
@@ -153,8 +157,13 @@ the intent describes — setup optional, punchline mandatory, no dead air:
   a window that is merely high-energy with a garbage transcript scores
   <= 0.2, unless the intent explicitly asks for a wordless famous scream.
 - A quiet deadpan line matching the intent BEATS a loud unrelated shout.
-Score every frame index exactly once. Be harsh: 0.8+ means "this exact
-window is the sound bite the intent describes"."""
+- An EMPTY transcript with high energy may still be a wordless payload — a
+  famous scream, a musical sting, a sound effect. Judge those by the frame
+  and the intent; punish emptiness only when the intent needs words.
+- CALIBRATION: 0.5 means "usable — a complete, intelligible payload that
+  fits the intent reasonably well"; reserve 0.8+ for the exact canonical
+  moment. Do NOT score a usable window below 0.4 for being merely imperfect.
+Score every frame index exactly once."""
 
 INTERJECT_FRAME_USER = """\
 The interjection's intent: {intent}
@@ -203,11 +212,13 @@ def judge_interject_candidates(intent: str, before: str, after: str,
                                queries: list[str], candidates: list[dict],
                                franchise_counts: dict[str, int] | None = None,
                                used_clips: list[str] | None = None,
+                               recent_franchises: list[str] | None = None,
                                ) -> list[tuple[int, float, str]]:
     """Same contract as judge.judge_candidates, inverted rules: rewards
-    audio-forward footage. used_clips: interjections this video already has —
-    the same moment in any upload is rejected outright. Returns
-    [(index, relevance, franchise)]."""
+    audio-forward footage. used_clips: already-interjected clips — the same
+    moment in any upload is rejected outright. franchise_counts: THIS video's
+    franchise usage (hard fatigue); recent_franchises: cross-video recency
+    (mild penalty only). Returns [(index, relevance, franchise)]."""
     results = "\n".join(
         f"{i}: {c['title']!r} | channel: {c.get('channel', '?')} | "
         f"{int(c.get('duration_s') or 0)}s | {c.get('views', 0)} views"
@@ -222,7 +233,9 @@ def judge_interject_candidates(intent: str, before: str, after: str,
         INTERJECT_JUDGE_USER.format(intent=intent, before=before, after=after,
                                     queries=", ".join(queries),
                                     used=", ".join(used_clips or []) or "(none yet)",
-                                    results=results, franchises=franchises),
+                                    results=results, franchises=franchises,
+                                    recent_franchises=", ".join(
+                                        recent_franchises or []) or "(none)"),
         JUDGE_SCHEMA, schema_name="interject_judge", temperature=0.2,
         max_tokens=2000, images=images or None)
     picks = [(p["index"], float(p["relevance"]), (p.get("franchise") or "").strip())

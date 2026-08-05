@@ -55,10 +55,13 @@ def _surrounding_narration(project_id: str, gap_start: float,
 PAD_PRE = 0.15    # utterance padding: never clip the first syllable
 PAD_POST = 0.25   # … or the last one
 MAX_WINDOWS = 7
-# Below this judged score no window in the asset actually lands the intent —
-# fail the candidate rather than settle. Settling for "merely loud" is
-# exactly the random-yelling failure this picker replaces.
+# Accept bar: below this judged score a candidate doesn't win outright.
+# Settling for "merely loud" is the random-yelling failure the transcript
+# judge replaces — but between SALVAGE_SCORE and the bar a window is an
+# imperfect fit, not garbage (the judge floors noise at ~0.2), so the best
+# such near-miss ships when a whole run comes up dry.
 MIN_WINDOW_SCORE = 0.4
+SALVAGE_SCORE = 0.3
 
 
 def _asset_cues(asset: Asset) -> list[dict]:
@@ -193,10 +196,12 @@ def _propose_windows(asset: Asset, idea: dict,
 
 
 def _pick_moment(asset: Asset, idea: dict, fixed_dur_s: float | None,
-                 work_tag: str) -> tuple[float, float, float] | None:
-    """Best (in_s, out_s, score) window: utterance/energy proposals judged on
-    the frame, the audio energy, AND a transcript of what is actually said.
-    None when the asset has no usable audio or no window clears the bar."""
+                 work_tag: str) -> tuple[float, float, float, bool] | None:
+    """Best (in_s, out_s, score, judged) window: utterance/energy proposals
+    judged on the frame, the audio energy, AND a transcript of what is
+    actually said. judged=False means the LLM judge was unavailable and the
+    score is only the energy heuristic. None when the asset has no usable
+    audio at all — accept/salvage thresholds are the caller's call."""
     from ...brain.client import BrainError
     from ...brain.interject import judge_interject_frames
     from ...moments.frames import sample_window_frames
@@ -223,12 +228,11 @@ def _pick_moment(asset: Asset, idea: dict, fixed_dur_s: float | None,
             vision = None
     if vision is None:
         w = windows[0]  # best utterance match (or loudest) — blind fallback
-        return w["in_s"], w["out_s"], w["energy"]
+        return w["in_s"], w["out_s"], w["energy"], False
     blended = [0.85 * v + 0.15 * w["energy"] for v, w in zip(vision, windows)]
     best = max(range(len(windows)), key=lambda i: blended[i])
-    if vision[best] < MIN_WINDOW_SCORE:
-        return None  # nothing here lands the intent — try the next source
-    return windows[best]["in_s"], windows[best]["out_s"], vision[best]
+    return (windows[best]["in_s"], windows[best]["out_s"],
+            vision[best], True)
 
 
 def _used_interjections(project_id: str,
@@ -301,20 +305,22 @@ def _record_history(project_id: str, title: str, franchise: str,
 def source_interject_clip(project_id: str, ev: dict, hint: str | None,
                           avoid_source_ids: set[str] | None = None,
                           fixed_dur_s: float | None = None,
-                          avoid_titles: list[str] | None = None) -> dict | None:
-    """Blocking tournament for one interjection. The planner returns SEVERAL
-    distinct ideas (different franchises/registers) and the server samples
-    them in random order — the model is bad at being random across calls, so
-    the dice live here. Each idea runs search → judge → download → audio+
-    frame moment pick; the first idea that lands wins and is recorded in the
-    global history, which (together with this video's own interjections)
-    is hard-avoided by plan, judge, and search alike.
+                          avoid_titles: list[str] | None = None,
+                          ) -> tuple[dict | None, str]:
+    """Blocking tournament for one interjection: the planner's ideas run
+    best-first through search → judge → download → audio+frame moment pick.
+    Exact clips/scenes already used (this video OR the global history) are
+    hard-avoided; franchise fatigue is two-tier — strict inside the video,
+    a mild judged penalty across videos. If no idea clears the window bar,
+    the planner gets ONE retry with failure feedback, and after that the
+    best near-miss (>= SALVAGE_SCORE) ships rather than nothing.
 
-    Returns {asset_id, in_s, out_s, dur_s, intent, vision, franchise} or None
-    when nothing survives. Raises BrainError when the LLM is unavailable —
-    Interject has no heuristic fallback; a random unmuted clip is worse
-    than no interjection."""
-    from ...brain.interject import (judge_interject_candidates, plan_interject)
+    Returns (result, fail_reason): result is {asset_id, in_s, out_s, dur_s,
+    intent, vision, franchise} or None, and fail_reason says what actually
+    starved so the operator's toast is diagnosable. Raises BrainError when
+    the LLM is unavailable — Interject has no heuristic fallback."""
+    from ...brain.client import BrainError
+    from ...brain.interject import plan_interject
     from ...brain.steps_helpers import brief_summary
 
     with session_scope() as db:
@@ -322,48 +328,86 @@ def source_interject_clip(project_id: str, ev: dict, hint: str | None,
         brief = json.loads(p.context_brief or "{}") if p else {}
     before, after = _surrounding_narration(project_id, ev["start_s"], ev["end_s"])
 
-    used, franchise_counts, used_ids = _used_interjections(project_id, ev["id"])
+    # This video's own interjections: strict fatigue. Global history: exact
+    # clips are hard-avoided, but franchises are only a MILD judged penalty —
+    # blanket-banning every franchise ever used starved the pipeline dry.
+    used, video_franchises, used_ids = _used_interjections(project_id, ev["id"])
     used += [t for t in (avoid_titles or []) if t not in used]
+    recent_franchises: list[str] = []
     for h in _load_history()[-HISTORY_AVOID:]:
         if h.get("source_id"):
             used_ids.add(h["source_id"])
         fr = (h.get("franchise") or "").strip()
-        if fr:
-            franchise_counts[fr] = franchise_counts.get(fr, 0) + 1
-        for name in (h.get("title"), fr):
-            if name and name not in used:
-                used.append(name)
+        if fr and fr not in recent_franchises:
+            recent_franchises.append(fr)
+        if h.get("title") and h["title"] not in used:
+            used.append(h["title"])
     avoid_source_ids = (avoid_source_ids or set()) | used_ids
 
     ideas = plan_interject(brief_summary(brief), ", ".join(brief.get("avoid", [])),
                            before, after, hint, used_clips=used)
     if not ideas:
-        return None
+        return None, "the planner produced no usable ideas"
 
     provider = YouTubeProvider()
     filters = Filters(avoid=brief.get("avoid", []), reaction_intent=True)
-    # Quality-first: the planner orders ideas best-first and we try them in
-    # order. Variety no longer needs randomness — the global history already
-    # guarantees no pick repeats, so shuffling only traded quality away.
-    for idea in ideas:
-        result = _try_idea(project_id, ev, idea, provider, filters,
-                           before, after, avoid_source_ids,
-                           franchise_counts, used, fixed_dur_s)
-        if result:
-            _record_history(project_id, result["title"],
-                            result["franchise"], result["source_sid"])
-            result.pop("title", None)
-            result.pop("source_sid", None)
-            return result
-    return None
+    stats = {"ideas": 0, "approved": 0, "clips": 0, "best": 0.0}
+    salvage: list[dict] = []
+
+    def attempt(idea_list: list[dict]) -> dict | None:
+        # Quality-first: ideas arrive best-first and are tried in order —
+        # the global history already guarantees variety across picks.
+        for idea in idea_list:
+            stats["ideas"] += 1
+            r = _try_idea(project_id, ev, idea, provider, filters,
+                          before, after, avoid_source_ids, video_franchises,
+                          used, recent_franchises, fixed_dur_s,
+                          salvage, stats)
+            if r:
+                return r
+        return None
+
+    result = attempt(ideas)
+    if not result:
+        # One replan with failure feedback: fresh, more-searchable angles.
+        note = ((hint.strip() + " | ") if hint and hint.strip() else "") + (
+            "A previous attempt planned clips that could not be sourced as a "
+            "clean audio moment. Propose DIFFERENT famous moments, favoring "
+            "scenes that exist as short isolated clip uploads on YouTube.")
+        try:
+            result = attempt(plan_interject(
+                brief_summary(brief), ", ".join(brief.get("avoid", [])),
+                before, after, note, used_clips=used))
+        except BrainError:
+            pass
+    if not result and salvage:
+        # Ship the best near-miss over nothing: everything in the pool
+        # already beat SALVAGE_SCORE, so it's imperfect — not garbage.
+        result = max(salvage, key=lambda s: s["vision"])
+
+    if result:
+        _record_history(project_id, result["title"],
+                        result["franchise"], result["source_sid"])
+        result.pop("title", None)
+        result.pop("source_sid", None)
+        return result, ""
+    reason = (f"no clip cleared the bar — best window scored "
+              f"{stats['best']:.2f} across {stats['clips']} clips from "
+              f"{stats['ideas']} ideas; add a direction to steer the hunt")
+    if stats["approved"] == 0:
+        reason = (f"the judge approved none of the search results across "
+                  f"{stats['ideas']} ideas — add a direction to steer the hunt")
+    return None, reason
 
 
 def _try_idea(project_id: str, ev: dict, idea: dict, provider, filters,
               before: str, after: str, avoid_source_ids: set[str],
-              franchise_counts: dict[str, int], used: list[str],
-              fixed_dur_s: float | None) -> dict | None:
+              video_franchises: dict[str, int], used: list[str],
+              recent_franchises: list[str], fixed_dur_s: float | None,
+              salvage: list[dict], stats: dict) -> dict | None:
     """Run one planned idea through search → judge → download → moment pick.
-    None = this idea found nothing usable (caller tries the next idea)."""
+    None = nothing here cleared the accept bar (near-misses land in the
+    shared salvage pool; the caller tries the next idea)."""
     from ...brain.interject import judge_interject_candidates
     from ...sourcing.rank import rank
 
@@ -389,11 +433,20 @@ def _try_idea(project_id: str, ev: dict, idea: dict, provider, filters,
         idea["comedic_intent"], before, after, idea["queries"],
         [{"title": c.title, "channel": c.channel, "duration_s": c.duration_s,
           "views": c.view_count, "thumbnail": c.thumbnail} for c in ranked],
-        franchise_counts=franchise_counts, used_clips=used)
+        franchise_counts=video_franchises, used_clips=used,
+        recent_franchises=recent_franchises)
     order = [ranked[i] for i, _rel, _fr in picks]
     franchise_of = {ranked[i].source_id: fr for i, _rel, fr in picks if fr}
+    stats["approved"] += len(order)
     if not order:
         return None
+
+    def to_result(asset: Asset, in_s: float, out_s: float, score: float) -> dict:
+        return {"asset_id": asset.id, "in_s": round(in_s, 3),
+                "out_s": round(out_s, 3), "dur_s": round(out_s - in_s, 3),
+                "intent": idea["comedic_intent"], "vision": round(score, 3),
+                "franchise": franchise_of.get(asset.source_id, ""),
+                "title": asset.title or "", "source_sid": asset.source_id}
 
     best: tuple[Asset, float, float, float] | None = None
     for cand in order[:3]:
@@ -409,20 +462,26 @@ def _try_idea(project_id: str, ev: dict, idea: dict, provider, filters,
         except Exception:  # noqa: BLE001 — a broken finalist forfeits
             continue
         if moment is None:
-            continue  # no audio stream — useless as an interjection
-        in_s, out_s, score = moment
-        if best is None or score > best[3]:
-            best = (asset, in_s, out_s, score)
-        if score >= ESCALATE_BELOW:
-            break  # good enough — don't spend another download
+            continue  # no audio stream / no windows — useless here
+        in_s, out_s, score, judged = moment
+        stats["clips"] += 1
+        stats["best"] = max(stats["best"], score if judged else 0.0)
+        if not judged:
+            # Window judge unavailable — accept the utterance-ranked best,
+            # exactly as the pre-judge fallback always did.
+            return to_result(asset, in_s, out_s, score)
+        if score >= MIN_WINDOW_SCORE:
+            if best is None or score > best[3]:
+                best = (asset, in_s, out_s, score)
+            if score >= ESCALATE_BELOW:
+                break  # good enough — don't spend another download
+        elif score >= SALVAGE_SCORE:
+            # Near-miss: kept aside so a fully-dry run ships the best of
+            # these instead of rolling the whole gap back.
+            salvage.append(to_result(asset, in_s, out_s, score))
     if best is None:
         return None
-    asset, in_s, out_s, score = best
-    return {"asset_id": asset.id, "in_s": round(in_s, 3),
-            "out_s": round(out_s, 3), "dur_s": round(out_s - in_s, 3),
-            "intent": idea["comedic_intent"], "vision": round(score, 3),
-            "franchise": franchise_of.get(asset.source_id, ""),
-            "title": asset.title or "", "source_sid": asset.source_id}
+    return to_result(*best)
 
 
 async def _rollback(project_id: str, event_id: str) -> None:
@@ -467,7 +526,7 @@ async def run_interject(ctx: JobContext) -> None:
 
     await ctx.report(step, 0.1, "Reading the narration around the cut")
     try:
-        result = await asyncio.to_thread(
+        result, why = await asyncio.to_thread(
             source_interject_clip, project_id, ev, hint)
     except BrainError:
         await fail("the AI brain was unavailable — try again")
@@ -476,8 +535,7 @@ async def run_interject(ctx: JobContext) -> None:
         await fail(f"sourcing crashed ({type(exc).__name__})")
         raise
     if not result:
-        await fail("nothing funny enough survived the judge — "
-                   "try again or add a direction")
+        await fail(why or "nothing usable found — try again or add a direction")
         return
 
     # Fit the gap to the clip's natural moment, then fill the event.
