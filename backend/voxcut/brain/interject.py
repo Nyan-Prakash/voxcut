@@ -46,9 +46,13 @@ You plan a comedic INTERJECTION for a fast-cut commentary video: the narrator
 STOPS, a clip plays fullscreen WITH ITS OWN AUDIO for a couple of seconds,
 then the narration resumes. The clip's AUDIO is the joke.
 
-Favor: famous reaction lines, screams and freakouts, deadpan one-liners,
-iconic quoted deliveries, recognizable meme sound moments. The exact opposite
-of muted b-roll — a clip whose payoff is silent is WRONG here.
+Favor: famous reaction lines, deadpan one-liners, iconic quoted deliveries,
+recognizable meme sound moments — and only sparingly a scream/freakout with
+recognizable CHARACTER (a known scene, a known voice). The payload must be
+INTELLIGIBLE and recognizable on first listen: a clear line, a famous
+delivery, a known sound. Random shouting, crowd noise, or generic loudness
+is the failure mode — loud is not funny. The exact opposite of muted b-roll:
+a clip whose payoff is silent is equally WRONG here.
 
 Rules:
 - NAME THE EXACT canonical clip: each query combines the SOURCE (the show,
@@ -63,12 +67,12 @@ Rules:
   THIS narration specifically. Never pick anything on the already-used list,
   any other upload of the same scene, or (unless uniquely perfect) the same
   franchise.
-- Return 4-6 DISTINCT ideas. Each idea must come from a DIFFERENT
+- Return 4-6 DISTINCT ideas, ORDERED BEST-FIRST — the editor tries them in
+  order until one sources cleanly. Each idea must come from a DIFFERENT
   franchise/source AND a different comedic register — spread across: a
   literal riff on what was just said, an absurd non-sequitur, a deadpan
-  one-liner, a scream/freakout, an iconic quoted delivery. The editor picks
-  ONE idea at random, so every idea must stand alone as a great interjection
-  for this exact moment — no throwaway filler ideas.
+  one-liner, an iconic quoted delivery. Every idea must stand alone as a
+  great interjection for this exact moment — no throwaway filler ideas.
 - min_s/max_s per idea: the natural length of that audio payload (setup
   optional, punchline mandatory), within 1.0-4.0 seconds.
 - The interjection interrupts THIS moment of the narration — it must land as
@@ -93,12 +97,15 @@ clip's audio is the payload — the inverse of muted b-roll judging.
 
 Score each result 0..1 for how likely its content contains the wanted
 audio moment:
-- HIGH: the canonical meme/reaction clip everyone knows, short clips whose
-  title quotes the line ("no god please no"), screams, freakouts, iconic
-  deliveries, meme sound uploads. Talking heads and spoken punchlines are
-  GOOD here — the audio plays.
+- HIGH: the canonical meme/reaction clip everyone knows, short
+  isolated-scene uploads whose TITLE quotes the line — the title is strong
+  evidence the wanted payload is the clip's centerpiece. Talking heads and
+  spoken punchlines are GOOD here — the audio plays.
 - LOW: music-only uploads, ambience, lyric videos, tutorials, podcasts and
-  essays (the moment is buried), anything whose payoff is visual-only.
+  essays (the moment is buried), anything whose payoff is visual-only, and
+  GENERIC LOUDNESS — crowd reactions, sports screaming, "loudest moments",
+  people just yelling. An interjection needs a recognizable line or sound,
+  not noise; score noise <= 0.2 unless the intent asks for exactly that.
 - COMPILATIONS ("top 100 memes", "best of…"): score <= 0.4 — finding the
   wanted two seconds inside a grab-bag rarely works.
 - ALREADY USED: you are told which clips this video already interjects.
@@ -127,25 +134,35 @@ Results:
 
 INTERJECT_FRAME_SYSTEM = """\
 You pick the exact WINDOW inside a downloaded video for an UNMUTED comedic
-interjection (1-4s, full audio). You see numbered frames, one per candidate
-window, plus each window's relative audio energy (0..1 — how loud/active its
-soundtrack is; the payload line/scream usually lives in a high-energy window).
+interjection (1-4s, full audio). The narrator goes silent for it, so the
+window's AUDIO must carry the joke by itself.
 
-Score each window 0..1 for containing the COMPLETE audio payload — setup
-optional, punchline mandatory, no dead air on either side:
-- HIGH: the frame shows the moment mid-delivery (expressive face, mouth
-  open, mid-freakout, the recognizable meme moment) and the window's audio
-  energy supports a spoken/sounded payload.
-- LOW: title cards, intros/outros, channel branding, static aftermath shots,
-  windows whose energy suggests silence.
+For each numbered window you get: one frame from its middle, its relative
+audio energy (0..1), and a TRANSCRIPT of what is actually said inside it
+("(no speech)" when nothing intelligible was heard). The transcript is your
+primary evidence — it is what the viewer will hear.
+
+Score each window 0..1 for being the COMPLETE, INTELLIGIBLE audio payload
+the intent describes — setup optional, punchline mandatory, no dead air:
+- HIGH: the transcript IS the wanted line/delivery, complete (not cut off
+  mid-sentence at either end), and the frame shows the moment mid-delivery
+  (the character speaking, the recognizable meme moment).
+- PUNISH HARD: random yelling or crowd noise, distorted screaming with no
+  recognizable content, music beds, half a line, a reaction shot WITHOUT the
+  payload, title cards, intros/outros, channel branding. Loud is not funny —
+  a window that is merely high-energy with a garbage transcript scores
+  <= 0.2, unless the intent explicitly asks for a wordless famous scream.
+- A quiet deadpan line matching the intent BEATS a loud unrelated shout.
 Score every frame index exactly once. Be harsh: 0.8+ means "this exact
-window IS the sound bite"."""
+window is the sound bite the intent describes"."""
 
 INTERJECT_FRAME_USER = """\
 The interjection's intent: {intent}
 Video: {video_title}
 {n} candidate windows; frame i is from the middle of window i.
-Audio energy per window: {energies}"""
+Per-window audio energy: {energies}
+Per-window transcript of what is SAID:
+{transcripts}"""
 
 
 def plan_interject(context: str, avoid: str, before: str, after: str,
@@ -216,15 +233,20 @@ def judge_interject_candidates(intent: str, before: str, after: str,
 
 
 def judge_interject_frames(intent: str, video_title: str, frames: list[str],
-                           energies: list[float]) -> list[float]:
-    """Score candidate windows (frame + audio energy per window). Returns a
-    0..1 score per window. Raises BrainError on failure."""
+                           energies: list[float],
+                           transcripts: list[str] | None = None) -> list[float]:
+    """Score candidate windows (frame + audio energy + transcript of what is
+    actually said in each). Returns a 0..1 score per window. Raises
+    BrainError on failure."""
     images = [(f"Frame {i}:", url) for i, url in enumerate(frames)]
     en = ", ".join(f"{i}: {e:.2f}" for i, e in enumerate(energies))
+    tr = "\n".join(f'{i}: "{(t or "(no speech)").strip()}"'
+                   for i, t in enumerate(transcripts or [""] * len(frames)))
     out = structured(
         INTERJECT_FRAME_SYSTEM,
         INTERJECT_FRAME_USER.format(intent=intent, video_title=video_title,
-                                    n=len(frames), energies=en),
+                                    n=len(frames), energies=en,
+                                    transcripts=tr),
         JUDGE_SCHEMA, schema_name="interject_frame", temperature=0.2,
         max_tokens=1500, images=images)
     scores = [0.0] * len(frames)

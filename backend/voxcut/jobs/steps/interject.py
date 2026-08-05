@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import random
 import time
 from pathlib import Path
 
@@ -53,42 +52,183 @@ def _surrounding_narration(project_id: str, gap_start: float,
     return " ".join(before[-2:]).strip(), " ".join(after[:2]).strip()
 
 
-def _pick_moment(asset: Asset, win_s: float, intent: str,
+PAD_PRE = 0.15    # utterance padding: never clip the first syllable
+PAD_POST = 0.25   # … or the last one
+MAX_WINDOWS = 7
+# Below this judged score no window in the asset actually lands the intent —
+# fail the candidate rather than settle. Settling for "merely loud" is
+# exactly the random-yelling failure this picker replaces.
+MIN_WINDOW_SCORE = 0.4
+
+
+def _asset_cues(asset: Asset) -> list[dict]:
+    """Parsed subtitle cues ({start, end, text}) captured at download time."""
+    if asset.subs_path and Path(asset.subs_path).exists():
+        try:
+            return [c for c in json.loads(Path(asset.subs_path).read_text())
+                    if c.get("text")]
+        except Exception:  # noqa: BLE001
+            return []
+    return []
+
+
+def _transcribe_span(video: Path, a: float, b: float, work: Path) -> str:
+    """What is actually SAID in [a, b]: whisper (small cached model) on just
+    that slice — a few seconds of audio, so it stays cheap. Empty string when
+    nothing intelligible."""
+    import subprocess
+
+    from ...asr.transcribe import _get_model, _pick_model
+    from ...media.probe import ffmpeg
+    work.mkdir(parents=True, exist_ok=True)
+    wav = work / f"span_{a:.2f}_{b:.2f}.wav"
+    try:
+        proc = subprocess.run(
+            [ffmpeg(), "-y", "-ss", f"{max(0.0, a):.3f}", "-t", f"{b - a:.3f}",
+             "-i", str(video), "-vn", "-ac", "1", "-ar", "16000",
+             "-c:a", "pcm_s16le", str(wav)],
+            capture_output=True, check=False, timeout=120)
+        if proc.returncode != 0 or not wav.exists():
+            return ""
+        model = _get_model(_pick_model("fast"))
+        segments, _info = model.transcribe(
+            str(wav), language="en", beam_size=1,
+            condition_on_previous_text=False)
+        return " ".join(s.text.strip() for s in segments).strip()
+    except Exception:  # noqa: BLE001 — no transcript is a valid (bad) signal
+        return ""
+    finally:
+        wav.unlink(missing_ok=True)
+
+
+def _win_energy(env, a: float, b: float) -> float:
+    from ...moments.audio import BUCKET_S
+    if env is None or not len(env):
+        return 0.0
+    i0 = max(0, int(a / BUCKET_S))
+    i1 = max(i0 + 1, int(b / BUCKET_S))
+    seg = env[i0:i1]
+    return float(seg.mean()) if len(seg) else 0.0
+
+
+def _propose_windows(asset: Asset, idea: dict,
+                     fixed_dur_s: float | None) -> list[dict]:
+    """Candidate windows as {in_s, out_s, energy, text}. Utterance-first:
+    subtitle cues merge into complete spoken lines (padded so words never
+    clip), ranked by text relevance to the idea; the loudest windows only
+    fill leftover slots and get transcribed themselves — energy stopped
+    being the driver because loudest-window picking selects for yelling."""
+    from ...moments import embed
+    from ...moments.audio import ANALYZE_MAX_S, rms_envelope, top_energy_windows
+
+    dur = min(asset.duration_s or ANALYZE_MAX_S, ANALYZE_MAX_S)
+    lo = fixed_dur_s or max(MIN_GAP_S, idea["min_s"])
+    hi = fixed_dur_s or min(MAX_GAP_S, idea["max_s"])
+    env = rms_envelope(Path(asset.file_path), dur)
+
+    def clamp(a: float, b: float) -> tuple[float, float]:
+        if fixed_dur_s:  # reroll: gap length is fixed — center on the line
+            c = (a + b) / 2
+            a, b = c - fixed_dur_s / 2, c + fixed_dur_s / 2
+        b = min(dur, min(b, a + MAX_GAP_S))
+        a = max(0.0, a)
+        return round(a, 3), round(max(b, a + 0.8), 3)
+
+    out: list[dict] = []
+    cues = _asset_cues(asset)
+    if cues:
+        groups: list[list[dict]] = []
+        for c in cues:
+            if (groups and c["start"] - groups[-1][-1]["end"] <= 0.4
+                    and c["end"] - groups[-1][0]["start"] <= hi):
+                groups[-1].append(c)
+            else:
+                groups.append([c])
+        cands = []
+        for g in groups:
+            a, b = clamp(g[0]["start"] - PAD_PRE, g[-1]["end"] + PAD_POST)
+            if b - a < 0.8:
+                continue
+            cands.append({"in_s": a, "out_s": b,
+                          "energy": _win_energy(env, a, b),
+                          "text": " ".join(c["text"] for c in g)})
+        if cands:
+            query = f"{idea['comedic_intent']} {' '.join(idea['queries'])}"
+            vecs = embed.embed([c["text"] for c in cands] + [query])
+            if vecs is not None:
+                sims = embed.cosine_matrix(vecs[-1], vecs[:-1])
+                order = sorted(range(len(cands)), key=lambda i: float(sims[i]),
+                               reverse=True)
+            else:
+                order = sorted(range(len(cands)),
+                               key=lambda i: cands[i]["energy"], reverse=True)
+            out = [cands[i] for i in order[:5]]
+
+    win_s = fixed_dur_s or (lo + hi) / 2
+    for a, b, e in top_energy_windows(env, win_s, n=6):
+        if len(out) >= MAX_WINDOWS:
+            break
+        if any(abs(a - w["in_s"]) < 1.0 for w in out):
+            continue
+        if cues:
+            # Only lines FULLY inside the window count as its transcript; a
+            # partially-overlapped line would play cut off mid-word, and the
+            # judge must see that, not the full quote.
+            inside = [c for c in cues
+                      if c["start"] >= a - 0.05 and c["end"] <= b + 0.05]
+            partial = any(c["end"] > a and c["start"] < b for c in cues
+                          if c not in inside)
+            text = " ".join(c["text"] for c in inside)
+            if partial:
+                text = (text + " [a line is cut off at the window edge]").strip()
+        else:
+            text = _transcribe_span(
+                Path(asset.file_path), a, b,
+                settings().library_dir / asset.source_id / "verify" / "spans")
+        if text and any(w["text"] == text for w in out):
+            continue  # same payload, worse boundaries than the utterance window
+        out.append({"in_s": round(a, 3), "out_s": round(b, 3),
+                    "energy": e, "text": text})
+    return out[:MAX_WINDOWS]
+
+
+def _pick_moment(asset: Asset, idea: dict, fixed_dur_s: float | None,
                  work_tag: str) -> tuple[float, float, float] | None:
-    """Best (in_s, out_s, score) window inside the asset: top audio-energy
-    windows, frame-verified by the interject judge. None when the asset has
-    no usable audio."""
+    """Best (in_s, out_s, score) window: utterance/energy proposals judged on
+    the frame, the audio energy, AND a transcript of what is actually said.
+    None when the asset has no usable audio or no window clears the bar."""
     from ...brain.client import BrainError
     from ...brain.interject import judge_interject_frames
-    from ...moments.audio import ANALYZE_MAX_S, rms_envelope, top_energy_windows
     from ...moments.frames import sample_window_frames
 
-    path = Path(asset.file_path)
-    env = rms_envelope(path, min(asset.duration_s or ANALYZE_MAX_S, ANALYZE_MAX_S))
-    windows = top_energy_windows(env, win_s)
+    windows = _propose_windows(asset, idea, fixed_dur_s)
     if not windows:
         return None
     urls = sample_window_frames(
-        path, [(a, b) for a, b, _e in windows],
+        Path(asset.file_path), [(w["in_s"], w["out_s"]) for w in windows],
         settings().library_dir / asset.source_id / "verify" / f"ij_{work_tag}")
     present = [(i, u) for i, u in enumerate(urls) if u]
     vision: list[float] | None = None
     if present:
         try:
             scores = judge_interject_frames(
-                intent, asset.title or "", [u for _i, u in present],
-                [windows[i][2] for i, _u in present])
+                idea["comedic_intent"], asset.title or "",
+                [u for _i, u in present],
+                [windows[i]["energy"] for i, _u in present],
+                [windows[i]["text"] for i, _u in present])
             vision = [0.0] * len(windows)
             for (i, _u), s in zip(present, scores):
                 vision[i] = s
         except BrainError:
             vision = None
     if vision is None:
-        a, b, e = windows[0]  # loudest window — best guess without eyes
-        return a, b, e
-    blended = [0.6 * v + 0.4 * e for v, (_a, _b, e) in zip(vision, windows)]
+        w = windows[0]  # best utterance match (or loudest) — blind fallback
+        return w["in_s"], w["out_s"], w["energy"]
+    blended = [0.85 * v + 0.15 * w["energy"] for v, w in zip(vision, windows)]
     best = max(range(len(windows)), key=lambda i: blended[i])
-    return windows[best][0], windows[best][1], vision[best]
+    if vision[best] < MIN_WINDOW_SCORE:
+        return None  # nothing here lands the intent — try the next source
+    return windows[best]["in_s"], windows[best]["out_s"], vision[best]
 
 
 def _used_interjections(project_id: str,
@@ -202,11 +342,10 @@ def source_interject_clip(project_id: str, ev: dict, hint: str | None,
 
     provider = YouTubeProvider()
     filters = Filters(avoid=brief.get("avoid", []), reaction_intent=True)
-    # With an operator hint the first idea is the one that follows it — keep
-    # that order. Otherwise: shuffle, so the model's favorite never wins by
-    # default.
-    order = ideas if hint else random.sample(ideas, len(ideas))
-    for idea in order:
+    # Quality-first: the planner orders ideas best-first and we try them in
+    # order. Variety no longer needs randomness — the global history already
+    # guarantees no pick repeats, so shuffling only traded quality away.
+    for idea in ideas:
         result = _try_idea(project_id, ev, idea, provider, filters,
                            before, after, avoid_source_ids,
                            franchise_counts, used, fixed_dur_s)
@@ -227,9 +366,6 @@ def _try_idea(project_id: str, ev: dict, idea: dict, provider, filters,
     None = this idea found nothing usable (caller tries the next idea)."""
     from ...brain.interject import judge_interject_candidates
     from ...sourcing.rank import rank
-
-    win_s = fixed_dur_s if fixed_dur_s else max(
-        MIN_GAP_S, min(MAX_GAP_S, (idea["min_s"] + idea["max_s"]) / 2))
 
     merged: dict[str, object] = {}
     for q in idea["queries"]:
@@ -269,7 +405,7 @@ def _try_idea(project_id: str, ev: dict, idea: dict, provider, filters,
         if not asset or not Path(asset.file_path).exists():
             continue
         try:
-            moment = _pick_moment(asset, win_s, idea["comedic_intent"], ev["id"])
+            moment = _pick_moment(asset, idea, fixed_dur_s, ev["id"])
         except Exception:  # noqa: BLE001 — a broken finalist forfeits
             continue
         if moment is None:
