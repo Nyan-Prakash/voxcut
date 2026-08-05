@@ -90,15 +90,48 @@ def _pick_moment(asset: Asset, win_s: float, intent: str,
     return windows[best][0], windows[best][1], vision[best]
 
 
+def _used_interjections(project_id: str,
+                        skip_event_id: str) -> tuple[list[str], dict[str, int], set[str]]:
+    """What this video's OTHER interjections already play: (titles+franchises
+    for the planner's never-again list, franchise counts for the judge's
+    fatigue guard, source ids to exclude from search). Without this memory
+    every call is amnesiac and converges on the same canonical clip."""
+    from ...timeline_ops import INTERJECT_FLAG
+    used: list[str] = []
+    franchise_counts: dict[str, int] = {}
+    used_ids: set[str] = set()
+    try:
+        edl = load_edl(project_id)
+    except Exception:  # noqa: BLE001
+        return used, franchise_counts, used_ids
+    for e in edl["events"]:
+        if e["id"] == skip_event_id or INTERJECT_FLAG not in (e.get("flags") or []):
+            continue
+        fr = ((e.get("interject") or {}).get("franchise") or "").strip()
+        if fr:
+            franchise_counts[fr] = franchise_counts.get(fr, 0) + 1
+            used.append(fr)
+        if e.get("asset_id"):
+            with session_scope() as db:
+                a = db.get(Asset, e["asset_id"])
+            if a:
+                used_ids.add(a.source_id)
+                if a.title:
+                    used.append(a.title)
+    return list(dict.fromkeys(used)), franchise_counts, used_ids
+
+
 def source_interject_clip(project_id: str, ev: dict, hint: str | None,
                           avoid_source_ids: set[str] | None = None,
-                          fixed_dur_s: float | None = None) -> dict | None:
+                          fixed_dur_s: float | None = None,
+                          avoid_titles: list[str] | None = None) -> dict | None:
     """Blocking tournament for one interjection: plan → search → judge →
     download 2 finalists → audio+frame moment pick (escalating to the second
-    finalist when the first verifiably misses).
+    finalist when the first verifiably misses). The plan and judge both see
+    what this video already uses, so every interjection lands somewhere new.
 
-    Returns {asset_id, in_s, out_s, dur_s, intent, vision} or None when
-    nothing survives. Raises BrainError when the LLM is unavailable —
+    Returns {asset_id, in_s, out_s, dur_s, intent, vision, franchise} or None
+    when nothing survives. Raises BrainError when the LLM is unavailable —
     Interject has no heuristic fallback; a random unmuted clip is worse
     than no interjection."""
     from ...brain.interject import (judge_interject_candidates, plan_interject)
@@ -109,9 +142,12 @@ def source_interject_clip(project_id: str, ev: dict, hint: str | None,
         p = db.get(Project, project_id)
         brief = json.loads(p.context_brief or "{}") if p else {}
     before, after = _surrounding_narration(project_id, ev["start_s"], ev["end_s"])
+    used, franchise_counts, used_ids = _used_interjections(project_id, ev["id"])
+    used += [t for t in (avoid_titles or []) if t not in used]
+    avoid_source_ids = (avoid_source_ids or set()) | used_ids
 
     plan = plan_interject(brief_summary(brief), ", ".join(brief.get("avoid", [])),
-                          before, after, hint)
+                          before, after, hint, used_clips=used)
     if not plan["queries"]:
         return None
     win_s = fixed_dur_s if fixed_dur_s else max(
@@ -141,8 +177,10 @@ def source_interject_clip(project_id: str, ev: dict, hint: str | None,
     picks = judge_interject_candidates(
         plan["comedic_intent"], before, after, plan["queries"],
         [{"title": c.title, "channel": c.channel, "duration_s": c.duration_s,
-          "views": c.view_count, "thumbnail": c.thumbnail} for c in ranked])
+          "views": c.view_count, "thumbnail": c.thumbnail} for c in ranked],
+        franchise_counts=franchise_counts, used_clips=used)
     order = [ranked[i] for i, _rel, _fr in picks]
+    franchise_of = {ranked[i].source_id: fr for i, _rel, fr in picks if fr}
     if not order:
         return None
 
@@ -171,7 +209,8 @@ def source_interject_clip(project_id: str, ev: dict, hint: str | None,
     asset, in_s, out_s, score = best
     return {"asset_id": asset.id, "in_s": round(in_s, 3),
             "out_s": round(out_s, 3), "dur_s": round(out_s - in_s, 3),
-            "intent": plan["comedic_intent"], "vision": round(score, 3)}
+            "intent": plan["comedic_intent"], "vision": round(score, 3),
+            "franchise": franchise_of.get(asset.source_id, "")}
 
 
 async def _rollback(project_id: str, event_id: str) -> None:
@@ -241,7 +280,8 @@ async def run_interject(ctx: JobContext) -> None:
     ev["source"] = {"in_s": result["in_s"], "out_s": result["out_s"],
                     "chosen_rank": 1, "visual": result["vision"]}
     ev["audio"] = {"mode": "keep", "duck_db": -18}
-    ev["interject"] = {"intent": result["intent"], "vision": result["vision"]}
+    ev["interject"] = {"intent": result["intent"], "vision": result["vision"],
+                       "franchise": result.get("franchise", "")}
     ev["flags"] = [f for f in ev.get("flags", []) if f != "sourcing"]
     save_edl(project_id, edl)
     for sub in ("segments", "segments_full"):

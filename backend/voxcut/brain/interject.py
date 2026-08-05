@@ -35,15 +35,22 @@ STOPS, a clip plays fullscreen WITH ITS OWN AUDIO for a couple of seconds,
 then the narration resumes. The clip's AUDIO is the joke.
 
 Favor: famous reaction lines, screams and freakouts, deadpan one-liners,
-iconic quotes, meme sound moments ("emotional damage", the Windows shutdown
-sound, a perfectly-timed "bruh"). The exact opposite of muted b-roll — a clip
-whose payoff is silent is WRONG here.
+iconic quoted deliveries, recognizable meme sound moments. The exact opposite
+of muted b-roll — a clip whose payoff is silent is WRONG here.
 
 Rules:
-- NAME THE EXACT canonical clip a YouTube search resolves to one video
-  ("Michael Scott no god please no", "emotional damage meme original") —
-  never a generic pattern like "<emotion> meme". Draw from the full breadth
-  of internet culture; the quoted names are FORMAT examples only.
+- NAME THE EXACT canonical clip: each query combines the SOURCE (the show,
+  film, anime, game, streamer, athlete, or person) with the SPECIFIC moment
+  or quoted line, so a YouTube search resolves to one canonical video. Never
+  a generic pattern like "<emotion> meme" or "funny scream clip".
+- VARIETY IS THE POINT. Draw from the FULL breadth of internet culture — TV,
+  film, anime, cartoons, sports, gaming, streamers, vines, news bloopers,
+  ads, music moments — and pick whatever genuinely fits THIS beat of THIS
+  video. Do not fall back on an all-purpose famous reaction: if a clip would
+  fit under almost any narration, it is too generic — find the one that fits
+  THIS narration specifically. Never pick anything on the already-used list,
+  any other upload of the same scene, or (unless uniquely perfect) the same
+  franchise.
 - Return 2 angles among your queries: one that riffs on the literal content
   of the surrounding narration, one absurdist contrast that commits to the
   bit. Both must be audio-payload clips.
@@ -55,6 +62,8 @@ Rules:
 INTERJECT_PLAN_USER = """\
 Video context: {context}
 Avoid: {avoid}
+Already used in this video (never these again, nor other uploads of the same
+scene, nor their franchises): {used}
 
 Narration BEFORE the cut: "{before}"
 Narration AFTER the cut: "{after}"
@@ -77,8 +86,12 @@ audio moment:
   essays (the moment is buried), anything whose payoff is visual-only.
 - COMPILATIONS ("top 100 memes", "best of…"): score <= 0.4 — finding the
   wanted two seconds inside a grab-bag rarely works.
-- FRANCHISE FATIGUE: a franchise already used 2+ times in this video scores
-  <= 0.4 unless uniquely perfect.
+- ALREADY USED: you are told which clips this video already interjects.
+  REJECT (score 0) any result that is the same moment or scene — including a
+  different upload of it under another title or channel. Repeating a
+  punchline kills it.
+- FRANCHISE FATIGUE: a franchise already used in this video scores <= 0.4
+  unless uniquely perfect.
 - Name each pick's "franchise" (show/film/creator), '' when unclear.
 - TONE: comedy only — reject real tragedy regardless of relevance.
 - When in doubt, score low. Zero picks is a valid answer: no interjection
@@ -90,6 +103,8 @@ INTERJECT_JUDGE_USER = """\
 The interjection's intent: {intent}
 Narration around the cut: "{before}" [CLIP PLAYS HERE] "{after}"
 Search queries used: {queries}
+Clips already interjected in this video (reject the same moment in ANY
+upload): {used}
 Franchises already used in this video: {franchises}
 
 Results:
@@ -119,9 +134,12 @@ Audio energy per window: {energies}"""
 
 
 def plan_interject(context: str, avoid: str, before: str, after: str,
-                   hint: str | None = None) -> dict:
+                   hint: str | None = None,
+                   used_clips: list[str] | None = None) -> dict:
     """One LLM call → {queries, comedic_intent, min_s, max_s} (clamped to
-    1.0-4.0s). Raises BrainError when the LLM is unavailable/fails."""
+    1.0-4.0s). used_clips: titles/franchises of interjections this video
+    already has — the planner must find something new. Raises BrainError
+    when the LLM is unavailable/fails."""
     hint_block = (f"\n\nOPERATOR DIRECTION — follow it; it wins over every "
                   f"rule above, but keep queries specific and "
                   f"YouTube-searchable: {hint.strip()}" if hint and hint.strip()
@@ -129,10 +147,11 @@ def plan_interject(context: str, avoid: str, before: str, after: str,
     out = structured(
         INTERJECT_PLAN_SYSTEM,
         INTERJECT_PLAN_USER.format(context=context, avoid=avoid or "(none)",
+                                   used=", ".join(used_clips or []) or "(none yet)",
                                    before=before, after=after,
                                    hint_block=hint_block),
         INTERJECT_PLAN_SCHEMA, schema_name="interject_plan",
-        temperature=0.7, max_tokens=800)
+        temperature=0.8, max_tokens=800)
     lo = max(1.0, min(4.0, float(out.get("min_s", 1.5))))
     hi = max(lo, min(4.0, float(out.get("max_s", 3.0))))
     return {"queries": [q for q in out.get("queries", []) if q.strip()][:4],
@@ -143,9 +162,12 @@ def plan_interject(context: str, avoid: str, before: str, after: str,
 def judge_interject_candidates(intent: str, before: str, after: str,
                                queries: list[str], candidates: list[dict],
                                franchise_counts: dict[str, int] | None = None,
+                               used_clips: list[str] | None = None,
                                ) -> list[tuple[int, float, str]]:
     """Same contract as judge.judge_candidates, inverted rules: rewards
-    audio-forward footage. Returns [(index, relevance, franchise)]."""
+    audio-forward footage. used_clips: interjections this video already has —
+    the same moment in any upload is rejected outright. Returns
+    [(index, relevance, franchise)]."""
     results = "\n".join(
         f"{i}: {c['title']!r} | channel: {c.get('channel', '?')} | "
         f"{int(c.get('duration_s') or 0)}s | {c.get('views', 0)} views"
@@ -159,6 +181,7 @@ def judge_interject_candidates(intent: str, before: str, after: str,
         INTERJECT_JUDGE_SYSTEM,
         INTERJECT_JUDGE_USER.format(intent=intent, before=before, after=after,
                                     queries=", ".join(queries),
+                                    used=", ".join(used_clips or []) or "(none yet)",
                                     results=results, franchises=franchises),
         JUDGE_SCHEMA, schema_name="interject_judge", temperature=0.2,
         max_tokens=2000, images=images or None)

@@ -75,7 +75,8 @@ async def run_reroll(ctx: JobContext) -> None:
             try:
                 result = await asyncio.to_thread(
                     source_interject_clip, project_id, ev, hint,
-                    set(avoid_ids), ev["end_s"] - ev["start_s"])
+                    set(avoid_ids), ev["end_s"] - ev["start_s"],
+                    avoid_titles)
             except Exception:  # noqa: BLE001 — keep the current clip
                 result = None
             if not result:
@@ -84,7 +85,8 @@ async def run_reroll(ctx: JobContext) -> None:
             ev["source"] = {"in_s": result["in_s"], "out_s": result["out_s"],
                             "chosen_rank": 1, "visual": result["vision"]}
             ev["interject"] = {"intent": result["intent"],
-                               "vision": result["vision"]}
+                               "vision": result["vision"],
+                               "franchise": result.get("franchise", "")}
             ev.pop("qc", None)
             swapped += 1
             for sub in ("segments", "segments_full"):
