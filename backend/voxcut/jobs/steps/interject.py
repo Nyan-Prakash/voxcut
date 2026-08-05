@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import random
 import time
 from pathlib import Path
 
@@ -121,14 +122,53 @@ def _used_interjections(project_id: str,
     return list(dict.fromkeys(used)), franchise_counts, used_ids
 
 
+# ------------------------------------------------------ persistent history
+# The per-EDL memory above dies the moment an interjection is deleted (the
+# common workflow: generate → dislike → delete → generate again) and never
+# crosses projects — which is how the same canonical scene kept coming back
+# in every video. This file-backed history survives both: every PICK is
+# recorded globally, and recent picks are hard-avoided everywhere.
+
+HISTORY_KEEP = 60    # entries retained on disk
+HISTORY_AVOID = 25   # most-recent picks fed into plan/judge/search exclusion
+
+
+def _history_path() -> Path:
+    return settings().data_dir / "interject_history.json"
+
+
+def _load_history() -> list[dict]:
+    try:
+        return json.loads(_history_path().read_text()).get("picks", [])
+    except Exception:  # noqa: BLE001 — missing/corrupt history = empty
+        return []
+
+
+def _record_history(project_id: str, title: str, franchise: str,
+                    source_id: str) -> None:
+    from datetime import datetime, timezone
+    picks = _load_history()
+    picks.append({"ts": datetime.now(timezone.utc).isoformat(),
+                  "project_id": project_id, "title": title,
+                  "franchise": franchise, "source_id": source_id})
+    try:
+        _history_path().write_text(json.dumps(
+            {"version": 1, "picks": picks[-HISTORY_KEEP:]}, indent=2))
+    except Exception:  # noqa: BLE001 — history is best-effort
+        pass
+
+
 def source_interject_clip(project_id: str, ev: dict, hint: str | None,
                           avoid_source_ids: set[str] | None = None,
                           fixed_dur_s: float | None = None,
                           avoid_titles: list[str] | None = None) -> dict | None:
-    """Blocking tournament for one interjection: plan → search → judge →
-    download 2 finalists → audio+frame moment pick (escalating to the second
-    finalist when the first verifiably misses). The plan and judge both see
-    what this video already uses, so every interjection lands somewhere new.
+    """Blocking tournament for one interjection. The planner returns SEVERAL
+    distinct ideas (different franchises/registers) and the server samples
+    them in random order — the model is bad at being random across calls, so
+    the dice live here. Each idea runs search → judge → download → audio+
+    frame moment pick; the first idea that lands wins and is recorded in the
+    global history, which (together with this video's own interjections)
+    is hard-avoided by plan, judge, and search alike.
 
     Returns {asset_id, in_s, out_s, dur_s, intent, vision, franchise} or None
     when nothing survives. Raises BrainError when the LLM is unavailable —
@@ -136,46 +176,81 @@ def source_interject_clip(project_id: str, ev: dict, hint: str | None,
     than no interjection."""
     from ...brain.interject import (judge_interject_candidates, plan_interject)
     from ...brain.steps_helpers import brief_summary
-    from ...sourcing.rank import rank
 
     with session_scope() as db:
         p = db.get(Project, project_id)
         brief = json.loads(p.context_brief or "{}") if p else {}
     before, after = _surrounding_narration(project_id, ev["start_s"], ev["end_s"])
+
     used, franchise_counts, used_ids = _used_interjections(project_id, ev["id"])
     used += [t for t in (avoid_titles or []) if t not in used]
+    for h in _load_history()[-HISTORY_AVOID:]:
+        if h.get("source_id"):
+            used_ids.add(h["source_id"])
+        fr = (h.get("franchise") or "").strip()
+        if fr:
+            franchise_counts[fr] = franchise_counts.get(fr, 0) + 1
+        for name in (h.get("title"), fr):
+            if name and name not in used:
+                used.append(name)
     avoid_source_ids = (avoid_source_ids or set()) | used_ids
 
-    plan = plan_interject(brief_summary(brief), ", ".join(brief.get("avoid", [])),
-                          before, after, hint, used_clips=used)
-    if not plan["queries"]:
+    ideas = plan_interject(brief_summary(brief), ", ".join(brief.get("avoid", [])),
+                           before, after, hint, used_clips=used)
+    if not ideas:
         return None
-    win_s = fixed_dur_s if fixed_dur_s else max(
-        MIN_GAP_S, min(MAX_GAP_S, (plan["min_s"] + plan["max_s"]) / 2))
 
     provider = YouTubeProvider()
     filters = Filters(avoid=brief.get("avoid", []), reaction_intent=True)
+    # With an operator hint the first idea is the one that follows it — keep
+    # that order. Otherwise: shuffle, so the model's favorite never wins by
+    # default.
+    order = ideas if hint else random.sample(ideas, len(ideas))
+    for idea in order:
+        result = _try_idea(project_id, ev, idea, provider, filters,
+                           before, after, avoid_source_ids,
+                           franchise_counts, used, fixed_dur_s)
+        if result:
+            _record_history(project_id, result["title"],
+                            result["franchise"], result["source_sid"])
+            result.pop("title", None)
+            result.pop("source_sid", None)
+            return result
+    return None
+
+
+def _try_idea(project_id: str, ev: dict, idea: dict, provider, filters,
+              before: str, after: str, avoid_source_ids: set[str],
+              franchise_counts: dict[str, int], used: list[str],
+              fixed_dur_s: float | None) -> dict | None:
+    """Run one planned idea through search → judge → download → moment pick.
+    None = this idea found nothing usable (caller tries the next idea)."""
+    from ...brain.interject import judge_interject_candidates
+    from ...sourcing.rank import rank
+
+    win_s = fixed_dur_s if fixed_dur_s else max(
+        MIN_GAP_S, min(MAX_GAP_S, (idea["min_s"] + idea["max_s"]) / 2))
+
     merged: dict[str, object] = {}
-    for q in plan["queries"]:
+    for q in idea["queries"]:
         try:
             with _SEARCH_GATE:
                 results = provider.search(q, SEARCH_N, filters)
                 time.sleep(0.4)
             for c in results:
                 merged.setdefault(c.source_id, c)
-        except Exception:  # noqa: BLE001 — one failed search ≠ dead interject
+        except Exception:  # noqa: BLE001 — one failed search ≠ dead idea
             continue
-    if avoid_source_ids:
-        merged = {k: v for k, v in merged.items() if k not in avoid_source_ids}
+    merged = {k: v for k, v in merged.items() if k not in avoid_source_ids}
     if not merged:
         return None
 
-    ranked = rank(plan["queries"][0], list(merged.values()), filters)[:RANK_KEEP]
+    ranked = rank(idea["queries"][0], list(merged.values()), filters)[:RANK_KEEP]
     clean = [c for c in ranked if not _COMPILATION_RE.search(c.title or "")]
     ranked = clean or ranked
 
     picks = judge_interject_candidates(
-        plan["comedic_intent"], before, after, plan["queries"],
+        idea["comedic_intent"], before, after, idea["queries"],
         [{"title": c.title, "channel": c.channel, "duration_s": c.duration_s,
           "views": c.view_count, "thumbnail": c.thumbnail} for c in ranked],
         franchise_counts=franchise_counts, used_clips=used)
@@ -186,7 +261,7 @@ def source_interject_clip(project_id: str, ev: dict, hint: str | None,
 
     best: tuple[Asset, float, float, float] | None = None
     for cand in order[:3]:
-        aid = _fetch_or_reuse(provider, cand, plan["queries"])
+        aid = _fetch_or_reuse(provider, cand, idea["queries"])
         if not aid:
             continue
         with session_scope() as db:
@@ -194,7 +269,7 @@ def source_interject_clip(project_id: str, ev: dict, hint: str | None,
         if not asset or not Path(asset.file_path).exists():
             continue
         try:
-            moment = _pick_moment(asset, win_s, plan["comedic_intent"], ev["id"])
+            moment = _pick_moment(asset, win_s, idea["comedic_intent"], ev["id"])
         except Exception:  # noqa: BLE001 — a broken finalist forfeits
             continue
         if moment is None:
@@ -209,8 +284,9 @@ def source_interject_clip(project_id: str, ev: dict, hint: str | None,
     asset, in_s, out_s, score = best
     return {"asset_id": asset.id, "in_s": round(in_s, 3),
             "out_s": round(out_s, 3), "dur_s": round(out_s - in_s, 3),
-            "intent": plan["comedic_intent"], "vision": round(score, 3),
-            "franchise": franchise_of.get(asset.source_id, "")}
+            "intent": idea["comedic_intent"], "vision": round(score, 3),
+            "franchise": franchise_of.get(asset.source_id, ""),
+            "title": asset.title or "", "source_sid": asset.source_id}
 
 
 async def _rollback(project_id: str, event_id: str) -> None:

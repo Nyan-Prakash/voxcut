@@ -15,18 +15,30 @@ INTERJECT_PLAN_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
-        "queries": {
-            "type": "array", "items": {"type": "string"},
-            "description": "YouTube searches for audio-forward clips, "
-                           "best-first (2-4)"},
-        "comedic_intent": {
-            "type": "string",
-            "description": "one line: the bit this interjection lands "
-                           "(shown to the operator)"},
-        "min_s": {"type": "number"},
-        "max_s": {"type": "number"},
+        "ideas": {
+            "type": "array",
+            "description": "4-6 DISTINCT interjection ideas, each from a "
+                           "different franchise/source",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "queries": {
+                        "type": "array", "items": {"type": "string"},
+                        "description": "1-2 YouTube searches resolving to "
+                                       "this idea's canonical clip"},
+                    "comedic_intent": {
+                        "type": "string",
+                        "description": "one line: the bit this interjection "
+                                       "lands (shown to the operator)"},
+                    "min_s": {"type": "number"},
+                    "max_s": {"type": "number"},
+                },
+                "required": ["queries", "comedic_intent", "min_s", "max_s"],
+            },
+        }
     },
-    "required": ["queries", "comedic_intent", "min_s", "max_s"],
+    "required": ["ideas"],
 }
 
 INTERJECT_PLAN_SYSTEM = """\
@@ -51,11 +63,14 @@ Rules:
   THIS narration specifically. Never pick anything on the already-used list,
   any other upload of the same scene, or (unless uniquely perfect) the same
   franchise.
-- Return 2 angles among your queries: one that riffs on the literal content
-  of the surrounding narration, one absurdist contrast that commits to the
-  bit. Both must be audio-payload clips.
-- min_s/max_s: the natural length of the audio payload you're hunting
-  (setup optional, punchline mandatory), within 1.0-4.0 seconds.
+- Return 4-6 DISTINCT ideas. Each idea must come from a DIFFERENT
+  franchise/source AND a different comedic register — spread across: a
+  literal riff on what was just said, an absurd non-sequitur, a deadpan
+  one-liner, a scream/freakout, an iconic quoted delivery. The editor picks
+  ONE idea at random, so every idea must stand alone as a great interjection
+  for this exact moment — no throwaway filler ideas.
+- min_s/max_s per idea: the natural length of that audio payload (setup
+  optional, punchline mandatory), within 1.0-4.0 seconds.
 - The interjection interrupts THIS moment of the narration — it must land as
   a response to what was just said, or a perfectly-timed non-sequitur."""
 
@@ -135,15 +150,17 @@ Audio energy per window: {energies}"""
 
 def plan_interject(context: str, avoid: str, before: str, after: str,
                    hint: str | None = None,
-                   used_clips: list[str] | None = None) -> dict:
-    """One LLM call → {queries, comedic_intent, min_s, max_s} (clamped to
-    1.0-4.0s). used_clips: titles/franchises of interjections this video
-    already has — the planner must find something new. Raises BrainError
-    when the LLM is unavailable/fails."""
+                   used_clips: list[str] | None = None) -> list[dict]:
+    """One LLM call → a LIST of 4-6 distinct interjection ideas, each
+    {queries, comedic_intent, min_s, max_s} (clamped to 1.0-4.0s). The
+    caller samples ONE at random — server-side randomness is what actually
+    breaks the model's habit of converging on its single favorite clip.
+    used_clips: titles/franchises already used — never propose them again.
+    Raises BrainError when the LLM is unavailable/fails."""
     hint_block = (f"\n\nOPERATOR DIRECTION — follow it; it wins over every "
-                  f"rule above, but keep queries specific and "
-                  f"YouTube-searchable: {hint.strip()}" if hint and hint.strip()
-                  else "")
+                  f"rule above (including variety), but keep queries specific "
+                  f"and YouTube-searchable: {hint.strip()}"
+                  if hint and hint.strip() else "")
     out = structured(
         INTERJECT_PLAN_SYSTEM,
         INTERJECT_PLAN_USER.format(context=context, avoid=avoid or "(none)",
@@ -151,12 +168,18 @@ def plan_interject(context: str, avoid: str, before: str, after: str,
                                    before=before, after=after,
                                    hint_block=hint_block),
         INTERJECT_PLAN_SCHEMA, schema_name="interject_plan",
-        temperature=0.8, max_tokens=800)
-    lo = max(1.0, min(4.0, float(out.get("min_s", 1.5))))
-    hi = max(lo, min(4.0, float(out.get("max_s", 3.0))))
-    return {"queries": [q for q in out.get("queries", []) if q.strip()][:4],
-            "comedic_intent": (out.get("comedic_intent") or "").strip(),
-            "min_s": lo, "max_s": hi}
+        temperature=0.8, max_tokens=2000)
+    ideas = []
+    for it in out.get("ideas", []):
+        queries = [q for q in it.get("queries", []) if q.strip()][:2]
+        if not queries:
+            continue
+        lo = max(1.0, min(4.0, float(it.get("min_s", 1.5))))
+        hi = max(lo, min(4.0, float(it.get("max_s", 3.0))))
+        ideas.append({"queries": queries,
+                      "comedic_intent": (it.get("comedic_intent") or "").strip(),
+                      "min_s": lo, "max_s": hi})
+    return ideas
 
 
 def judge_interject_candidates(intent: str, before: str, after: str,
