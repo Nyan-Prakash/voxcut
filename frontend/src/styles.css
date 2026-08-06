@@ -221,13 +221,42 @@ a { color: inherit; }
   backdrop-filter: blur(28px) saturate(1.6); -webkit-backdrop-filter: blur(28px) saturate(1.6);
   border: 1px solid var(--hairline); border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 12px 14px 14px; height: 252px; overflow-x: auto; overflow-y: hidden;
+  padding: 10px 14px 12px; height: clamp(200px, 36vh, 300px);
+  display: flex; flex-direction: column; overflow: hidden;
 }
 
+/* Fixed toolbar above the scrolling timeline — never scrolls away. */
+.tl-toolbar {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 2px 2px 10px; margin-bottom: 8px;
+  border-bottom: 1px solid var(--hairline);
+}
+.tl-toolbar button { padding: 5px 11px; font-size: 12px; white-space: nowrap; }
+.tl-toolbar .seg { padding: 2px; }
+.tl-toolbar .seg button { padding: 5px 11px; }
+.tl-divider { width: 1px; align-self: stretch; margin: 3px 3px;
+              background: var(--hairline-strong); opacity: 0.6; }
+.tl-time { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums;
+           padding: 5px 12px; border-radius: 999px; white-space: nowrap;
+           background: var(--glass-strong); border: 1px solid var(--hairline); }
+.tl-time em { font-style: normal; font-weight: 400; color: var(--muted); }
+
+/* The only thing that scrolls horizontally is the timeline itself.
+   (Vertical scroll only appears if the window is too short for the tracks.) */
+.tl-scroll { flex: 1; min-height: 0; overflow: auto; }
+
 /* ---------- timeline ---------- */
+.tl-ruler { position: relative; height: 22px; cursor: ew-resize; }
+.tl-ruler .tick { position: absolute; bottom: 0; width: 1px; height: 6px;
+                  background: var(--hairline-strong); pointer-events: none; }
+.tl-ruler .tick.major { height: 10px; }
+.tl-ruler .tick span { position: absolute; bottom: 10px; left: 3px;
+                       font-size: 9px; color: var(--muted); font-weight: 500;
+                       font-variant-numeric: tabular-nums; }
 .track { position: relative; height: 48px; margin-top: 6px; }
 .track-label { font-size: 10px; color: var(--muted); text-transform: uppercase;
-               letter-spacing: 1px; font-weight: 600; margin-top: 6px; }
+               letter-spacing: 1px; font-weight: 600; margin-top: 6px;
+               position: sticky; left: 0; width: max-content; z-index: 7; }
 .tl-inner { position: relative; height: 100%; }
 .evt {
   position: absolute; top: 0; height: 100%; border-radius: var(--radius-sm);
@@ -280,9 +309,9 @@ a { color: inherit; }
              background: color-mix(in srgb, var(--elev) 22%, transparent);
              border: 1px dashed var(--elev); border-radius: 6px; }
 /* ---------- music lane ---------- */
+.music-head { display: flex; gap: 10px; align-items: center; }
 .music-controls { display: inline-flex; gap: 6px; align-items: center;
-                  text-transform: none; letter-spacing: 0; font-weight: 400;
-                  position: sticky; left: 60px; }
+                  text-transform: none; letter-spacing: 0; font-weight: 400; }
 .music-controls input[type="range"] { width: 70px; height: 4px; }
 .music-lane { cursor: crosshair; }
 .music-lane.disabled { opacity: 0.4; }
@@ -313,6 +342,9 @@ canvas.wave { display: block; width: 100%; height: 44px; opacity: 0.9; }
 .playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--elev);
             box-shadow: 0 0 12px var(--elev); pointer-events: none; z-index: 5;
             border-radius: 2px; }
+.playhead::before { content: ""; position: absolute; top: 0; left: -4px;
+                    border: 5px solid transparent; border-top: 7px solid var(--elev);
+                    border-bottom: 0; }
 
 /* ---------- candidates / finalists ---------- */
 .cand-strip { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }

@@ -28,7 +28,7 @@ export function Editor() {
         <Inspector />
       </div>
       <div className="timeline-wrap">
-        <div className="row" style={{ marginBottom: 6 }}>
+        <div className="tl-toolbar">
           {!edl && (
             <button onClick={gen} disabled={!hasTranscript}>
               {hasTranscript ? "⚡ Generate edit" : "Waiting for transcript…"}
@@ -64,13 +64,15 @@ function MusicStage() {
         </div>
       </div>
       <div className="timeline-wrap">
-        <div className="row" style={{ marginBottom: 6 }}>
+        <div className="tl-toolbar">
           <button className="sec" onClick={() => setStage("clips")}>← Back to clips</button>
+          <div className="tl-divider" />
           <button className="sec" onClick={async () => {
             await api.rebuildPreview(project!.id);
             useStore.getState().setToast("Rebuilding preview with music…");
           }}>▶ Rebuild preview</button>
           <div className="spacer" />
+          <TimeReadout />
           <ExportButton />
         </div>
         <MusicTimeline />
@@ -88,9 +90,10 @@ function TikTokStage() {
         <HighlightsPanel />
       </div>
       <div className="timeline-wrap">
-        <div className="row" style={{ marginBottom: 6 }}>
+        <div className="tl-toolbar">
           <button className="sec" onClick={() => setStage("clips")}>← Back to clips</button>
           <div className="spacer" />
+          <TimeReadout />
           <ExportButton />
         </div>
         <Timeline />
@@ -122,32 +125,50 @@ function ToolSwitch() {
 function EditorToolbar() {
   const { project, undo, refreshEdl } = useStore();
   return (
-    <div className="row">
+    <>
       <ToolSwitch />
-      <button className="sec" onClick={async () => {
-        await api.generate(project!.id);
-        useStore.getState().setToast("Regenerating…");
-      }}>↻ Regenerate all</button>
-      <button className="sec" onClick={async () => {
-        await api.rebuildPreview(project!.id);
-        useStore.getState().setToast("Rebuilding preview…");
-      }}>▶ Rebuild preview</button>
-      <button className="ghost" onClick={() => undo()}>↶ undo</button>
-      <button className="ghost" onClick={() => refreshEdl()}>refresh</button>
+      <div className="tl-divider" />
+      <button className="ghost" title="Undo the last edit" onClick={() => undo()}>↶ Undo</button>
       <ReviewNav />
       <button className="ghost" title="Vision-audit every clip against the never-mediocre law; weak ones get flagged ⚑ for you to reroll"
               onClick={async () => {
                 await api.runQc(project!.id);
                 useStore.getState().setToast("🔎 QC: auditing clips against the never-mediocre law…");
               }}>🔎 QC</button>
+      <div className="tl-divider" />
+      <button className="ghost" title="Throw away this cut and generate a fresh one"
+              onClick={async () => {
+        await api.generate(project!.id);
+        useStore.getState().setToast("Regenerating…");
+      }}>↻ Regenerate</button>
+      <button className="ghost" title="Re-render the stitched preview video"
+              onClick={async () => {
+        await api.rebuildPreview(project!.id);
+        useStore.getState().setToast("Rebuilding preview…");
+      }}>▶ Rebuild</button>
+      <button className="ghost" title="Re-fetch the timeline from the server"
+              onClick={() => refreshEdl()}>⟳ Refresh</button>
       <div className="spacer" />
+      <TimeReadout />
       <ExportButton />
       <button onClick={() => useStore.getState().setStage("music")}
               title="Happy with the clips? Move on to scoring the video with music.">
-        ✓ Accept clips → Music
+        ✓ Accept → Music
       </button>
-    </div>
+    </>
   );
+}
+
+/** Live playhead readout — isolated so per-frame time updates only
+ *  re-render this pill, not the whole toolbar. */
+function TimeReadout() {
+  const playheadS = useStore((s) => s.playheadS);
+  const dur = useStore((s) =>
+    s.project?.duration_s
+    || (s.edl?.events.length ? Math.max(...s.edl.events.map((e) => e.end_s)) : 0));
+  const fmt = (t: number) =>
+    `${Math.floor(t / 60)}:${(t % 60).toFixed(1).padStart(4, "0")}`;
+  return <span className="tl-time">{fmt(playheadS)} <em>/ {fmt(dur)}</em></span>;
 }
 
 function ReviewNav() {

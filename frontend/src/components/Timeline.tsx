@@ -8,6 +8,49 @@ interface MusicRegion {
   id: string; file: string; start_s: number; end_s: number; gain_db?: number;
 }
 
+/** Horizontal scroll container for a timeline. Keeps the playhead in view
+ *  while the video plays, without fighting manual scrolling when paused. */
+function TimelineScroller({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const playheadS = useStore((s) => s.playheadS);
+  useEffect(() => {
+    const el = ref.current;
+    const v = useStore.getState().videoEl;
+    if (!el || !v || v.paused) return;
+    const x = playheadS * PX_PER_S;
+    if (x < el.scrollLeft + 10 || x > el.scrollLeft + el.clientWidth - 80) {
+      el.scrollTo({ left: Math.max(0, x - 80) });
+    }
+  }, [playheadS]);
+  return <div className="tl-scroll" ref={ref}>{children}</div>;
+}
+
+/** Time ruler: minor tick each second, labeled major tick every 5 s.
+ *  Click or drag anywhere on it to seek — regardless of the active tool. */
+function Ruler({ dur }: { dur: number }) {
+  const { seek } = useStore();
+  const scrub = (e: React.MouseEvent) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    seek(Math.max(0, Math.min(dur, (e.clientX - rect.left) / PX_PER_S)));
+  };
+  const fmt = (s: number) =>
+    `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const ticks = Array.from({ length: Math.max(1, Math.ceil(dur)) + 1 }, (_, i) => i);
+  return (
+    <div className="tl-ruler"
+         onClick={(e) => e.stopPropagation()}
+         onMouseDown={(e) => { e.stopPropagation(); scrub(e); }}
+         onMouseMove={(e) => { if (e.buttons === 1) { e.stopPropagation(); scrub(e); } }}>
+      {ticks.map((s) => (
+        <div key={s} className={`tick${s % 5 === 0 ? " major" : ""}`}
+             style={{ left: s * PX_PER_S }}>
+          {s % 5 === 0 && <span>{fmt(s)}</span>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function Timeline() {
   const { edl, beats, project, selectedEventIds, select, playheadS, seek,
           tool, splitAt, addSegmentRange, interjectAt, reroll } = useStore();
@@ -63,6 +106,7 @@ export function Timeline() {
   };
 
   return (
+    <TimelineScroller>
     <div className={`tl-root tool-${tool}`}
          style={{ minWidth: width, position: "relative" }}
          onClick={onBackgroundClick}
@@ -74,6 +118,7 @@ export function Timeline() {
              style={{ left: Math.min(drag.a, drag.b) * PX_PER_S,
                       width: Math.abs(drag.b - drag.a) * PX_PER_S }} />
       )}
+      <Ruler dur={dur} />
       <Wave width={width} />
       {/* Beat ruler */}
       <div className="track" style={{ height: 20 }}>
@@ -134,6 +179,7 @@ export function Timeline() {
         </div>
       </div>
     </div>
+    </TimelineScroller>
   );
 }
 
@@ -150,9 +196,11 @@ export function MusicTimeline() {
   };
 
   return (
+    <TimelineScroller>
     <div className="tl-root" style={{ minWidth: width, position: "relative" }}
          onClick={seekAt}>
       <div className="playhead" style={{ left: playheadS * PX_PER_S }} />
+      <Ruler dur={dur} />
       <Wave width={width} />
       <div className="track" style={{ height: 14 }}>
         <div className="tl-inner">
@@ -165,6 +213,7 @@ export function MusicTimeline() {
       </div>
       <MusicLane width={width} dur={dur} tall />
     </div>
+    </TimelineScroller>
   );
 }
 
@@ -267,7 +316,7 @@ function MusicLane({ width, dur, tall }: { width: number; dur: number; tall?: bo
 
   return (
     <>
-      <div className="track-label" style={{ display: "flex", gap: 10, alignItems: "center" }}>
+      <div className="track-label music-head">
         <span>music</span>
         <span className="music-controls" onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}>
