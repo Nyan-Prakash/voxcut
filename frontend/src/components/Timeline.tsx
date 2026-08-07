@@ -219,10 +219,12 @@ export function MusicTimeline() {
 
 function MusicLane({ width, dur, tall }: { width: number; dur: number; tall?: boolean }) {
   const { project, updateMusic, setToast } = useStore();
+  const dragTrack = useStore((s) => s.dragTrack);
   const laneRef = useRef<HTMLDivElement>(null);
   const [tracks, setTracks] = useState<any[]>([]);
   const [selTrack, setSelTrack] = useState("");
   const [vol, setVol] = useState<number | null>(null);
+  const [dropT, setDropT] = useState<number | null>(null);
   const [drag, setDrag] = useState<null | {
     kind: "create" | "move" | "resizeL" | "resizeR";
     id?: string; anchor: number; cur: number; orig?: MusicRegion;
@@ -299,6 +301,35 @@ function MusicLane({ width, dur, tall }: { width: number; dur: number; tall?: bo
     setDrag(null);
   };
 
+  // --- Drop a track dragged from the library (Premiere-style placement).
+  // The region gets the track's full length, clamped to the timeline end.
+  // Read dragTrack via getState() — the drop can fire before the store
+  // subscription re-renders this component.
+  const dropRegion = (t: number, trackDur: number): { a: number; b: number } => {
+    const len = Math.max(2, trackDur || 15);
+    const a = Math.max(0, Math.min(t, dur - 2));
+    return { a, b: Math.min(dur, a + len) };
+  };
+  const onDragOver = (e: React.DragEvent) => {
+    if (!useStore.getState().dragTrack) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+    const r = laneRef.current!.getBoundingClientRect();
+    setDropT(Math.max(0, Math.min(dur, (e.clientX - r.left) / PX_PER_S)));
+  };
+  const onDrop = (e: React.DragEvent) => {
+    const track = useStore.getState().dragTrack;
+    if (!track) return;
+    e.preventDefault();
+    const r = laneRef.current!.getBoundingClientRect();
+    const { a, b } = dropRegion((e.clientX - r.left) / PX_PER_S, track.duration_s);
+    commit([...regions, { id: `mr_${Date.now()}`, file: track.name,
+                          start_s: a, end_s: b, gain_db: 0 }]);
+    setSelTrack(track.name);
+    setDropT(null);
+    useStore.setState({ dragTrack: null });
+  };
+
   const suggest = async () => {
     if (!project) return;
     try {
@@ -339,10 +370,12 @@ function MusicLane({ width, dur, tall }: { width: number; dur: number; tall?: bo
           </button>
         </span>
       </div>
-      <div className={`track music-lane ${music.enabled ? "" : "disabled"}`}
+      <div className={`track music-lane ${music.enabled ? "" : "disabled"} ${dragTrack ? "drop-ready" : ""}`}
            ref={laneRef} style={{ height: tall ? 52 : 30 }}
            onMouseDown={onLaneDown} onMouseMove={onMove}
            onMouseUp={onUp} onMouseLeave={() => setDrag(null)}
+           onDragOver={onDragOver} onDrop={onDrop}
+           onDragLeave={() => setDropT(null)}
            onClick={(e) => e.stopPropagation()}>
         <div className="tl-inner">
           {createView && (
@@ -350,6 +383,15 @@ function MusicLane({ width, dur, tall }: { width: number; dur: number; tall?: bo
                  style={{ left: createView.a * PX_PER_S,
                           width: (createView.b - createView.a) * PX_PER_S }} />
           )}
+          {dragTrack && dropT != null && (() => {
+            const { a, b } = dropRegion(dropT, dragTrack.duration_s);
+            return (
+              <div className="mreg ghost-reg"
+                   style={{ left: a * PX_PER_S, width: (b - a) * PX_PER_S }}>
+                <span className="mreg-label">♪ {short(dragTrack.name)}</span>
+              </div>
+            );
+          })()}
           {view.map((r) => (
             <div key={r.id} className="mreg"
                  style={{ left: r.start_s * PX_PER_S,

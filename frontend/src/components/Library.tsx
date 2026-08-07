@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import { useStore } from "../store";
 
@@ -8,12 +8,66 @@ function fmtBytes(n: number): string {
   return `${(n / 1e9).toFixed(2)} GB`;
 }
 
+/** Play/pause + seekable progress for one library track. One shared <audio>
+ *  per section — starting a track stops whichever was auditioning before. */
+function TrackAudition({ name, durationS, audioRef, playing, onPlayingChange }: {
+  name: string; durationS: number;
+  audioRef: React.MutableRefObject<HTMLAudioElement | null>;
+  playing: boolean; onPlayingChange: (name: string | null) => void;
+}) {
+  const [pos, setPos] = useState(0);
+
+  useEffect(() => {
+    if (!playing) { setPos(0); return; }
+    const a = audioRef.current;
+    if (!a) return;
+    const tick = () => setPos(a.currentTime);
+    a.addEventListener("timeupdate", tick);
+    return () => a.removeEventListener("timeupdate", tick);
+  }, [playing]);
+
+  const toggle = () => {
+    let a = audioRef.current;
+    if (!a) { a = audioRef.current = new Audio(); }
+    if (playing) { a.pause(); onPlayingChange(null); return; }
+    a.src = api.musicFileUrl(name);
+    a.onended = () => onPlayingChange(null);
+    a.play().catch(() => onPlayingChange(null));
+    onPlayingChange(name);
+  };
+
+  const seekTo = (e: React.MouseEvent) => {
+    const a = audioRef.current;
+    if (!playing || !a || !durationS) return;
+    const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    a.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * durationS;
+  };
+
+  return (
+    <div className="row" style={{ marginTop: 6, gap: 6 }}>
+      <button className="ghost audition-btn" onClick={toggle}
+              title={playing ? "pause" : "preview this track"}>
+        {playing ? "⏸" : "▶"}
+      </button>
+      <div className={`audition-bar ${playing ? "" : "idle"}`} onClick={seekTo}
+           title={playing ? "click to seek" : undefined}>
+        <div className="audition-fill"
+             style={{ width: durationS ? `${(pos / durationS) * 100}%` : 0 }} />
+      </div>
+    </div>
+  );
+}
+
 export function MusicSection({ compact = false }: { compact?: boolean }) {
   const setToast = useStore((s) => s.setToast);
   const [data, setData] = useState<{ tracks: any[]; moods: string[] }>({ tracks: [], moods: [] });
+  const [playing, setPlaying] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const load = () => api.musicList().then(setData).catch(() => {});
   useEffect(() => { load(); }, []);
+  // Stop the audition when the section unmounts (e.g. leaving the music stage).
+  useEffect(() => () => { audioRef.current?.pause(); }, []);
 
   const upload = async (f: File) => {
     setToast("Adding track…");
@@ -37,13 +91,28 @@ export function MusicSection({ compact = false }: { compact?: boolean }) {
           mood so “Suggest” can match them to the video’s tone.
         </div>
       )}
+      {compact && data.tracks.length > 0 && (
+        <div className="muted" style={{ fontSize: 12, margin: "4px 0 6px" }}>
+          Drag a track onto the music lane to place it.
+        </div>
+      )}
       <div className="grid">
         {data.tracks.map((t) => (
-          <div key={t.name} className="card" style={{ margin: 0 }}>
+          <div key={t.name} className="card track-card" style={{ margin: 0 }}
+               draggable
+               onDragStart={(e) => {
+                 e.dataTransfer.effectAllowed = "copy";
+                 e.dataTransfer.setData("text/plain", t.name);
+                 useStore.setState({ dragTrack: { name: t.name, duration_s: t.duration_s || 0 } });
+               }}
+               onDragEnd={() => useStore.setState({ dragTrack: null })}>
             <strong style={{ fontSize: 13 }}>♪ {t.name}</strong>
             <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
               {t.duration_s?.toFixed(0)}s · {fmtBytes(t.size_bytes)}
             </div>
+            <TrackAudition name={t.name} durationS={t.duration_s || 0}
+                           audioRef={audioRef} playing={playing === t.name}
+                           onPlayingChange={setPlaying} />
             <div className="row" style={{ marginTop: 8 }}>
               <select value={t.mood || ""} style={{ flex: 1 }}
                       onChange={async (e) => { await api.musicMood(t.name, e.target.value || null); load(); }}>

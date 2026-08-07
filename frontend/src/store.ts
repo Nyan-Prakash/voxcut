@@ -23,6 +23,9 @@ interface State {
   highlightsNonce: number;
   exportNonce: number;
   interjectPending: boolean;
+  // Track being dragged from the library toward the music lane. Lives in the
+  // store because dataTransfer payloads are unreadable during dragover.
+  dragTrack: { name: string; duration_s: number } | null;
 
   setView: (v: State["view"]) => void;
   loadProjects: () => Promise<void>;
@@ -67,6 +70,7 @@ export const useStore = create<State>((set, get) => ({
   highlightsNonce: 0,
   exportNonce: 0,
   interjectPending: false,
+  dragTrack: null,
 
   setView: (v) => set({ view: v }),
   setTool: (t) => set({ tool: t }),

@@ -147,6 +147,7 @@ export const api = {
     if (!res.ok) throw new Error(await res.text());
     return res.json() as Promise<{ tracks: any[] }>;
   },
+  musicFileUrl: (name: string) => url(`/music/${encodeURIComponent(name)}/file`),
   musicDelete: (name: string) =>
     req<{ tracks: any[] }>(`/music/${encodeURIComponent(name)}`, { method: "DELETE" }),
   musicMood: (name: string, mood: string | null) =>

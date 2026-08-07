@@ -5,6 +5,7 @@ import json
 import re
 
 from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from ..config import settings
@@ -29,6 +30,15 @@ async def upload(file: UploadFile) -> dict:
     dest = music_dir() / name
     dest.write_bytes(await file.read())
     return {"ok": True, "name": name, "tracks": list_tracks()}
+
+
+@router.get("/music/{name}/file")
+def file(name: str) -> FileResponse:
+    """Stream a track for in-app audition (supports range requests)."""
+    p = track_path(name)
+    if not p:
+        raise HTTPException(404, "track not found")
+    return FileResponse(p)
 
 
 @router.delete("/music/{name}")

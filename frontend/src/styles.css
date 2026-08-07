@@ -321,15 +321,29 @@ a { color: inherit; }
         font-size: 10px; overflow: hidden; white-space: nowrap; }
 .mreg:active { cursor: grabbing; }
 .mreg::before, .mreg::after { content: ""; position: absolute; top: 0; bottom: 0;
-        width: 8px; cursor: col-resize; }
-.mreg::before { left: 0; } .mreg::after { right: 0; }
+        width: 8px; cursor: col-resize; opacity: 0; transition: opacity 0.15s var(--ease);
+        background: color-mix(in srgb, var(--elev) 65%, transparent); }
+.mreg::before { left: 0; border-radius: 7px 0 0 7px; }
+.mreg::after { right: 0; border-radius: 0 7px 7px 0; }
+.mreg:hover::before, .mreg:hover::after { opacity: 1; }
 .mreg-label { padding: 4px 10px; display: inline-block; color: var(--text);
               overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .mreg-x { position: absolute; top: 1px; right: 3px; padding: 0 3px;
           background: none; border: none; color: var(--muted); cursor: pointer;
           font-size: 10px; opacity: 0; transition: opacity 0.15s var(--ease); }
 .mreg:hover .mreg-x { opacity: 1; }
-.ghost-reg { border-style: dashed; opacity: 0.7; }
+.ghost-reg { border-style: dashed; opacity: 0.7; pointer-events: none; }
+.music-lane.drop-ready { outline: 1px dashed var(--elev); outline-offset: -1px; }
+
+/* ---------- library track audition ---------- */
+.track-card { cursor: grab; }
+.track-card:active { cursor: grabbing; }
+.audition-btn { padding: 0 7px; font-size: 11px; line-height: 20px; }
+.audition-bar { flex: 1; height: 6px; border-radius: 3px; cursor: pointer;
+                background: color-mix(in srgb, var(--muted) 25%, transparent); }
+.audition-bar.idle { cursor: default; }
+.audition-fill { height: 100%; border-radius: 3px; background: var(--elev);
+                 transition: width 0.2s linear; }
 
 .evt .dice { position: absolute; top: 3px; left: 4px; z-index: 3;
              padding: 1px 4px; font-size: 12px; line-height: 1;
