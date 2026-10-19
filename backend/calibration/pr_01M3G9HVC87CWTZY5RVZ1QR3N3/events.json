@@ -1,0 +1,3665 @@
+[
+ {
+  "idx": 0,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DC",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTB",
+  "beat_text": "Now, we totally understand they're super important, yada yada, milestones, you know, important for human development, for sure, but",
+  "tone": "neutral",
+  "kind": "meme_image",
+  "asset_id": "as_01M3GF68JM2GZX960GHT2BXDVS",
+  "source_id": "ioGEI_UO81Q",
+  "asset_title": "Yada Yada-ing Sex | The Yada Yada | Seinfeld",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/ioGEI_UO81Q/video.mp4",
+  "duration_s": 230.0,
+  "chosen": {
+   "in_s": 120.431,
+   "out_s": 128.736
+  },
+  "windows": [
+   [
+    120.431,
+    128.736
+   ],
+   [
+    99.0,
+    107.305
+   ],
+   [
+    197.098,
+    205.403
+   ],
+   [
+    2.0,
+    10.305
+   ],
+   [
+    89.0,
+    97.305
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous reaction from a sitcom, fitting the 'yada yada' tone.",
+  "flags": [
+   "auto",
+   "cold_open"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/00_EYP4DC.jpg"
+ },
+ {
+  "idx": 1,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DD",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTC",
+  "beat_text": "there is 100 % a list of animals that I think just shouldn't exist.",
+  "tone": "sarcastic",
+  "kind": "clip_reaction",
+  "asset_id": "as_01KX1TTDZMHWSAFCDATBEXJRJ7",
+  "source_id": "umDr0mPuyQc",
+  "asset_title": "NO GOD! PLEASE NO!!! NOOOOOOOOOO",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/umDr0mPuyQc/video.mp4",
+  "duration_s": 16.0,
+  "chosen": {
+   "in_s": 2.024,
+   "out_s": 5.976
+  },
+  "windows": [
+   [
+    2.024,
+    5.976
+   ],
+   [
+    8.0,
+    12.6
+   ],
+   [
+    10.024,
+    13.92
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a comedic reaction from a well-known TV show character, aligning with the absurdity of the statement.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/01_EYP4DD.jpg"
+ },
+ {
+  "idx": 2,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DE",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTD",
+  "beat_text": "Now, I'm not saying we kill all of them, I would never say we should kill animals,",
+  "tone": "serious",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GF43J4BKAQ0NXGYDWM47GK",
+  "source_id": "HghA2Kh-TBc",
+  "asset_title": "surprised pikachu meme origin",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/HghA2Kh-TBc/video.mp4",
+  "duration_s": 59.0,
+  "chosen": {
+   "in_s": 52.06,
+   "out_s": 55.7
+  },
+  "windows": [
+   [
+    52.06,
+    55.7
+   ],
+   [
+    31.5,
+    36.5
+   ],
+   [
+    6.2,
+    11.4
+   ],
+   [
+    14.0,
+    18.047
+   ],
+   [
+    45.3,
+    50.047
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame features a surprised animated character, which adds humor to the statement about not killing animals.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/02_EYP4DE.jpg"
+ },
+ {
+  "idx": 3,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DF",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTE",
+  "beat_text": "but like, we want to separate them from other people, you know, kind of, not segregation in a sense, but like, just separating them.",
+  "tone": "absurd",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GF69PF2EA3KJP0AR5ZC9YW",
+  "source_id": "1-C4lw0xfNk",
+  "asset_title": "Animal Zoo Papo Playset Plus Fun Wildlife Animals Toys For Kids",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/1-C4lw0xfNk/video.mp4",
+  "duration_s": 408.0,
+  "chosen": {
+   "in_s": 115.2,
+   "out_s": 123.445
+  },
+  "windows": [
+   [
+    115.2,
+    123.445
+   ],
+   [
+    107.0,
+    115.2
+   ],
+   [
+    100.0,
+    108.89
+   ],
+   [
+    72.2,
+    79.9
+   ],
+   [
+    79.9,
+    89.445
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows toy animals being separated, humorously visualizing the idea of 'separating' animals.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/03_EYP4DF.jpg"
+ },
+ {
+  "idx": 4,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DG",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTF",
+  "beat_text": "So,",
+  "tone": "deadpan",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GF5S4FVBXPNZN2MD4TZMZS",
+  "source_id": "bv2dfGcOY5k",
+  "asset_title": "Spotted Lanternfly Mayhem",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/bv2dfGcOY5k/video.mp4",
+  "duration_s": 55.0,
+  "chosen": {
+   "in_s": 3.281,
+   "out_s": 5.886
+  },
+  "windows": [
+   [
+    3.281,
+    5.886
+   ],
+   [
+    40.0,
+    42.605
+   ],
+   [
+    49.114,
+    51.719
+   ],
+   [
+    42.0,
+    44.605
+   ],
+   [
+    21.614,
+    24.219
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.8,
+  "qc_verdict": "middle",
+  "qc_reason": "The frame shows a generic nature scene, not clearly related to the narration.",
+  "flags": [
+   "auto",
+   "qc_middle"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/04_EYP4DG.jpg"
+ },
+ {
+  "idx": 5,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DH",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTG",
+  "beat_text": "animal number one,",
+  "tone": "deadpan",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GF71W907Z1247PBZAP2QSH",
+  "source_id": "K_x4soinsRQ",
+  "asset_title": "Weekend Update: A Spotted Lanternfly on Being an Invasive Species - SNL",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/K_x4soinsRQ/video.mp4",
+  "duration_s": 199.0,
+  "chosen": {
+   "in_s": 19.0,
+   "out_s": 20.79
+  },
+  "windows": [
+   [
+    19.0,
+    20.79
+   ],
+   [
+    23.98,
+    25.77
+   ],
+   [
+    3.0,
+    4.79
+   ],
+   [
+    5.0,
+    6.79
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.8,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame features a person in a lanternfly costume, humorously exaggerating the concept.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/05_EYP4DH.jpg"
+ },
+ {
+  "idx": 6,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DJ",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTH",
+  "beat_text": "the lanternfly,",
+  "tone": "deadpan",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GF0VDFXJ20G7K7ZP1VGY6R",
+  "source_id": "81edC7KdOCc",
+  "asset_title": "Why You Should STOMP Every Spotted Lanternfly",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/81edC7KdOCc/video.mp4",
+  "duration_s": 347.0,
+  "chosen": {
+   "in_s": 13.888,
+   "out_s": 15.028
+  },
+  "windows": [
+   [
+    13.888,
+    15.028
+   ],
+   [
+    42.805,
+    43.945
+   ],
+   [
+    68.0,
+    69.14
+   ],
+   [
+    69.0,
+    70.14
+   ],
+   [
+    67.0,
+    68.14
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows a spotted lanternfly, directly matching the narration.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/06_EYP4DJ.jpg"
+ },
+ {
+  "idx": 7,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DK",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTJ",
+  "beat_text": "and all other invasive species.",
+  "tone": "serious",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GF14ZJP65J7BPADV0E1H05",
+  "source_id": "gYNAtw1c7hI",
+  "asset_title": "Invasive Species 101 | National Geographic",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/gYNAtw1c7hI/video.mp4",
+  "duration_s": 212.0,
+  "chosen": {
+   "in_s": 7.788,
+   "out_s": 9.878
+  },
+  "windows": [
+   [
+    7.788,
+    9.878
+   ],
+   [
+    59.0,
+    61.09
+   ],
+   [
+    96.122,
+    98.1
+   ],
+   [
+    39.0,
+    41.09
+   ],
+   [
+    78.455,
+    80.545
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows invasive beetles on a leaf, aligning with the mention of invasive species.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/07_EYP4DK.jpg"
+ },
+ {
+  "idx": 8,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DM",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTK",
+  "beat_text": "So these are the things that kind of just come into their habitat and just like fuck shit up.",
+  "tone": "serious",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GF86ZJTRMMPQTPSGN1WXRX",
+  "source_id": "pUz8awgYKmw",
+  "asset_title": "German Cat Meme Original",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/pUz8awgYKmw/video.mp4",
+  "duration_s": 32.0,
+  "chosen": {
+   "in_s": 3.0,
+   "out_s": 9.065
+  },
+  "windows": [
+   [
+    3.0,
+    9.065
+   ],
+   [
+    26.9,
+    31.866
+   ],
+   [
+    14.0,
+    18.8
+   ],
+   [
+    0.0,
+    5.065
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.7,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a kitten running, which humorously contrasts with the idea of invasive species causing chaos.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/08_EYP4DM.jpg"
+ },
+ {
+  "idx": 9,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DN",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTM",
+  "beat_text": "You know, they're just, they're spilling over the border, we need to get rid of them, I want them all gone.",
+  "tone": "hype",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GF93YWWAA7C827H7V4NJAB",
+  "source_id": "QKlXUAOSUTo",
+  "asset_title": "Jimmy Neutron - Hugh Neutron & The Angry Mob",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/QKlXUAOSUTo/video.mp4",
+  "duration_s": 26.0,
+  "chosen": {
+   "in_s": 12.0,
+   "out_s": 19.7
+  },
+  "windows": [
+   [
+    12.0,
+    19.7
+   ],
+   [
+    7.4,
+    12.0
+   ],
+   [
+    0.0,
+    7.4
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.7,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows animated characters in a chaotic scene, adding humor to the statement about getting rid of invasive species.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/09_EYP4DN.jpg"
+ },
+ {
+  "idx": 10,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DP",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTN",
+  "beat_text": "Number two,",
+  "tone": "deadpan",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GF94XH66BPZ3E0QYBEXAHK",
+  "source_id": "pVZwezMy2qc",
+  "asset_title": "Funny Wasp Nest Removal Fails",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/pVZwezMy2qc/video.mp4",
+  "duration_s": 256.0,
+  "chosen": {
+   "in_s": 68.0,
+   "out_s": 69.897
+  },
+  "windows": [
+   [
+    68.0,
+    69.897
+   ],
+   [
+    76.0,
+    77.897
+   ],
+   [
+    73.0,
+    74.897
+   ],
+   [
+    201.718,
+    203.615
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows the word 'WASPS,' directly matching the narration.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 2,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/10_EYP4DP.jpg"
+ },
+ {
+  "idx": 11,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DQ",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTP",
+  "beat_text": "wasps.",
+  "tone": "deadpan",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GF1S0CRMRMN0B0QJD3PZ0N",
+  "source_id": "JbCXfvLaENE",
+  "asset_title": "Penguinz0 Gets Attacked by Wasp [ORIGINAL]",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/JbCXfvLaENE/video.mp4",
+  "duration_s": 27.0,
+  "chosen": {
+   "in_s": 10.0,
+   "out_s": 10.8
+  },
+  "windows": [
+   [
+    10.0,
+    10.8
+   ],
+   [
+    12.0,
+    12.8
+   ],
+   [
+    10.916,
+    11.584
+   ],
+   [
+    15.416,
+    16.084
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a chaotic reaction, humorously aligning with the dislike for wasps.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/11_EYP4DQ.jpg"
+ },
+ {
+  "idx": 12,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DR",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTQ",
+  "beat_text": "Now I get bees. Bees are chill, you know, they do the pollen shit.",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GF1R0YAF5CHEVMMGFJVGJS",
+  "source_id": "DmQ4_9ITqiM",
+  "asset_title": "bees in slow motion pollinating apple blossoms",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/DmQ4_9ITqiM/video.mp4",
+  "duration_s": 58.0,
+  "chosen": {
+   "in_s": 10.0,
+   "out_s": 12.7
+  },
+  "windows": [
+   [
+    10.0,
+    12.7
+   ],
+   [
+    12.7,
+    16.185
+   ],
+   [
+    17.0,
+    20.37
+   ],
+   [
+    41.815,
+    45.185
+   ],
+   [
+    0.0,
+    3.37
+   ],
+   [
+    22.0,
+    25.852
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.85,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows a bee on a flower, directly matching the narration about bees and pollen.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/12_EYP4DR.jpg"
+ },
+ {
+  "idx": 13,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DS",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTR",
+  "beat_text": "Now I hate getting stung, but I feel like if they have a purpose, it's fine.",
+  "tone": "neutral",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFA13R7QN2KKZS56KZ7ZRB",
+  "source_id": "wqdP2Mr11cM",
+  "asset_title": "Funny Bee Sting \ud83d\udc1d",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/wqdP2Mr11cM/video.mp4",
+  "duration_s": 186.0,
+  "chosen": {
+   "in_s": 133.0,
+   "out_s": 136.54
+  },
+  "windows": [
+   [
+    133.0,
+    136.54
+   ],
+   [
+    129.0,
+    132.54
+   ],
+   [
+    136.0,
+    139.54
+   ],
+   [
+    5.98,
+    9.52
+   ],
+   [
+    98.98,
+    102.52
+   ],
+   [
+    145.48,
+    149.02
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous home video reaction, adding humor to the statement about getting stung.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/13_EYP4DS.jpg"
+ },
+ {
+  "idx": 14,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DT",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTS",
+  "beat_text": "you know, honey's pretty sick, having flowers and like ecosystems, like that's cool and all.",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GF9Y8SCGMCWB309YTG1522",
+  "source_id": "ItJksME4fEQ",
+  "asset_title": "HOW BEES MAKE HONEYCOMB - It Might Surprise You!",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/ItJksME4fEQ/video.mp4",
+  "duration_s": 552.0,
+  "chosen": {
+   "in_s": 5.0,
+   "out_s": 11.467
+  },
+  "windows": [
+   [
+    5.0,
+    11.467
+   ],
+   [
+    0.0,
+    6.6
+   ],
+   [
+    92.0,
+    98.467
+   ],
+   [
+    111.767,
+    118.233
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows bees on a honeycomb, directly matching the narration about honey and ecosystems.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/14_EYP4DT.jpg"
+ },
+ {
+  "idx": 15,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DV",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTT",
+  "beat_text": "But I feel like, you know, God went kind of crazy when he was just like, you know what, let's make that.",
+  "tone": "sarcastic",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFAG29K1R2FK6CXXQNTCT0",
+  "source_id": "mXr3ZxbQ2no",
+  "asset_title": "God Creating Animals Skit || Gacha Skit",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/mXr3ZxbQ2no/video.mp4",
+  "duration_s": 89.0,
+  "chosen": {
+   "in_s": 19.294,
+   "out_s": 25.206
+  },
+  "windows": [
+   [
+    19.294,
+    25.206
+   ],
+   [
+    63.794,
+    69.707
+   ],
+   [
+    11.0,
+    16.913
+   ],
+   [
+    6.0,
+    11.913
+   ],
+   [
+    0.0,
+    5.913
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous comic about God creating wasps, adding humor to the statement.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/15_EYP4DV.jpg"
+ },
+ {
+  "idx": 16,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DW",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTV",
+  "beat_text": "But then they can sting an infinite number of times and also make them pretty useless for the environment.",
+  "tone": "absurd",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFAWKZF0KZ5WM3M50R621R",
+  "source_id": "HoNtoQiNoXU",
+  "asset_title": "Stung by the Chancla! | David Lopez",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/HoNtoQiNoXU/video.mp4",
+  "duration_s": 171.0,
+  "chosen": {
+   "in_s": 5.3,
+   "out_s": 12.6
+  },
+  "windows": [
+   [
+    5.3,
+    12.6
+   ],
+   [
+    98.283,
+    104.5
+   ],
+   [
+    0.1,
+    5.3
+   ],
+   [
+    61.8,
+    67.525
+   ],
+   [
+    67.192,
+    72.717
+   ],
+   [
+    144.919,
+    150.444
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous scene with exaggerated actions, aligning with the absurdity of wasps stinging infinitely.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/16_EYP4DW.jpg"
+ },
+ {
+  "idx": 17,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DX",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTW",
+  "beat_text": "Now wasps are actually evil, they will just like sting you and then can just keep doing it.",
+  "tone": "absurd",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFB8Z80PG9NAP10XSHD1K3",
+  "source_id": "QRBU5-PLnu8",
+  "asset_title": "Excavator driver Attacked by Angry Wasps after disturbing a nest",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/QRBU5-PLnu8/video.mp4",
+  "duration_s": 171.0,
+  "chosen": {
+   "in_s": 152.6,
+   "out_s": 158.245
+  },
+  "windows": [
+   [
+    152.6,
+    158.245
+   ],
+   [
+    67.332,
+    72.577
+   ],
+   [
+    32.0,
+    37.245
+   ],
+   [
+    5.15,
+    10.395
+   ],
+   [
+    36.0,
+    41.245
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.5,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a chaotic scene, humorously aligning with the idea of wasps being evil.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/17_EYP4DX.jpg"
+ },
+ {
+  "idx": 18,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DY",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTX",
+  "beat_text": "So yeah, wasps are definitely number two on my list.",
+  "tone": "deadpan",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFBMX7RQ8V932790V4ZG1A",
+  "source_id": "zmbg9PTGo38",
+  "asset_title": "Funny... Wasp stings man while wife laughs!",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/zmbg9PTGo38/video.mp4",
+  "duration_s": 100.0,
+  "chosen": {
+   "in_s": 68.0,
+   "out_s": 71.62
+  },
+  "windows": [
+   [
+    68.0,
+    71.62
+   ],
+   [
+    73.19,
+    76.81
+   ],
+   [
+    71.0,
+    74.62
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.6,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows a person dealing with wasps, directly matching the narration about wasps being on the list.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/18_EYP4DY.jpg"
+ },
+ {
+  "idx": 19,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DZ",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTY",
+  "beat_text": "Kidmind this list is not in any particular order.",
+  "tone": "neutral",
+  "kind": "meme_image",
+  "asset_id": "as_01M3GFC3SR6AANMZNQ8BQFM27N",
+  "source_id": "It9NKH8OdrM",
+  "asset_title": "German Cat Original vs Meme Vs Original audio\u2620\ufe0f Vs English version\ud83e\udd85",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/It9NKH8OdrM/video.mp4",
+  "duration_s": 34.0,
+  "chosen": {
+   "in_s": 26.0,
+   "out_s": 28.34
+  },
+  "windows": [
+   [
+    26.0,
+    28.34
+   ],
+   [
+    24.33,
+    26.67
+   ],
+   [
+    29.997,
+    32.337
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.8,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a meme format, humorously emphasizing the list not being in order.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 2,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/19_EYP4DZ.jpg"
+ },
+ {
+  "idx": 20,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E0",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYTZ",
+  "beat_text": "Now number three Chihuahuas.",
+  "tone": "deadpan",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GF40PRZSF96E695TY50GJF",
+  "source_id": "cA_CJIxHP1I",
+  "asset_title": "Evil Chihuahua Growling",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/cA_CJIxHP1I/video.mp4",
+  "duration_s": 18.0,
+  "chosen": {
+   "in_s": 2.0,
+   "out_s": 7.197
+  },
+  "windows": [
+   [
+    2.0,
+    7.197
+   ],
+   [
+    6.0,
+    11.197
+   ],
+   [
+    10.0,
+    15.197
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows a Chihuahua, directly matching the narration about Chihuahuas.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/20_EYP4E0.jpg"
+ },
+ {
+  "idx": 21,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E1",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYV0",
+  "beat_text": "Now I know like in movies they're portrayed as like all cute little things",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFCHGR05P4B9YCV8E83H00",
+  "source_id": "TXmDhR5jHLw",
+  "asset_title": "Beverly Hills Chihuahua - Theatrical Release Trailer - 2008 Movie - USA",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/TXmDhR5jHLw/video.mp4",
+  "duration_s": 90.0,
+  "chosen": {
+   "in_s": 42.0,
+   "out_s": 46.223
+  },
+  "windows": [
+   [
+    42.0,
+    46.223
+   ],
+   [
+    51.4,
+    54.611
+   ],
+   [
+    80.8,
+    84.7
+   ],
+   [
+    36.1,
+    39.0
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.8,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous scene from a movie with Chihuahuas, adding humor to the statement about their portrayal.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/21_EYP4E1.jpg"
+ },
+ {
+  "idx": 22,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E2",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYV1",
+  "beat_text": "but I feel like even in the industry we've kind of started moving to different animals",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFD4H2BRQRWVBC37A0GKDE",
+  "source_id": "nniFq5k9QOU",
+  "asset_title": "Air Bud - golden retriever plays basketball",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/nniFq5k9QOU/video.mp4",
+  "duration_s": 109.0,
+  "chosen": {
+   "in_s": 63.0,
+   "out_s": 67.85
+  },
+  "windows": [
+   [
+    63.0,
+    67.85
+   ],
+   [
+    99.0,
+    103.85
+   ],
+   [
+    20.932,
+    25.782
+   ],
+   [
+    14.6,
+    19.85
+   ],
+   [
+    67.646,
+    72.496
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "middle",
+  "qc_reason": "The frame shows a basketball hoop, not clearly related to the narration about moving to different animals.",
+  "flags": [
+   "auto",
+   "qc_middle"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/22_EYP4E2.jpg"
+ },
+ {
+  "idx": 23,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E3",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYV2",
+  "beat_text": "like they had air buds where we're kind of like shifting to like a more socially acceptable animal",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFD4H2BRQRWVBC37A0GKDE",
+  "source_id": "nniFq5k9QOU",
+  "asset_title": "Air Bud - golden retriever plays basketball",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/nniFq5k9QOU/video.mp4",
+  "duration_s": 109.0,
+  "chosen": {
+   "in_s": 20.822,
+   "out_s": 25.892
+  },
+  "windows": [
+   [
+    20.822,
+    25.892
+   ],
+   [
+    90.8,
+    96.07
+   ],
+   [
+    64.0,
+    69.07
+   ],
+   [
+    14.6,
+    20.07
+   ],
+   [
+    67.536,
+    72.606
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows a dog from 'Air Bud,' directly matching the narration about shifting to different animals.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/23_EYP4E3.jpg"
+ },
+ {
+  "idx": 24,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E4",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYV3",
+  "beat_text": "if that makes sense and then you know I'm down with any other animal but like I do Chihuahuas",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFDF1YSW0NH35D9P1P55FX",
+  "source_id": "d4rD9ADQfkc",
+  "asset_title": "Growling Chihuahua",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/d4rD9ADQfkc/video.mp4",
+  "duration_s": 28.0,
+  "chosen": {
+   "in_s": 8.0,
+   "out_s": 13.62
+  },
+  "windows": [
+   [
+    8.0,
+    13.62
+   ],
+   [
+    13.0,
+    17.5
+   ],
+   [
+    4.19,
+    9.81
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows an angry Chihuahua, humorously aligning with the statement about their behavior.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/24_EYP4E4.jpg"
+ },
+ {
+  "idx": 25,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E5",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYV4",
+  "beat_text": "bro like their faces are annoying",
+  "tone": "sarcastic",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFDM2C3X16HNC7RT63Y605",
+  "source_id": "LHPwjmEeTG4",
+  "asset_title": "Chui's Evil Chihuahua Face",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/LHPwjmEeTG4/video.mp4",
+  "duration_s": 22.0,
+  "chosen": {
+   "in_s": 4.45,
+   "out_s": 6.55
+  },
+  "windows": [
+   [
+    4.45,
+    6.55
+   ],
+   [
+    8.0,
+    10.1
+   ],
+   [
+    10.0,
+    12.1
+   ],
+   [
+    15.45,
+    17.55
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a Chihuahua acting up, humorously matching the narration about their behavior.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/25_EYP4E5.jpg"
+ },
+ {
+  "idx": 26,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E6",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYV5",
+  "beat_text": "I feel like they got like some kind of Behavioral thing going on",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFE8VBYJ52JXKSDVT6TDBD",
+  "source_id": "ysnbg7z07kw",
+  "asset_title": "My roommate's chihuahua wants to kill me",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/ysnbg7z07kw/video.mp4",
+  "duration_s": 73.0,
+  "chosen": {
+   "in_s": 52.625,
+   "out_s": 56.875
+  },
+  "windows": [
+   [
+    52.625,
+    56.875
+   ],
+   [
+    62.0,
+    67.0
+   ],
+   [
+    66.0,
+    70.25
+   ],
+   [
+    58.0,
+    62.25
+   ],
+   [
+    16.125,
+    20.375
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a Chihuahua with an exaggerated expression, humorously aligning with the statement about their behavior.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/26_EYP4E6.jpg"
+ },
+ {
+  "idx": 27,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E7",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYV6",
+  "beat_text": "and now there are cool Chihuahuas, but like in general I think they're they're kind of just like small little devils",
+  "tone": "sarcastic",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GF3AGWR6G947X5RWHRE7AZ",
+  "source_id": "AKGPvul8FXc",
+  "asset_title": "Angry Chihuahua",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/AKGPvul8FXc/video.mp4",
+  "duration_s": 17.0,
+  "chosen": {
+   "in_s": 3.0,
+   "out_s": 9.345
+  },
+  "windows": [
+   [
+    3.0,
+    9.345
+   ],
+   [
+    11.0,
+    16.2
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a Chihuahua with glowing eyes, humorously emphasizing the 'small little devils' comment.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/27_EYP4E7.jpg"
+ },
+ {
+  "idx": 28,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E8",
+  "beat_id": "bt_01M3GF3A4G9NGNXYP7N0RZKYV7",
+  "beat_text": "They kind of just act up now",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFE8VBYJ52JXKSDVT6TDBD",
+  "source_id": "ysnbg7z07kw",
+  "asset_title": "My roommate's chihuahua wants to kill me",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/ysnbg7z07kw/video.mp4",
+  "duration_s": 73.0,
+  "chosen": {
+   "in_s": 52.733,
+   "out_s": 56.767
+  },
+  "windows": [
+   [
+    52.733,
+    56.767
+   ],
+   [
+    62.0,
+    66.035
+   ],
+   [
+    66.0,
+    70.035
+   ],
+   [
+    26.0,
+    30.035
+   ],
+   [
+    16.233,
+    20.267
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a Chihuahua with an exaggerated expression, humorously matching the narration about acting up.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/28_EYP4E8.jpg"
+ },
+ {
+  "idx": 29,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E9",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K793",
+  "beat_text": "number four and This this might be a little little controversial,",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFG3MESB0WGH416Z1FEWH0",
+  "source_id": "cPbpRFTugqs",
+  "asset_title": "Severe Bed Bug Infestation Removed in Normandy Beach, NJ",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/cPbpRFTugqs/video.mp4",
+  "duration_s": 26.0,
+  "chosen": {
+   "in_s": 10.0,
+   "out_s": 14.32
+  },
+  "windows": [
+   [
+    10.0,
+    14.32
+   ],
+   [
+    4.34,
+    8.66
+   ],
+   [
+    14.0,
+    18.32
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.8,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows bugs, directly matching the narration about bugs in the house.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/29_EYP4E9.jpg"
+ },
+ {
+  "idx": 30,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EA",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K794",
+  "beat_text": "but I think bugs in my house",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFFQ3DMXXP4CP0FTEK6S20",
+  "source_id": "WfKCcSPCOQo",
+  "asset_title": "Bed Bugs | National Geographic",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/WfKCcSPCOQo/video.mp4",
+  "duration_s": 130.0,
+  "chosen": {
+   "in_s": 20.0,
+   "out_s": 21.9
+  },
+  "windows": [
+   [
+    20.0,
+    21.9
+   ],
+   [
+    88.425,
+    90.325
+   ],
+   [
+    104.675,
+    106.575
+   ],
+   [
+    1.0,
+    2.9
+   ],
+   [
+    4.0,
+    5.9
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.7,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows a bug, directly matching the narration about bugs being outside.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/30_EYP4EA.jpg"
+ },
+ {
+  "idx": 31,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EB",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K795",
+  "beat_text": "now. I'm chill with bugs You know bugs are outside I think that's their house so they can be chilling",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFFHY3A319KS57NGK2WV4G",
+  "source_id": "FSzh981zcqQ",
+  "asset_title": "MINUSCULE Clip - \"Racing Bugs\" (2012)",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/FSzh981zcqQ/video.mp4",
+  "duration_s": 239.0,
+  "chosen": {
+   "in_s": 8.4,
+   "out_s": 12.4
+  },
+  "windows": [
+   [
+    8.4,
+    12.4
+   ],
+   [
+    65.1,
+    69.65
+   ],
+   [
+    27.55,
+    32.2
+   ],
+   [
+    57.9,
+    61.65
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows bugs on a leaf, directly matching the narration about bugs being outside.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/31_EYP4EB.jpg"
+ },
+ {
+  "idx": 32,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EC",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K796",
+  "beat_text": "in there if they want to",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFGJ9RKP0T1NQHW2NE8XDR",
+  "source_id": "xbOzYMKROs8",
+  "asset_title": "Insects in flight | 11 incredible species in SLOW MOTION",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/xbOzYMKROs8/video.mp4",
+  "duration_s": 382.0,
+  "chosen": {
+   "in_s": 15.192,
+   "out_s": 16.642
+  },
+  "windows": [
+   [
+    15.192,
+    16.642
+   ],
+   [
+    174.358,
+    175.808
+   ],
+   [
+    333.525,
+    334.975
+   ],
+   [
+    299.0,
+    300.45
+   ],
+   [
+    289.0,
+    290.45
+   ],
+   [
+    110.0,
+    111.45
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a bug flying, humorously aligning with the idea of bugs trying to bite.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/32_EYP4EC.jpg"
+ },
+ {
+  "idx": 33,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4ED",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K797",
+  "beat_text": "it You know try and bite me outside like I don't think it's the craziest idea",
+  "tone": "serious",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFGE7TTM3XZAJSMJPBFV75",
+  "source_id": "mFCBrdHZzCk",
+  "asset_title": "The Giant Mosquito Bite",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/mFCBrdHZzCk/video.mp4",
+  "duration_s": 191.0,
+  "chosen": {
+   "in_s": 122.0,
+   "out_s": 125.96
+  },
+  "windows": [
+   [
+    122.0,
+    125.96
+   ],
+   [
+    125.0,
+    128.96
+   ],
+   [
+    130.0,
+    133.96
+   ],
+   [
+    85.562,
+    89.522
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a comedic reaction, humorously aligning with the idea of bugs in the house.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/33_EYP4ED.jpg"
+ },
+ {
+  "idx": 34,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EE",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K798",
+  "beat_text": "But like when they're inside the house like I live in a city and rent is already dummy expensive",
+  "tone": "serious",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFHKTD9PHCXB4R68BZWP8Q",
+  "source_id": "Gg5SwyTvAHw",
+  "asset_title": "Rent: Too Damn High!  Song.",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/Gg5SwyTvAHw/video.mp4",
+  "duration_s": 160.0,
+  "chosen": {
+   "in_s": 92.0,
+   "out_s": 97.4
+  },
+  "windows": [
+   [
+    92.0,
+    97.4
+   ],
+   [
+    37.185,
+    42.815
+   ],
+   [
+    87.2,
+    92.63
+   ],
+   [
+    69.185,
+    74.0
+   ],
+   [
+    80.7,
+    87.2
+   ],
+   [
+    101.185,
+    106.815
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.8,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous scene about rent, aligning with the statement about bugs not paying rent.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/34_EYP4EE.jpg"
+ },
+ {
+  "idx": 35,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EF",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K799",
+  "beat_text": "So I think if they don't have if they don't end up paying rent then I think you know I think it's fair for me to get after them bro like evict them",
+  "tone": "sarcastic",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFH7FCK3QZJTNC888JJ5ZN",
+  "source_id": "YTCN4Wr_9eQ",
+  "asset_title": "give me rent pt. 2",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/YTCN4Wr_9eQ/video.mp4",
+  "duration_s": 34.0,
+  "chosen": {
+   "in_s": 0.0,
+   "out_s": 5.8
+  },
+  "windows": [
+   [
+    0.0,
+    5.8
+   ],
+   [
+    18.0,
+    25.7
+   ],
+   [
+    11.4,
+    18.017
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous scene with a powerful character, adding humor to the idea of evicting bugs.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/35_EYP4EF.jpg"
+ },
+ {
+  "idx": 36,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EG",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79A",
+  "beat_text": "bitches. So I definitely think I have a Bugs who don't pay rent are different on my list",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFG3MESB0WGH416Z1FEWH0",
+  "source_id": "cPbpRFTugqs",
+  "asset_title": "Severe Bed Bug Infestation Removed in Normandy Beach, NJ",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/cPbpRFTugqs/video.mp4",
+  "duration_s": 26.0,
+  "chosen": {
+   "in_s": 10.0,
+   "out_s": 17.397
+  },
+  "windows": [
+   [
+    10.0,
+    17.397
+   ],
+   [
+    4.0,
+    11.397
+   ],
+   [
+    17.0,
+    24.397
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows bugs, directly matching the narration about bugs being different.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/36_EYP4EG.jpg"
+ },
+ {
+  "idx": 37,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EH",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79B",
+  "beat_text": "Now number five number five is",
+  "tone": "neutral",
+  "kind": "meme_image",
+  "asset_id": "as_01M3GFJ8SPJHY9SZQKXT19GQSC",
+  "source_id": "HzHS7d3pYZU",
+  "asset_title": "Counting ( original meme uwuw )",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/HzHS7d3pYZU/video.mp4",
+  "duration_s": 71.0,
+  "chosen": {
+   "in_s": 48.0,
+   "out_s": 50.8
+  },
+  "windows": [
+   [
+    48.0,
+    50.8
+   ],
+   [
+    63.4,
+    66.565
+   ],
+   [
+    15.9,
+    19.231
+   ],
+   [
+    11.0,
+    13.963
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.7,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous animation, aligning with the introduction of a new list item.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/37_EYP4EH.jpg"
+ },
+ {
+  "idx": 38,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EJ",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79C",
+  "beat_text": "a very specific turtle from",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFJWF4GYVT2N3XSB3V50CY",
+  "source_id": "5-DNt_erbL4",
+  "asset_title": "Original Super Mario Bros - Infinite Lives - Turtle Tipping",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/5-DNt_erbL4/video.mp4",
+  "duration_s": 46.0,
+  "chosen": {
+   "in_s": 18.312,
+   "out_s": 20.022
+  },
+  "windows": [
+   [
+    18.312,
+    20.022
+   ],
+   [
+    25.978,
+    27.688
+   ],
+   [
+    33.645,
+    35.355
+   ],
+   [
+    28.0,
+    29.71
+   ],
+   [
+    37.0,
+    38.71
+   ],
+   [
+    22.0,
+    23.71
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows a scene from Super Mario, directly matching the narration about a specific turtle.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/38_EYP4EJ.jpg"
+ },
+ {
+  "idx": 39,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EK",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79D",
+  "beat_text": "Super Mario We, World 3,",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFJYQG48QBCM1CSA12YE3N",
+  "source_id": "ykR1hKBdrfk",
+  "asset_title": "NEW Super Mario Bros. 3 Bloopers",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/ykR1hKBdrfk/video.mp4",
+  "duration_s": 193.0,
+  "chosen": {
+   "in_s": 131.0,
+   "out_s": 134.238
+  },
+  "windows": [
+   [
+    131.0,
+    134.238
+   ],
+   [
+    34.0,
+    37.238
+   ],
+   [
+    39.5,
+    42.238
+   ],
+   [
+    22.506,
+    25.744
+   ],
+   [
+    86.839,
+    90.077
+   ],
+   [
+    167.256,
+    170.494
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows a Super Mario map, directly matching the narration about World 3.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/39_EYP4EK.jpg"
+ },
+ {
+  "idx": 40,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EM",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79E",
+  "beat_text": "you know that guy that you bump into,",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFKEKBSMB1X6Y3H85VF8CX",
+  "source_id": "lLpw5knieJY",
+  "asset_title": "3-3 Walk The Turtle - Super Mario Bros Glitch Trick",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/lLpw5knieJY/video.mp4",
+  "duration_s": 62.0,
+  "chosen": {
+   "in_s": 24.987,
+   "out_s": 26.679
+  },
+  "windows": [
+   [
+    24.987,
+    26.679
+   ],
+   [
+    4.0,
+    5.692
+   ],
+   [
+    0.0,
+    1.692
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows a Super Mario level, directly matching the narration about bumping into the turtle.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/40_EYP4EM.jpg"
+ },
+ {
+  "idx": 41,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EN",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79F",
+  "beat_text": "I don't know, I feel like they bumped the rates on that guy.",
+  "tone": "sarcastic",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFKXJTVCRDVQBBZCPEK9G3",
+  "source_id": "w2NS5H8AvZQ",
+  "asset_title": "Markiplier Rage Quit (Getting Over It)",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/w2NS5H8AvZQ/video.mp4",
+  "duration_s": 13.0,
+  "chosen": {
+   "in_s": 3.0,
+   "out_s": 5.397
+  },
+  "windows": [
+   [
+    3.0,
+    5.397
+   ],
+   [
+    6.0,
+    8.397
+   ],
+   [
+    4.218,
+    6.615
+   ],
+   [
+    8.552,
+    10.948
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.7,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous reaction, aligning with the frustration about the turtle.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/41_EYP4EN.jpg"
+ },
+ {
+  "idx": 42,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EP",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79G",
+  "beat_text": "And then whenever I do, I have to play him and I always lose this level.",
+  "tone": "absurd",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFM0HPY7JZ0FJ0PV9TQBH5",
+  "source_id": "quSI1wm5WQg",
+  "asset_title": "gamer rage",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/quSI1wm5WQg/video.mp4",
+  "duration_s": 12.0,
+  "chosen": {
+   "in_s": 7.0,
+   "out_s": 11.473
+  },
+  "windows": [
+   [
+    7.0,
+    11.473
+   ],
+   [
+    0.0,
+    4.473
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous scene with a mannequin, adding humor to the idea of losing to the turtle.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/42_EYP4EP.jpg"
+ },
+ {
+  "idx": 43,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EQ",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79H",
+  "beat_text": "So I feel like it's just a stupid animal,",
+  "tone": "absurd",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFMVGBFYZNVPF3HSQQAPF2",
+  "source_id": "Q9WopTK_oPQ",
+  "asset_title": "Spongebob Squarepants - You Stupid Dumb Animal",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/Q9WopTK_oPQ/video.mp4",
+  "duration_s": 29.0,
+  "chosen": {
+   "in_s": 21.0,
+   "out_s": 23.725
+  },
+  "windows": [
+   [
+    21.0,
+    23.725
+   ],
+   [
+    18.0,
+    20.725
+   ],
+   [
+    24.0,
+    26.725
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": null,
+  "qc_verdict": null,
+  "qc_reason": null,
+  "flags": [
+   "auto",
+   "needs_review"
+  ],
+  "n_finalists": 2,
+  "portrait": false
+ },
+ {
+  "idx": 44,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4ER",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79J",
+  "beat_text": "you know, it's got a stupid smile, stupid hop and I think we could just separate him, you know,",
+  "tone": "absurd",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFMVGYGBGDZP7JRTTD3Z5P",
+  "source_id": "Q9WopTK_oPQ",
+  "asset_title": "Spongebob Squarepants - You Stupid Dumb Animal",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/Q9WopTK_oPQ/video.mp4",
+  "duration_s": 29.0,
+  "chosen": {
+   "in_s": 21.0,
+   "out_s": 26.6
+  },
+  "windows": [
+   [
+    21.0,
+    26.6
+   ],
+   [
+    16.0,
+    21.6
+   ],
+   [
+    11.0,
+    16.6
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": null,
+  "qc_verdict": null,
+  "qc_reason": null,
+  "flags": [
+   "auto",
+   "needs_review"
+  ],
+  "n_finalists": 2,
+  "portrait": false
+ },
+ {
+  "idx": 45,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4ES",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79K",
+  "beat_text": "we could just peacefully separate him.",
+  "tone": "absurd",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFP76HSDVH6FFKE4NEWH38",
+  "source_id": "DcHzyXOmZRg",
+  "asset_title": "Baa Donkey Gifs With Sound Baa",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/DcHzyXOmZRg/video.mp4",
+  "duration_s": 30.0,
+  "chosen": {
+   "in_s": 14.0,
+   "out_s": 17.1
+  },
+  "windows": [
+   [
+    14.0,
+    17.1
+   ],
+   [
+    2.5,
+    4.947
+   ],
+   [
+    26.026,
+    28.974
+   ],
+   [
+    10.0,
+    12.947
+   ],
+   [
+    16.026,
+    18.974
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.6,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous scene with donkeys, aligning with the idea of peacefully separating the turtle.",
+  "flags": [
+   "auto",
+   "close_call"
+  ],
+  "n_finalists": 2,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/45_EYP4ES.jpg"
+ },
+ {
+  "idx": 46,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4ET",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79M",
+  "beat_text": "And now, number 6 are",
+  "tone": "neutral",
+  "kind": "meme_image",
+  "asset_id": "as_01M3GFNRA2K3FDXR9SBJ5GDVNA",
+  "source_id": "E6LDQcLnRUg",
+  "asset_title": "Number 6 Man Urinates meme but it's in HD",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/E6LDQcLnRUg/video.mp4",
+  "duration_s": 43.0,
+  "chosen": {
+   "in_s": 8.2,
+   "out_s": 10.038
+  },
+  "windows": [
+   [
+    8.2,
+    10.038
+   ],
+   [
+    35.0,
+    37.038
+   ],
+   [
+    41.0,
+    43.0
+   ],
+   [
+    9.731,
+    11.7
+   ],
+   [
+    38.0,
+    40.436
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous animation, aligning with the introduction of a new list item.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/46_EYP4ET.jpg"
+ },
+ {
+  "idx": 47,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EV",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79N",
+  "beat_text": "crabs,",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFQ13ANV2FDNWWPBCVTZV2",
+  "source_id": "Floy3Yvdfyw",
+  "asset_title": "Crab Rave - Backrooms Edition",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/Floy3Yvdfyw/video.mp4",
+  "duration_s": 137.0,
+  "chosen": {
+   "in_s": 52.0,
+   "out_s": 52.8
+  },
+  "windows": [
+   [
+    52.0,
+    52.8
+   ],
+   [
+    53.028,
+    53.528
+   ],
+   [
+    113.917,
+    114.417
+   ],
+   [
+    0.0,
+    0.8
+   ],
+   [
+    1.0,
+    1.8
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows crabs, directly matching the narration about crabs.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 2,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/47_EYP4EV.jpg"
+ },
+ {
+  "idx": 48,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EW",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79P",
+  "beat_text": "and this is like a pretty small one, but I think The crabs next to the coast is honestly kinda fucked.",
+  "tone": "absurd",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GF8V4EBD93W3TCTC2ABGY4",
+  "source_id": "1-q_8TKNG9w",
+  "asset_title": "Army of Crabs Protect Spy Robot From Stingray | Spy In The Ocean | BBC Earth",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/1-q_8TKNG9w/video.mp4",
+  "duration_s": 243.0,
+  "chosen": {
+   "in_s": 108.603,
+   "out_s": 114.147
+  },
+  "windows": [
+   [
+    108.603,
+    114.147
+   ],
+   [
+    6.9,
+    12.2
+   ],
+   [
+    0.0,
+    5.543
+   ],
+   [
+    203.0,
+    208.543
+   ],
+   [
+    198.0,
+    203.543
+   ],
+   [
+    128.853,
+    134.397
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows crabs near the coast, directly matching the narration about crabs next to the coast.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/48_EYP4EW.jpg"
+ },
+ {
+  "idx": 49,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EX",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79Q",
+  "beat_text": "I feel like you don't need them to be that close. And they should go out farther than the ocean so that when I'm chilling on the beach, I don't get bit.",
+  "tone": "absurd",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFR8XFFYJ5P6JRS193AZ30",
+  "source_id": "zTReMFnGDUk",
+  "asset_title": "PINCHED by a HUGE CRAB!",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/zTReMFnGDUk/video.mp4",
+  "duration_s": 473.0,
+  "chosen": {
+   "in_s": 409.0,
+   "out_s": 417.087
+  },
+  "windows": [
+   [
+    409.0,
+    417.087
+   ],
+   [
+    276.1,
+    285.5
+   ],
+   [
+    370.415,
+    378.502
+   ],
+   [
+    267.7,
+    276.1
+   ],
+   [
+    94.498,
+    101.3
+   ],
+   [
+    252.2,
+    258.5
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous interaction with a crab, adding humor to the statement about crabs being too close.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/49_EYP4EX.jpg"
+ },
+ {
+  "idx": 50,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EY",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79R",
+  "beat_text": "So I've gotten bit before on the ocean, in the ocean, just standing there. And I think we're done with them.",
+  "tone": "absurd",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFQYG9SG8HKKJZ8NNVA9BH",
+  "source_id": "LDU_Txk06tM",
+  "asset_title": "Noisestorm - Crab Rave [Monstercat Release]",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/LDU_Txk06tM/video.mp4",
+  "duration_s": 192.0,
+  "chosen": {
+   "in_s": 81.0,
+   "out_s": 87.1
+  },
+  "windows": [
+   [
+    81.0,
+    87.1
+   ],
+   [
+    85.2,
+    90.846
+   ],
+   [
+    71.1,
+    75.0
+   ],
+   [
+    75.0,
+    80.693
+   ],
+   [
+    36.6,
+    44.2
+   ],
+   [
+    51.8,
+    59.5
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.8,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous animated crab, aligning with the idea of being done with crabs.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/50_EYP4EY.jpg"
+ },
+ {
+  "idx": 51,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EZ",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79S",
+  "beat_text": "Now I kinda get the hypocrisy now that I think about it, how it connects back to the bugs in the house situation.",
+  "tone": "sarcastic",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFR6SXKFN88TKDFZ0KY78V",
+  "source_id": "SmSn1ZV16WE",
+  "asset_title": "Mr Incredible Becoming Uncanny meme (You See This Insect In Your Room) | 30+ phases",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/SmSn1ZV16WE/video.mp4",
+  "duration_s": 407.0,
+  "chosen": {
+   "in_s": 331.7,
+   "out_s": 338.467
+  },
+  "windows": [
+   [
+    331.7,
+    338.467
+   ],
+   [
+    114.975,
+    122.442
+   ],
+   [
+    325.0,
+    331.7
+   ],
+   [
+    15.0,
+    22.0
+   ],
+   [
+    182.808,
+    190.275
+   ],
+   [
+    317.4,
+    325.942
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.8,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous meme about insects, aligning with the statement about bugs in the house.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 2,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/51_EYP4EZ.jpg"
+ },
+ {
+  "idx": 52,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4F0",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79T",
+  "beat_text": "now number seven,",
+  "tone": "neutral",
+  "kind": "meme_image",
+  "asset_id": "as_01M3GFRMXXJD6HVBTKC3G4VZEC",
+  "source_id": "YI0bd8Tw8rE",
+  "asset_title": "@Numberblocks- Meet Number Seven | Meet the Numberblocks | Learn to Count",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/YI0bd8Tw8rE/video.mp4",
+  "duration_s": 152.0,
+  "chosen": {
+   "in_s": 1.0,
+   "out_s": 4.49
+  },
+  "windows": [
+   [
+    1.0,
+    4.49
+   ],
+   [
+    4.0,
+    7.49
+   ],
+   [
+    48.0,
+    51.49
+   ],
+   [
+    5.855,
+    9.345
+   ],
+   [
+    127.455,
+    130.945
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous animation with numbers, aligning with the introduction of a new list item.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/52_EYP4F0.jpg"
+ },
+ {
+  "idx": 53,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4F1",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79V",
+  "beat_text": "six,",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFRMVPSK6CBQ6GP00DJ1JN",
+  "source_id": "K1HHUx7CNC0",
+  "asset_title": "Lice Invasion - The Office US",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/K1HHUx7CNC0/video.mp4",
+  "duration_s": 295.0,
+  "chosen": {
+   "in_s": 152.0,
+   "out_s": 152.9
+  },
+  "windows": [
+   [
+    152.0,
+    152.9
+   ],
+   [
+    8.0,
+    8.8
+   ],
+   [
+    184.07,
+    184.68
+   ],
+   [
+    152.9,
+    153.8
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.7,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous scene with a wig, adding humor to the confusion about the list number.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/53_EYP4F1.jpg"
+ },
+ {
+  "idx": 54,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4F2",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79W",
+  "beat_text": "seven,",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFTXZJHE2JHRH4MQ5ZWEPP",
+  "source_id": "guvZx746_qU",
+  "asset_title": "LICE BOYS",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/guvZx746_qU/video.mp4",
+  "duration_s": 52.0,
+  "chosen": {
+   "in_s": 15.0,
+   "out_s": 15.8
+  },
+  "windows": [
+   [
+    15.0,
+    15.8
+   ],
+   [
+    0.0,
+    0.8
+   ],
+   [
+    23.0,
+    23.9
+   ],
+   [
+    30.128,
+    30.538
+   ],
+   [
+    21.462,
+    21.872
+   ],
+   [
+    4.128,
+    4.538
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous animation with bugs, aligning with the introduction of lice.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/54_EYP4F2.jpg"
+ },
+ {
+  "idx": 55,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4F3",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79X",
+  "beat_text": "I actually don't remember which one,",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GF9KXA1XME9EVQVJE04DWS",
+  "source_id": "Ect-ty6ka0M",
+  "asset_title": "What Causes Head Lice? | Treatment For Head Lice | The Dr Binocs Show | Peekaboo Kidz",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/Ect-ty6ka0M/video.mp4",
+  "duration_s": 320.0,
+  "chosen": {
+   "in_s": 118.945,
+   "out_s": 121.0
+  },
+  "windows": [
+   [
+    118.945,
+    121.0
+   ],
+   [
+    40.0,
+    42.11
+   ],
+   [
+    145.612,
+    147.722
+   ],
+   [
+    48.0,
+    50.5
+   ],
+   [
+    161.0,
+    163.11
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.7,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows a cartoon about lice, directly matching the narration about a lice outbreak.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/55_EYP4F3.jpg"
+ },
+ {
+  "idx": 56,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4F4",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79Y",
+  "beat_text": "but lice.",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFSRB1S9VWY590GZG81CBA",
+  "source_id": "BrsrDNjuoQc",
+  "asset_title": "Head lice infection",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/BrsrDNjuoQc/video.mp4",
+  "duration_s": 97.0,
+  "chosen": {
+   "in_s": 45.0,
+   "out_s": 46.622
+  },
+  "windows": [
+   [
+    45.0,
+    46.622
+   ],
+   [
+    23.439,
+    25.061
+   ],
+   [
+    36.0,
+    37.622
+   ],
+   [
+    2.0,
+    3.622
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.5,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows a child getting a haircut, directly matching the narration about getting a shaved head.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/56_EYP4F4.jpg"
+ },
+ {
+  "idx": 57,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4F5",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K79Z",
+  "beat_text": "Now, I gotta tell you a story.",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFVQM7W6NVH51K2PD1ZR2F",
+  "source_id": "3viekW3AnRA",
+  "asset_title": "Every StoryTime Animation",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/3viekW3AnRA/video.mp4",
+  "duration_s": 736.0,
+  "chosen": {
+   "in_s": 2.0,
+   "out_s": 3.558
+  },
+  "windows": [
+   [
+    2.0,
+    3.558
+   ],
+   [
+    4.0,
+    5.558
+   ],
+   [
+    112.0,
+    113.558
+   ],
+   [
+    29.888,
+    31.446
+   ],
+   [
+    91.221,
+    92.779
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous animation, adding humor to the story about lice.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/57_EYP4F5.jpg"
+ },
+ {
+  "idx": 58,
+  "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4F6",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K7A0",
+  "beat_text": "So back when I was a kid, there was a lice outbreak in my middle school.",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFTZ30FY8AEFZX8SDC23CY",
+  "source_id": "xILfIbFdf20",
+  "asset_title": "Lice Outbreak Warning in North County",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/xILfIbFdf20/video.mp4",
+  "duration_s": 147.0,
+  "chosen": {
+   "in_s": 39.1,
+   "out_s": 42.5
+  },
+  "windows": [
+   [
+    39.1,
+    42.5
+   ],
+   [
+    23.0,
+    25.858
+   ],
+   [
+    26.0,
+    28.5
+   ],
+   [
+    72.071,
+    74.7
+   ],
+   [
+    7.0,
+    10.4
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows a news report about lice, directly matching the narration about a lice outbreak.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/58_EYP4F6.jpg"
+ },
+ {
+  "idx": 59,
+  "event_id": "ev_01M3GF47Y7HGMS48WK4SAQ713X",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K7A1",
+  "beat_text": "And even though I didn't have it, my mom decided that it was the best course of action for me to get a shaved head,",
+  "tone": "absurd",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFVQJ772QXBNGA9KP0VBPP",
+  "source_id": "LSrMDYo9IAc",
+  "asset_title": "funny shaved head 2",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/LSrMDYo9IAc/video.mp4",
+  "duration_s": 336.0,
+  "chosen": {
+   "in_s": 10.0,
+   "out_s": 17.216
+  },
+  "windows": [
+   [
+    10.0,
+    17.216
+   ],
+   [
+    39.0,
+    45.432
+   ],
+   [
+    44.0,
+    50.432
+   ],
+   [
+    52.0,
+    58.432
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.7,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows a razor, directly matching the narration about getting a shaved head.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/59_AQ713X.jpg"
+ },
+ {
+  "idx": 60,
+  "event_id": "ev_01M3GF47Y7HGMS48WK4SAQ713Y",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K7A2",
+  "beat_text": "a shaved head in middle school.",
+  "tone": "absurd",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFVQJ772QXBNGA9KP0VBPP",
+  "source_id": "LSrMDYo9IAc",
+  "asset_title": "funny shaved head 2",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/LSrMDYo9IAc/video.mp4",
+  "duration_s": 336.0,
+  "chosen": {
+   "in_s": 12.968,
+   "out_s": 15.032
+  },
+  "windows": [
+   [
+    12.968,
+    15.032
+   ],
+   [
+    44.0,
+    46.065
+   ],
+   [
+    56.0,
+    58.065
+   ],
+   [
+    47.0,
+    49.065
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.7,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows a razor, directly matching the narration about getting a shaved head.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/60_AQ713Y.jpg"
+ },
+ {
+  "idx": 61,
+  "event_id": "ev_01M3GF47Y7HGMS48WK4SAQ713Z",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K7A3",
+  "beat_text": "And every day I went to school at the lunch table and got made fun of.",
+  "tone": "serious",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFWEXQE6QVM400SB2GKPGQ",
+  "source_id": "-XwrLhDnpIA",
+  "asset_title": "School Lunch Table",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/-XwrLhDnpIA/video.mp4",
+  "duration_s": 440.0,
+  "chosen": {
+   "in_s": 23.0,
+   "out_s": 26.772
+  },
+  "windows": [
+   [
+    23.0,
+    26.772
+   ],
+   [
+    273.114,
+    276.886
+   ],
+   [
+    19.5,
+    23.772
+   ],
+   [
+    26.0,
+    29.772
+   ],
+   [
+    126.447,
+    130.219
+   ],
+   [
+    236.8,
+    240.219
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.7,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous animation, adding humor to the story about being made fun of.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/61_AQ713Z.jpg"
+ },
+ {
+  "idx": 62,
+  "event_id": "ev_01M3GF47Y7HGMS48WK4SAQ7140",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K7A4",
+  "beat_text": "And when I got home, I'd look into the mirror and wonder why a microscopic bug would have to cause me so much emotional pain.",
+  "tone": "serious",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFWZXGEW5AKXMPYE2T76RH",
+  "source_id": "_k6Yj03Ipmo",
+  "asset_title": "WTF!!!!!!!??????? My mirror reflection is CRAZY! | RATE",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/_k6Yj03Ipmo/video.mp4",
+  "duration_s": 246.0,
+  "chosen": {
+   "in_s": 66.843,
+   "out_s": 76.657
+  },
+  "windows": [
+   [
+    66.843,
+    76.657
+   ],
+   [
+    166.0,
+    175.815
+   ],
+   [
+    5.6,
+    15.8
+   ],
+   [
+    175.0,
+    185.1
+   ],
+   [
+    186.8,
+    196.1
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous scene with a mirror, aligning with the emotional reflection about lice.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/62_AQ7140.jpg"
+ },
+ {
+  "idx": 63,
+  "event_id": "ev_01M3GF47Y7HGMS48WK4SAQ7141",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K7A5",
+  "beat_text": "Number eight. Number eight is dogs,",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFB0C8MA3JB6WF8SN2Z8SC",
+  "source_id": "2TeijLJ42ys",
+  "asset_title": "Funny white dog with curly hair",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/2TeijLJ42ys/video.mp4",
+  "duration_s": 17.0,
+  "chosen": {
+   "in_s": 0.0,
+   "out_s": 4.773
+  },
+  "windows": [
+   [
+    0.0,
+    4.773
+   ],
+   [
+    6.0,
+    10.773
+   ],
+   [
+    11.0,
+    15.773
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows a white dog, directly matching the narration about dogs with curly hair.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/63_AQ7141.jpg"
+ },
+ {
+  "idx": 64,
+  "event_id": "ev_01M3GF47Y7HGMS48WK4SAQ7142",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K7A6",
+  "beat_text": "you know those white dogs with the curly hair and the crust in their eyes?",
+  "tone": "sarcastic",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFB0C8MA3JB6WF8SN2Z8SC",
+  "source_id": "2TeijLJ42ys",
+  "asset_title": "Funny white dog with curly hair",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/2TeijLJ42ys/video.mp4",
+  "duration_s": 17.0,
+  "chosen": {
+   "in_s": 9.0,
+   "out_s": 12.95
+  },
+  "windows": [
+   [
+    9.0,
+    12.95
+   ],
+   [
+    0.0,
+    3.392
+   ],
+   [
+    2.275,
+    6.225
+   ],
+   [
+    5.108,
+    9.058
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.6,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows a white dog, directly matching the narration about dogs with curly hair.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 2,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/64_AQ7142.jpg"
+ },
+ {
+  "idx": 65,
+  "event_id": "ev_01M3GF47Y7HGMS48WK4SAQ7143",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K7A7",
+  "beat_text": "Yeah, yeah. I think enough said on that point.",
+  "tone": "deadpan",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFY78GVX4SG5J1KSESXZP4",
+  "source_id": "EBmScSNmWl4",
+  "asset_title": "|| I SAID ENOUGH || MEME || { Ft. Past Aftons } ||",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/EBmScSNmWl4/video.mp4",
+  "duration_s": 17.0,
+  "chosen": {
+   "in_s": 11.6,
+   "out_s": 17.0
+  },
+  "windows": [
+   [
+    11.6,
+    17.0
+   ],
+   [
+    6.0,
+    11.6
+   ],
+   [
+    0.0,
+    6.198
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous animation, aligning with the statement about dogs with crusty eyes.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 2,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/65_AQ7143.jpg"
+ },
+ {
+  "idx": 66,
+  "event_id": "ev_01M3GF47Y7HGMS48WK4SAQ7144",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K7A8",
+  "beat_text": "Number nine. Now I honestly think hormonal geese",
+  "tone": "neutral",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFBNTM9MKNJYFA5XB3NJ5Z",
+  "source_id": "5kT3yEhyPeg",
+  "asset_title": "Goose Intimidates Soldiers || ViralHog",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/5kT3yEhyPeg/video.mp4",
+  "duration_s": 33.0,
+  "chosen": {
+   "in_s": 0.0,
+   "out_s": 5.017
+  },
+  "windows": [
+   [
+    0.0,
+    5.017
+   ],
+   [
+    5.742,
+    10.758
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous scene with geese, aligning with the statement about hormonal geese.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/66_AQ7144.jpg"
+ },
+ {
+  "idx": 67,
+  "event_id": "ev_01M3GF47Y7HGMS48WK4SAQ7145",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K7A9",
+  "beat_text": "got a bounce. I don't know what's up with these motherfuckas.",
+  "tone": "absurd",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GFC302P794AJ670F7YN0RM",
+  "source_id": "xlEfjWxmll0",
+  "asset_title": "Goose Attacks Businessman LOL",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/xlEfjWxmll0/video.mp4",
+  "duration_s": 70.0,
+  "chosen": {
+   "in_s": 4.665,
+   "out_s": 7.002
+  },
+  "windows": [
+   [
+    4.665,
+    7.002
+   ],
+   [
+    63.0,
+    65.337
+   ],
+   [
+    61.0,
+    63.337
+   ],
+   [
+    59.0,
+    61.337
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.7,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous scene with a person in a suit, adding humor to the statement about geese.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/67_AQ7145.jpg"
+ },
+ {
+  "idx": 68,
+  "event_id": "ev_01M3GF47Y7HGMS48WK4SAQ7146",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K7AA",
+  "beat_text": "I used to remember as a kid feeding them bread and then they would kind of just flip a switch and start attacking me and hissing.",
+  "tone": "absurd",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFYSPZGFP51AQ4YH382YE6",
+  "source_id": "VKMKkpjozxQ",
+  "asset_title": "No Feeding Ducks!",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/VKMKkpjozxQ/video.mp4",
+  "duration_s": 135.0,
+  "chosen": {
+   "in_s": 48.0,
+   "out_s": 57.2
+  },
+  "windows": [
+   [
+    48.0,
+    57.2
+   ],
+   [
+    3.368,
+    12.4
+   ],
+   [
+    81.5,
+    88.8
+   ],
+   [
+    111.8,
+    120.4
+   ],
+   [
+    98.9,
+    107.263
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous animated scene with a goose, aligning with the statement about geese hissing.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/68_AQ7146.jpg"
+ },
+ {
+  "idx": 69,
+  "event_id": "ev_01M3GF47Y7HGMS48WK4SAQ7147",
+  "beat_id": "bt_01M3GF3A4HAP9404JR9H85K7AB",
+  "beat_text": "They can hiss. Like, who made it so these birds can hiss?",
+  "tone": "absurd",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GFBTCTQYS02PH0S9D1MK5S",
+  "source_id": "ygTa1mOTSo0",
+  "asset_title": "Angry hissing goose",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/ygTa1mOTSo0/video.mp4",
+  "duration_s": 93.0,
+  "chosen": {
+   "in_s": 57.0,
+   "out_s": 61.455
+  },
+  "windows": [
+   [
+    57.0,
+    61.455
+   ],
+   [
+    61.0,
+    65.455
+   ],
+   [
+    52.0,
+    56.455
+   ],
+   [
+    83.023,
+    87.477
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows a goose, directly matching the narration about geese hissing.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/69_AQ7147.jpg"
+ },
+ {
+  "idx": 70,
+  "event_id": "ev_01M3GF47Y7HGMS48WK4SAQ7148",
+  "beat_id": "bt_01M3GF3A4JP9VJAXYQVGH7KCSE",
+  "beat_text": "I thought that was like a snake thing. So yeah, they can hiss, they're just like not chill.",
+  "tone": "sarcastic",
+  "kind": "clip_reaction",
+  "asset_id": "as_01KYXS9ZW3TEC3009MPBPZXHNA",
+  "source_id": "_5wsQyksvZg",
+  "asset_title": "Confused faces meme",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/_5wsQyksvZg/video.mp4",
+  "duration_s": 7.0,
+  "chosen": {
+   "in_s": 0.0,
+   "out_s": 4.928
+  },
+  "windows": [
+   [
+    0.0,
+    4.928
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous reaction, aligning with the statement about geese being not chill.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/70_AQ7148.jpg"
+ },
+ {
+  "idx": 71,
+  "event_id": "ev_01M3GF47Y7HGMS48WK4SAQ7149",
+  "beat_id": "bt_01M3GF3A4JP9VJAXYQVGH7KCSF",
+  "beat_text": "And I remember I was feeding them, I was like 10 years old, and I remember five of them came and basically just beat me up.",
+  "tone": "absurd",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GG02CVKHSJD534KCC598HD",
+  "source_id": "xyW6TnEHzOY",
+  "asset_title": "Killer Goose Attacking Girl!",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/xyW6TnEHzOY/video.mp4",
+  "duration_s": 19.0,
+  "chosen": {
+   "in_s": 2.0,
+   "out_s": 10.577
+  },
+  "windows": [
+   [
+    2.0,
+    10.577
+   ],
+   [
+    10.0,
+    18.577
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous reaction, aligning with the story about being attacked by geese.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/71_AQ7149.jpg"
+ },
+ {
+  "idx": 72,
+  "event_id": "ev_01M3GF47YHKDQHG7J35ZX5ZX5V",
+  "beat_id": "bt_01M3GF3A4JP9VJAXYQVGH7KCSG",
+  "beat_text": "It was actually just like a real learning lesson for me as a kid where I learned even if you do the right thing and be helpful, it doesn't always mean you'll be rewarded.",
+  "tone": "serious",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GG03XRYSJWH56JNJT3HE16",
+  "source_id": "yJb646u5hno",
+  "asset_title": "He-Man Life Lesson - The right way is the best way",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/yJb646u5hno/video.mp4",
+  "duration_s": 28.0,
+  "chosen": {
+   "in_s": 12.0,
+   "out_s": 20.4
+  },
+  "windows": [
+   [
+    12.0,
+    20.4
+   ],
+   [
+    5.0,
+    14.24
+   ],
+   [
+    20.4,
+    28.0
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous animated character, aligning with the learning lesson about geese.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/72_X5ZX5V.jpg"
+ },
+ {
+  "idx": 73,
+  "event_id": "ev_01M3GF47YHKDQHG7J35ZX5ZX5W",
+  "beat_id": "bt_01M3GF3A4JP9VJAXYQVGH7KCSH",
+  "beat_text": "Because I was giving them bread and they just attacked me regardless.",
+  "tone": "absurd",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GG0SJ1NXZD8W39BDS2EN95",
+  "source_id": "k6JL5ZCiMeM",
+  "asset_title": "Geese loves to eat bread",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/k6JL5ZCiMeM/video.mp4",
+  "duration_s": 80.0,
+  "chosen": {
+   "in_s": 46.0,
+   "out_s": 48.43
+  },
+  "windows": [
+   [
+    46.0,
+    48.43
+   ],
+   [
+    32.118,
+    34.548
+   ],
+   [
+    44.0,
+    46.43
+   ],
+   [
+    58.785,
+    61.215
+   ],
+   [
+    18.785,
+    21.215
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.6,
+  "qc_verdict": "literal",
+  "qc_reason": "The frame shows geese being fed, directly matching the narration about feeding geese.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/73_X5ZX5W.jpg"
+ },
+ {
+  "idx": 74,
+  "event_id": "ev_01M3GF47YHKDQHG7J35ZX5ZX5X",
+  "beat_id": "bt_01M3GF3A4JP9VJAXYQVGH7KCSJ",
+  "beat_text": "so you know I think I grew up that day",
+  "tone": "serious",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GG0J14C78N3KA3XE971GEN",
+  "source_id": "MFySCM2PYao",
+  "asset_title": "Megamind Titan/Tighten Glow Up Meme - Metroman(?) Edition (Original)",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/MFySCM2PYao/video.mp4",
+  "duration_s": 23.0,
+  "chosen": {
+   "in_s": 0.342,
+   "out_s": 3.8
+  },
+  "windows": [
+   [
+    0.342,
+    3.8
+   ],
+   [
+    11.0,
+    14.15
+   ],
+   [
+    3.8,
+    7.6
+   ],
+   [
+    19.1,
+    22.658
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous animated character, aligning with the conclusion of the list.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/74_X5ZX5X.jpg"
+ },
+ {
+  "idx": 75,
+  "event_id": "ev_01M3GF47YHKDQHG7J35ZX5ZX5Y",
+  "beat_id": "bt_01M3GF3A4JP9VJAXYQVGH7KCSK",
+  "beat_text": "and so that is my list",
+  "tone": "neutral",
+  "kind": "meme_image",
+  "asset_id": "as_01M3GG1SWYSRRP2GDKNHXHKJX8",
+  "source_id": "NFWHcI_XWQY",
+  "asset_title": "The End Is Near meme [BFB:AU] | read description:3",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/NFWHcI_XWQY/video.mp4",
+  "duration_s": 53.0,
+  "chosen": {
+   "in_s": 35.9,
+   "out_s": 39.1
+  },
+  "windows": [
+   [
+    35.9,
+    39.1
+   ],
+   [
+    46.7,
+    50.208
+   ],
+   [
+    38.9,
+    42.25
+   ],
+   [
+    20.9,
+    23.9
+   ],
+   [
+    42.0,
+    45.25
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous animation, aligning with the conclusion of the list.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/75_X5ZX5Y.jpg"
+ },
+ {
+  "idx": 76,
+  "event_id": "ev_01M3GF47YHKDQHG7J35ZX5ZX5Z",
+  "beat_id": "bt_01M3GF3A4JP9VJAXYQVGH7KCSM",
+  "beat_text": "and if you enjoyed it or if you have anything else you want to add put in the comments below",
+  "tone": "hype",
+  "kind": "clip_literal",
+  "asset_id": "as_01M3GG2K2QEP66RE1ZS73JM19G",
+  "source_id": "doeiJB4g0Zc",
+  "asset_title": "If the YouTube comment section was a person",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/doeiJB4g0Zc/video.mp4",
+  "duration_s": 84.0,
+  "chosen": {
+   "in_s": 13.3,
+   "out_s": 16.49
+  },
+  "windows": [
+   [
+    13.3,
+    16.49
+   ],
+   [
+    53.9,
+    57.49
+   ],
+   [
+    25.0,
+    28.49
+   ],
+   [
+    19.255,
+    22.8
+   ],
+   [
+    75.5,
+    79.3
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous scene with a person pouring a drink, adding humor to the call for comments.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/76_X5ZX5Z.jpg"
+ },
+ {
+  "idx": 77,
+  "event_id": "ev_01M3GF47YHKDQHG7J35ZX5ZX60",
+  "beat_id": "bt_01M3GF3A4JP9VJAXYQVGH7KCSN",
+  "beat_text": "and I will see you later",
+  "tone": "neutral",
+  "kind": "clip_reaction",
+  "asset_id": "as_01M3GG24PTQE3J6QHW6CBHMFWA",
+  "source_id": "aBObmnB-QLg",
+  "asset_title": "[Animation Test] Wave Goodbye",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/aBObmnB-QLg/video.mp4",
+  "duration_s": 20.0,
+  "chosen": {
+   "in_s": 1.0,
+   "out_s": 2.47
+  },
+  "windows": [
+   [
+    1.0,
+    2.47
+   ],
+   [
+    10.932,
+    12.402
+   ],
+   [
+    19.0,
+    20.0
+   ],
+   [
+    3.0,
+    4.47
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous animated character, aligning with the farewell statement.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/77_X5ZX60.jpg"
+ },
+ {
+  "idx": 78,
+  "event_id": "ev_01M3GF47YHKDQHG7J35ZX5ZX61",
+  "beat_id": "bt_01M3GF3A4JP9VJAXYQVGH7KCSP",
+  "beat_text": "comment for part two. Peace!",
+  "tone": "hype",
+  "kind": "clip_reaction",
+  "asset_id": "as_01KYXS9M570BDXEDAKE6VCPHKS",
+  "source_id": "pjgNcy9sRNM",
+  "asset_title": "Peace Disappearing Meme (Original)",
+  "file_path": "/Users/nyanprakash/VOXCUT/library/pjgNcy9sRNM/video.mp4",
+  "duration_s": 25.0,
+  "chosen": {
+   "in_s": 4.7,
+   "out_s": 7.7
+  },
+  "windows": [
+   [
+    4.7,
+    7.7
+   ],
+   [
+    17.4,
+    20.03
+   ],
+   [
+    3.0,
+    5.56
+   ],
+   [
+    7.0,
+    9.8
+   ],
+   [
+    21.4,
+    24.1
+   ]
+  ],
+  "chosen_window_idx": 0,
+  "stored_visual": 0.9,
+  "qc_verdict": "joke",
+  "qc_reason": "The frame shows a humorous scene with people, adding humor to the call for part two.",
+  "flags": [
+   "auto"
+  ],
+  "n_finalists": 1,
+  "portrait": false,
+  "frame_path": "/Users/nyanprakash/Desktop/voxvid/.claude/worktrees/competent-curie-3b94e8/backend/calibration/pr_01M3G9HVC87CWTZY5RVZ1QR3N3/frames/78_X5ZX61.jpg"
+ }
+]

@@ -91,20 +91,24 @@ def _judge_windows(ev: dict, asset: Asset, beat: dict,
     """Frame-judge arbitrary windows. None = vision unavailable/failed."""
     from ...brain.client import BrainError, is_available
     from ...brain.judge import judge_frames
-    from ...moments.frames import sample_window_frames
+    from ...moments.frames import sample_window_tiles
 
     if not is_available() or not windows:
         return None
-    urls = sample_window_frames(
+    urls = sample_window_tiles(
         Path(asset.file_path), windows,
         settings().library_dir / asset.source_id / "verify" / f"{ev['id']}_{work_tag}")
     present = [(i, u) for i, u in enumerate(urls) if u]
     if not present:
         return None
     try:
+        # Coarse scan: up to 12 tiles just to find the region — low detail.
+        # Fine verify: the score that gates escalation — high detail, so the
+        # judge can actually read a title card or a logo before approving.
         scores_present = judge_frames(
             beat.get("text") or beat.get("gist", ""), ev["kind"],
-            asset.title or "", [u for _i, u in present])
+            asset.title or "", [u for _i, u in present],
+            detail="low" if work_tag == "coarse" else "high")
     except BrainError:
         return None
     scores = [0.0] * len(windows)
