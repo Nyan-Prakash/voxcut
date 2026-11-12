@@ -43,10 +43,34 @@ PLAN_SCHEMA = {
                 "additionalProperties": False,
                 "properties": {
                     "beat_id": {"type": "string"},
+                    "mode": {"type": "string",
+                             "enum": ["literal", "absurd", "reaction",
+                                      "exaggerated", "deadpan"],
+                             "description": "the playbook relation mode"},
+                    "gag": {"type": "string",
+                            "description": "written BEFORE the queries: one "
+                                           "line saying what the viewer SEES "
+                                           "and why it lands under these "
+                                           "exact words"},
+                    "source": {"type": "string",
+                               "description": "the NAMED origin of this footage "
+                                              "(show, film, anime, game, "
+                                              "creator, event, known viral "
+                                              "clip) or 'stock'"},
                     "kind": {"type": "string",
                              "enum": ["clip_literal", "clip_reaction",
                                       "meme_image", "broll"]},
                     "queries": {"type": "array", "items": {"type": "string"}},
+                    "joke_gag": {"type": "string",
+                                 "description": "one line for the OTHER "
+                                                "angle: different footage "
+                                                "from a different source "
+                                                "than gag"},
+                    "joke_source": {"type": "string",
+                               "description": "the NAMED origin of the other angle's footage "
+                                              "(show, film, anime, game, "
+                                              "creator, event, known viral "
+                                              "clip) or 'stock'"},
                     "joke_queries": {
                         "type": "array", "items": {"type": "string"},
                         "description": "queries for the OTHER comedic angle "
@@ -54,8 +78,9 @@ PLAN_SCHEMA = {
                     "audio_mode": {"type": "string",
                                    "enum": ["mute", "duck", "keep"]},
                 },
-                "required": ["beat_id", "kind", "queries", "joke_queries",
-                             "audio_mode"],
+                "required": ["beat_id", "mode", "gag", "source", "kind",
+                             "queries", "joke_gag", "joke_source",
+                             "joke_queries", "audio_mode"],
             },
         }
     },

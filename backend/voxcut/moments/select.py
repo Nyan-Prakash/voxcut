@@ -41,7 +41,11 @@ def select_moments(*, video: Path, cache_dir: Path, duration: float,
                    beat_query: str, entities: list[str], intent: str,
                    beat_dur: float, subs_path: Path | None,
                    heatmap_path: Path | None,
-                   top_k: int = 5) -> tuple[list[Moment], float]:
+                   top_k: int = 5,
+                   curve_out: dict | None = None) -> tuple[list[Moment], float]:
+    """curve_out: optional dict that receives the fused per-window curve
+    ({"starts", "fused", "win"}) so callers can score windows that did not
+    come from this function — see score_at()."""
     win = max(0.8, min(beat_dur, duration))
     starts = signals.make_windows(duration, win, hop=1.0)
 
@@ -73,6 +77,9 @@ def select_moments(*, video: Path, cache_dir: Path, duration: float,
         if interior_cut_density(t0, t0 + win, scenes) > 0.5:
             fused[i] *= 0.6
 
+    if curve_out is not None:
+        curve_out.update(starts=list(starts), fused=fused, win=win)
+
     order = np.argsort(fused)[::-1]
     chosen: list[Moment] = []
     used: list[float] = []
@@ -97,3 +104,15 @@ def select_moments(*, video: Path, cache_dir: Path, duration: float,
 
 def intent_for(kind: str) -> str:
     return kind if kind in WEIGHTS else "clip_literal"
+
+
+def score_at(curve: dict, in_s: float) -> float:
+    """Fused signal score of the window starting nearest in_s (0.0 when the
+    curve is empty). Lets a vision-found window carry the same signal credit
+    a signal-found window at that spot would have had."""
+    starts = curve.get("starts") or []
+    fused = curve.get("fused")
+    if not starts or fused is None or not len(fused):
+        return 0.0
+    i = min(range(len(starts)), key=lambda k: abs(starts[k] - in_s))
+    return float(fused[i])

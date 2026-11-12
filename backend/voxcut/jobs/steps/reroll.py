@@ -38,6 +38,8 @@ async def run_reroll(ctx: JobContext) -> None:
     beats_path = settings().project_dir(project_id) / "beats.json"
     beats = ({b["id"]: b for b in json.loads(beats_path.read_text())["beats"]}
              if beats_path.exists() else {})
+    from ...brain.steps_helpers import beat_neighbors
+    neighbors = beat_neighbors(list(beats.values()))
     with session_scope() as db:
         p = db.get(Project, project_id)
         brief = json.loads(p.context_brief or "{}") if p else {}
@@ -109,17 +111,21 @@ async def run_reroll(ctx: JobContext) -> None:
         if beat and is_available():
             try:
                 from ...brain.plan import plan_one
-                fresh = plan_one(beat, brief, avoid_extra=avoid_titles, hint=hint)
-                for key in ("kind", "queries", "joke_queries", "audio"):
+                fresh = plan_one(beat, brief, avoid_extra=avoid_titles,
+                                 hint=hint, neighbors=neighbors.get(beat["id"]))
+                for key in ("kind", "queries", "joke_queries", "audio",
+                            "gag", "joke_gag", "mode"):
                     ev[key] = fresh[key]
                 replanned += 1
             except BrainError:
                 if hint:  # no LLM: the direction becomes the search itself
                     ev["queries"] = [hint]
                     ev["joke_queries"] = []
+                    ev["gag"] = hint
         elif hint:
             ev["queries"] = [hint]
             ev["joke_queries"] = []
+            ev["gag"] = hint
         ev["asset_id"] = None
         ev["source"] = None
         for key in RESET_KEYS:

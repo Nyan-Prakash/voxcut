@@ -147,6 +147,7 @@ def build_records(project_id: str) -> list[dict]:
                 "beat_id": ev.get("beat_id"),
                 # same text the production judge is given (moment._judge_windows)
                 "beat_text": beat.get("text") or beat.get("gist", ""),
+                "gag": ev.get("gag") or "",
                 "tone": beat.get("tone", ""),
                 "kind": ev["kind"],
                 "asset_id": ev["asset_id"],
@@ -300,7 +301,8 @@ def cmd_extract(args: argparse.Namespace) -> None:
 
 # --- judging -------------------------------------------------------------------
 
-def judge_one(rec: dict, out: Path, *, legacy: bool, detail: str) -> dict:
+def judge_one(rec: dict, out: Path, *, legacy: bool, detail: str,
+              context: tuple[str, str] | None = None) -> dict:
     from voxcut.brain.client import structured
     from voxcut.brain.judge import JUDGE_SCHEMA, judge_frames_detailed
 
@@ -334,7 +336,7 @@ def judge_one(rec: dict, out: Path, *, legacy: bool, detail: str) -> dict:
         else:
             detailed = judge_frames_detailed(
                 rec["beat_text"], rec["kind"], rec["asset_title"], urls,
-                detail=detail)
+                detail=detail, gag=rec.get("gag") or "", context=context)
             result["records"] = [None] * n
             for (k, _u), d in zip(present, detailed):
                 result["scores"][k] = d["score"]
@@ -359,6 +361,16 @@ def judge_one(rec: dict, out: Path, *, legacy: bool, detail: str) -> dict:
 def cmd_judge(args: argparse.Namespace) -> None:
     out = out_dir(args.project_id, args.out)
     recs = json.loads((out / "events.json").read_text())
+    # --context: send what production now sends — the neighboring narration
+    # (adjacent placed events stand in for adjacent beats) and the planner's
+    # gag when the event has one. Compare a --context tag against a plain
+    # one to measure what the extra lines do to agreement.
+    ctx_of: dict[str, tuple[str, str]] = {}
+    if args.context:
+        for i, r in enumerate(recs):
+            ctx_of[r["event_id"]] = (
+                recs[i - 1]["beat_text"] if i > 0 else "",
+                recs[i + 1]["beat_text"] if i + 1 < len(recs) else "")
     if args.only:
         wanted = {int(x) for x in args.only.split(",")}
         recs = [r for r in recs if r["idx"] in wanted]
@@ -385,7 +397,8 @@ def cmd_judge(args: argparse.Namespace) -> None:
                                    indent=1))
 
     def run(r: dict) -> dict:
-        res = judge_one(r, out, legacy=args.legacy, detail=args.detail)
+        res = judge_one(r, out, legacy=args.legacy, detail=args.detail,
+                        context=ctx_of.get(r["event_id"]))
         flags = ",".join((res.get("chosen_flags") or [])
                          + (res.get("chosen_soft_flags") or []))
         print(f"#{r['idx']:2d} stored={r['stored_visual']}  now={res['chosen_score']}"
@@ -513,6 +526,9 @@ def main() -> None:
             sp.add_argument("--detail", default="high", choices=["low", "high"])
             sp.add_argument("--workers", type=int, default=4)
             sp.add_argument("--only", help="comma-separated event idx subset")
+            sp.add_argument("--context", action="store_true",
+                            help="also send neighboring narration + gag, as "
+                                 "production does")
             sp.add_argument("--resume", action="store_true",
                             help="skip events already in scores_<tag>.json")
         if name == "report":

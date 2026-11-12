@@ -22,7 +22,6 @@ async def run_moment(ctx: JobContext) -> None:
     beats_path = pdir / "beats.json"
     beats = ({b["id"]: b for b in json.loads(beats_path.read_text())["beats"]}
              if beats_path.exists() else {})
-
     from .source import _only_ids
     only = _only_ids(ctx.payload)
     events = [e for e in edl["events"] if e.get("asset_id") and not e.get("locked")
@@ -62,7 +61,17 @@ REVIEW_BELOW = 0.5
 # first clip costs more watch time than a weak clip anywhere else.
 COLD_ESCALATE_BELOW = 0.65
 COLD_MAX_ESCALATIONS = 3
-VISION_WEIGHT = 0.7   # final window score = 0.7*vision + 0.3*signal fusion
+# Final window score = VISION_WEIGHT*vision + the rest from signal fusion.
+# Signals are min-max normalized per video, so the best window scores 1.0
+# even when the signals are noise; at 0.3 that swing outvoted a 0.3 vision
+# gap. With the calibrated judge, signals only break near-ties (same split
+# the interject picker uses).
+VISION_WEIGHT = 0.85
+# A finalist verified at or above this ends the tournament early. It was 0.7,
+# which the first finalist cleared most of the time — so the second comedic
+# angle was downloaded and then never looked at. 0.8 is the judge's "THE
+# exact gag" band; anything less and the other angle gets its shot.
+FINALIST_SKIP_AT = 0.8
 CLOSE_CALL_GAP = 0.1  # finalists within this vision margin → flag for review
 COARSE_MAX_FRAMES = 12
 COARSE_KEEP = 0.4     # coarse regions below this score aren't worth refining
@@ -72,10 +81,12 @@ ANALYZE_MAX_S = 900.0  # never analyze past 15 min — protects against the
                         # oversized sources already cached in the library
 
 
-def _signal_moments(ev: dict, asset: Asset, query: str, entities: list[str]):
+def _signal_moments(ev: dict, asset: Asset, query: str, entities: list[str],
+                    curve_out: dict | None = None):
     cache_dir = settings().library_dir / asset.source_id
     beat_dur = ev["end_s"] - ev["start_s"]
     return select_moments(
+        curve_out=curve_out,
         video=Path(asset.file_path), cache_dir=cache_dir,
         duration=min(asset.duration_s or 0.0, ANALYZE_MAX_S),
         beat_query=query, entities=entities,
@@ -87,10 +98,11 @@ def _signal_moments(ev: dict, asset: Asset, query: str, entities: list[str]):
 
 def _judge_windows(ev: dict, asset: Asset, beat: dict,
                    windows: list[tuple[float, float]],
-                   work_tag: str) -> list[float] | None:
-    """Frame-judge arbitrary windows. None = vision unavailable/failed."""
+                   work_tag: str) -> list[dict] | None:
+    """Frame-judge arbitrary windows. Returns one record per window
+    ({"score", "action_at"}), or None when vision is unavailable/failed."""
     from ...brain.client import BrainError, is_available
-    from ...brain.judge import judge_frames
+    from ...brain.judge import judge_frames_detailed
     from ...moments.frames import sample_window_tiles
 
     if not is_available() or not windows:
@@ -105,16 +117,23 @@ def _judge_windows(ev: dict, asset: Asset, beat: dict,
         # Coarse scan: up to 12 tiles just to find the region — low detail.
         # Fine verify: the score that gates escalation — high detail, so the
         # judge can actually read a title card or a logo before approving.
-        scores_present = judge_frames(
+        recs_present = judge_frames_detailed(
             beat.get("text") or beat.get("gist", ""), ev["kind"],
             asset.title or "", [u for _i, u in present],
-            detail="low" if work_tag == "coarse" else "high")
+            detail="low" if work_tag == "coarse" else "high"
+            # Deliberately the narration ONLY — no planner gag, no neighbor
+            # lines. Both were measured: neighbor context cost agreement on
+            # the labelled set (15/15 → 13/15), and the gag made the judge
+            # grade footage against the plan ("it is a dog in sunglasses,
+            # as planned" → 1.0) instead of against the line, which QC then
+            # flagged as middle. This judge is the independent check.
+            )
     except BrainError:
         return None
-    scores = [0.0] * len(windows)
-    for (i, _u), s in zip(present, scores_present):
-        scores[i] = s
-    return scores
+    recs = [{"score": 0.0, "action_at": "none"} for _ in windows]
+    for (i, _u), r in zip(present, recs_present):
+        recs[i] = {"score": r["score"], "action_at": r.get("action_at", "none")}
+    return recs
 
 
 def _coarse_windows(ev: dict, asset: Asset, beat: dict,
@@ -132,9 +151,10 @@ def _coarse_windows(ev: dict, asset: Asset, beat: dict,
     for i in range(n):
         c = step / 2 + i * step
         windows.append((max(0.0, c - beat_dur / 2), min(dur, c + beat_dur / 2)))
-    scores = _judge_windows(ev, asset, beat, windows, "coarse")
-    if scores is None:
+    recs = _judge_windows(ev, asset, beat, windows, "coarse")
+    if recs is None:
         return []
+    scores = [r["score"] for r in recs]
     top = sorted(range(len(windows)), key=lambda i: scores[i], reverse=True)[:3]
     return [windows[i] for i in top if scores[i] >= COARSE_KEEP]
 
@@ -144,16 +164,25 @@ def _try_asset(ev: dict, asset: Asset, beat: dict, query: str,
     """Score one asset: coarse whole-video vision scan + signal windows →
     fine frame verification. Returns the best window + its vision score."""
     from ...moments.scenes import detect_scenes, snap_to_scenes
+    from ...moments.select import score_at
+    from ...moments.timing import place_in_point
 
     beat_dur = ev["end_s"] - ev["start_s"]
-    moments, conf = _signal_moments(ev, asset, query, entities)
+    curve: dict = {}
+    moments, conf = _signal_moments(ev, asset, query, entities, curve)
     sig_windows = [(m.in_s, m.out_s, m.score) for m in moments[:3]]
 
     coarse = _coarse_windows(ev, asset, beat, beat_dur)
     scenes = detect_scenes(Path(asset.file_path),
                            settings().library_dir / asset.source_id / "scenes.json")
-    coarse_snapped = [(*snap_to_scenes(a, b, scenes, tolerance=beat_dur * 0.25), 0.0)
-                      for (a, b) in coarse]
+    # A vision-found window carries the signal score of that spot in the
+    # video. It used to enter the blend at 0.0, which handed every
+    # signal-found window a head start of up to 0.3 over footage the vision
+    # scan had actually looked at.
+    coarse_snapped = []
+    for (a, b) in coarse:
+        sa, sb = snap_to_scenes(a, b, scenes, tolerance=beat_dur * 0.25)
+        coarse_snapped.append((sa, sb, score_at(curve, sa)))
 
     # Merge candidate windows (coarse first — they came from real pixels),
     # dropping near-duplicates.
@@ -165,7 +194,8 @@ def _try_asset(ev: dict, asset: Asset, beat: dict, query: str,
     if not merged:
         merged = [(0.0, min(asset.duration_s or beat_dur, beat_dur), 0.0)]
 
-    vision = _judge_windows(ev, asset, beat, [(a, b) for a, b, _s in merged], "fine")
+    fine = _judge_windows(ev, asset, beat, [(a, b) for a, b, _s in merged], "fine")
+    vision = [r["score"] for r in fine] if fine is not None else None
     if vision is None:
         order = list(range(len(merged)))
         best_vision = None
@@ -181,6 +211,18 @@ def _try_asset(ev: dict, asset: Asset, beat: dict, query: str,
         d = {"in_s": round(a, 3), "out_s": round(b, 3), "score": round(s, 4)}
         if vision is not None:
             d["visual"] = round(vision[i], 3)
+            d["action_at"] = fine[i]["action_at"]
+        # Where to actually start playing: slide a late payoff into the clip
+        # and keep scene cuts off the first/last few frames.
+        play_in = place_in_point(
+            a, beat_dur, d.get("action_at", "none"), scenes,
+            min(asset.duration_s or 0.0, ANALYZE_MAX_S))
+        if abs(play_in - a) > 0.01:
+            # The strip, the EDL and a manual pick all use the placed
+            # window; judged_in_s keeps what the judge actually looked at.
+            d["judged_in_s"] = d["in_s"]
+            d["in_s"] = round(play_in, 3)
+            d["out_s"] = round(b + (play_in - a), 3)
         cands.append(d)
     return {"asset": asset, "moments": cands, "conf": conf,
             "best_vision": best_vision}
@@ -202,6 +244,14 @@ def _fetch_candidate(cand: dict) -> Asset | None:
         return record_asset(db, meta, [])
 
 
+def _source_for(moment: dict) -> dict:
+    """EDL source block for a judged (and placed) window."""
+    src = {"in_s": moment["in_s"], "out_s": moment["out_s"], "chosen_rank": 1}
+    if "judged_in_s" in moment:
+        src["judged_in_s"] = moment["judged_in_s"]
+    return src
+
+
 def _score_of(result: dict) -> float:
     if result["best_vision"] is not None:
         return result["best_vision"]
@@ -217,9 +267,8 @@ def _place_one(ev: dict, beats: dict) -> None:
     entities = beat.get("concrete_entities", [])
 
     # Tournament, lazily: verify finalist #1 first and only spend on the next
-    # finalist when the current best hasn't clearly nailed it (vision < 0.7).
-    # Halves the per-beat work on the common case with no quality loss — a
-    # 0.7+ verified moment never loses to the runner-up by enough to matter.
+    # finalist when the current best hasn't clearly nailed it (vision below
+    # FINALIST_SKIP_AT).
     finalist_ids = list(dict.fromkeys(
         ev.get("finalist_asset_ids") or
         ([ev["asset_id"]] if ev.get("asset_id") else [])))
@@ -229,7 +278,7 @@ def _place_one(ev: dict, beats: dict) -> None:
             best = max((r["best_vision"] or 0) for r in results
                        if r["best_vision"] is not None) if any(
                 r["best_vision"] is not None for r in results) else None
-            if best is not None and best >= 0.7:
+            if best is not None and best >= FINALIST_SKIP_AT:
                 break  # already verified-great; skip remaining finalists
         with session_scope() as db:
             asset = db.get(Asset, aid)
@@ -274,8 +323,8 @@ def _place_one(ev: dict, beats: dict) -> None:
 
     ev["asset_id"] = winner["asset"].id
     best = winner["moments"][0]
-    src = {"in_s": best["in_s"], "out_s": best["out_s"], "chosen_rank": 1,
-           "confidence": winner["conf"]}
+    src = _source_for(best)
+    src["confidence"] = winner["conf"]
     if winner["best_vision"] is not None:
         src["visual"] = round(winner["best_vision"], 3)
     ev["source"] = src
@@ -283,8 +332,8 @@ def _place_one(ev: dict, beats: dict) -> None:
     ev["finalists"] = [{
         "asset_id": r["asset"].id,
         "title": r["asset"].title,
-        "in_s": r["moments"][0]["in_s"],
-        "out_s": r["moments"][0]["out_s"],
+        "in_s": _source_for(r["moments"][0])["in_s"],
+        "out_s": _source_for(r["moments"][0])["out_s"],
         "visual": r["best_vision"],
     } for r in results[:3]]
 

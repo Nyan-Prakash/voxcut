@@ -90,6 +90,15 @@ Judging rules:
 - TONE: this is a comedy edit. Reject footage of real tragedy — death, violent
   crime, accidents, disasters, grief — regardless of relevance. A funny beat
   cut against someone's real misfortune reads as offensive, not funny.
+- INTENDED GAG: when given, it is the editor's plan for what the viewer
+  should SEE under this line and why it is funny. A result likely to contain
+  exactly that footage scores highest. A result that lands the line another
+  way (clearly the literal thing, or clearly a joke) still counts. A result
+  that matches the search words but would deliver neither the gag nor the
+  literal thing is the mediocre middle — reject it.
+- CONTEXT: the lines before and after are there so you understand what the
+  beat MEANS (what "it"/"they" refer to, where the bit is going). Score
+  against the beat itself, never against its neighbors.
 - When in doubt, score low. Returning zero good picks is a valid answer —
   the editor lets the neighboring clip hold through the gap, which beats a
   random clip.
@@ -98,7 +107,7 @@ Return picks ONLY for results scoring >= 0.5, ordered best-first."""
 
 JUDGE_USER = """\
 Narration beat: "{beat_text}"
-Visual intent: {intent}
+{extra}Visual intent: {intent}
 Search queries used: {queries}
 Franchises already used in this video: {franchises}
 
@@ -173,6 +182,14 @@ FRAME_JUDGE_SCHEMA = {
                         "type": "boolean",
                         "description": "the thing/event the narration names is "
                                        "actually visible (not implied)"},
+                    "action_at": {
+                        "type": "string",
+                        "enum": ["start", "middle", "end", "throughout", "none"],
+                        "description": "which of the three frames shows the "
+                                       "key action/payoff for this line; "
+                                       "'throughout' if all three do, 'none' "
+                                       "if nothing notable happens (report "
+                                       "only — never changes the score)"},
                     "score": {"type": "number"},
                     "reason": {"type": "string"},
                 },
@@ -182,7 +199,8 @@ FRAME_JUDGE_SCHEMA = {
                              "is_logo_or_watermark_or_branding",
                              "is_talking_head", "nothing_readable",
                              "is_product_or_toy_demo",
-                             "shows_named_subject", "score", "reason"],
+                             "shows_named_subject", "action_at", "score",
+                             "reason"],
             },
         },
         "ranking": {
@@ -263,6 +281,10 @@ another source) instead of zeroing it:
   of a line and still be dead footage under it.
 Also record shows_named_subject: is the thing or event the narration names
 literally visible in the frames (not implied, not a category cousin)?
+And record action_at — report only, it never changes the score: which of
+the three frames shows the key action or payoff for this line (start,
+middle, end), "throughout" when all three do, "none" when nothing notable
+happens. The editor uses it to place the cut so the payoff is not clipped.
 
 STEP 2 — score 0..1 for how well the window plays as the visual for this
 narration, muted. Calibration — hold to it:
@@ -296,7 +318,7 @@ you would cut to. Scores must be consistent with the ranking."""
 
 FRAME_USER = """\
 Narration beat: "{beat_text}"
-Visual intent: {intent}
+{extra}Visual intent: {intent}
 Video title: {video_title}
 {n} candidate windows; image i is window i, three frames start→middle→end."""
 
@@ -457,8 +479,26 @@ def judge_qc(entries: list[tuple[str, str, str]]) -> list[dict | None]:
     return verdicts
 
 
+def _judge_extra(gag: str, context: tuple[str, str] | None) -> str:
+    """Optional prompt lines shared by both judges: the planner's intended
+    gag and the neighboring narration. Empty inputs add nothing to the
+    user message, so the calibration harness can measure with and without."""
+    lines = []
+    prev_line, next_line = context or ("", "")
+    if prev_line:
+        lines.append(f'Line before (context only): "{prev_line}"')
+    if next_line:
+        lines.append(f'Line after (context only): "{next_line}"')
+    if gag:
+        lines.append(f"Intended gag (the editor's plan; another clearly-"
+                     f"literal or clearly-funny read still counts): {gag}")
+    return "".join(line + "\n" for line in lines)
+
+
 def judge_frames_detailed(beat_text: str, intent: str, video_title: str,
                           frames: list[str], *, detail: str = "high",
+                          gag: str = "",
+                          context: tuple[str, str] | None = None,
                           ) -> list[dict]:
     """frames: list of data-URL images, one per candidate window (in order;
     normally a three-frame tile from moments.frames.sample_window_tiles).
@@ -479,13 +519,15 @@ def judge_frames_detailed(beat_text: str, intent: str, video_title: str,
     out = structured(
         FRAME_SYSTEM,
         FRAME_USER.format(beat_text=beat_text, intent=intent,
-                          video_title=video_title, n=len(frames)),
+                          video_title=video_title, n=len(frames),
+                          extra=_judge_extra(gag, context)),
         FRAME_JUDGE_SCHEMA, schema_name="frame_judge", temperature=0.1,
         max_tokens=3000, images=images, image_detail=detail)
     n = len(frames)
     recs = [{"index": i, "score": 0.0, "raw_score": 0.0, "flags": [],
              "soft_flags": [], "info": [], "rank": None, "seen": "",
-             "reason": "", "shows_named_subject": False} for i in range(n)]
+             "reason": "", "shows_named_subject": False,
+             "action_at": "none"} for i in range(n)]
     for w in out.get("windows", []):
         i = w.get("index")
         if not isinstance(i, int) or not 0 <= i < n:
@@ -500,7 +542,8 @@ def judge_frames_detailed(beat_text: str, intent: str, video_title: str,
             raw_score=raw, score=score, flags=flags, soft_flags=soft,
             info=[f for f in INFO_FLAGS if w.get(f)],
             seen=str(w.get("seen", "")), reason=str(w.get("reason", "")),
-            shows_named_subject=bool(w.get("shows_named_subject")))
+            shows_named_subject=bool(w.get("shows_named_subject")),
+            action_at=str(w.get("action_at") or "none"))
 
     # Forced ranking: the model's stated order, de-duplicated, with any
     # window it forgot appended in score order. Then walk down it and cap
@@ -526,18 +569,21 @@ def judge_frames_detailed(beat_text: str, intent: str, video_title: str,
 
 
 def judge_frames(beat_text: str, intent: str, video_title: str,
-                 frames: list[str], *, detail: str = "high") -> list[float]:
+                 frames: list[str], *, detail: str = "high", gag: str = "",
+                 context: tuple[str, str] | None = None) -> list[float]:
     """frames: list of data-URL images, one per candidate window (in order).
     Returns an enforced score 0..1 per window — see judge_frames_detailed.
     Raises BrainError on failure."""
     return [r["score"] for r in
             judge_frames_detailed(beat_text, intent, video_title, frames,
-                                  detail=detail)]
+                                  detail=detail, gag=gag, context=context)]
 
 
 def judge_candidates(beat_text: str, intent: str, queries: list[str],
                      candidates: list[dict],
                      franchise_counts: dict[str, int] | None = None,
+                     gag: str = "",
+                     context: tuple[str, str] | None = None,
                      ) -> list[tuple[int, float, str]]:
     """Returns [(candidate_index, relevance, franchise)] best-first, only
     relevance >= 0.5. Raises BrainError if the LLM is unavailable/fails
@@ -558,7 +604,8 @@ def judge_candidates(beat_text: str, intent: str, queries: list[str],
         JUDGE_SYSTEM,
         JUDGE_USER.format(beat_text=beat_text, intent=intent,
                           queries=", ".join(queries), results=results,
-                          franchises=franchises),
+                          franchises=franchises,
+                          extra=_judge_extra(gag, context)),
         JUDGE_SCHEMA, schema_name="source_judge", temperature=0.2,
         max_tokens=2000, images=images or None)
     picks = [(p["index"], float(p["relevance"]), (p.get("franchise") or "").strip())

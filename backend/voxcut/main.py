@@ -1,6 +1,7 @@
 """FastAPI app factory: static mounting, startup checks, security token (§14)."""
 from __future__ import annotations
 
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -18,11 +19,25 @@ STATIC_DIR = Path(__file__).parent / "static"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):  # noqa: ANN001
+    _configure_logging()
     settings().ensure_dirs()
     init_db()
     await runner.start()
     yield
     await runner.stop()
+
+
+def _configure_logging() -> None:
+    # uvicorn only wires its own loggers; without this, voxcut.* INFO lines
+    # vanish (Python's last-resort handler prints WARNING+ only).
+    lg = logging.getLogger("voxcut")
+    if lg.handlers:
+        return
+    h = logging.StreamHandler()
+    h.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s",
+                                     "%H:%M:%S"))
+    lg.addHandler(h)
+    lg.setLevel(logging.INFO)
 
 
 def create_app() -> FastAPI:
