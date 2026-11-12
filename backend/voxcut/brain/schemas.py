@@ -77,10 +77,18 @@ PLAN_SCHEMA = {
                                        "(tournament candidate)"},
                     "audio_mode": {"type": "string",
                                    "enum": ["mute", "duck", "keep"]},
+                    "punch_word": {"type": "string",
+                                   "description": "the ONE word, copied "
+                                                  "exactly from this beat's "
+                                                  "narration, the visual "
+                                                  "should land on; '' when "
+                                                  "the visual just "
+                                                  "illustrates the whole "
+                                                  "line"},
                 },
                 "required": ["beat_id", "mode", "gag", "source", "kind",
                              "queries", "joke_gag", "joke_source",
-                             "joke_queries", "audio_mode"],
+                             "joke_queries", "audio_mode", "punch_word"],
             },
         }
     },

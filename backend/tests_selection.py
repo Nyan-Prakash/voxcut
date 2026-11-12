@@ -109,3 +109,39 @@ assert plan._anchor_queries(["hand pulling fire alarm"], "stock") == [
     "hand pulling fire alarm"]
 assert plan._anchor_queries(["x"], "") == ["x"]
 print("source anchoring OK")
+
+# ---- the action lands on the punch word ------------------------------------
+from voxcut.moments.timing import place_in_point as _pip, punch_offset
+
+_words = [(" the", 10.0), (" dog", 10.4), (" ate", 11.0), (" my", 11.6),
+          (" Homework.", 12.2)]
+assert punch_offset("homework", _words, 10.0) == 2.2          # case/punct
+assert punch_offset("cat", _words, 10.0) is None              # paraphrased
+assert punch_offset("", _words, 10.0) is None
+assert punch_offset("ate my", _words, 10.0) == 1.0            # phrase → 1st word
+assert punch_offset("the", [(" the", 1.0), (" the", 2.0)], 1.0) == 1.0  # last
+
+# 4s clip, action in the middle (2.0s in), word spoken 1.0s in → start 1.0s
+# later so the action plays as the word is said.
+assert _pip(20.0, 4.0, "middle", [], 100.0, punch_off=1.0) == 21.0
+# action at the start (0.6s in), word at 2.0s → start earlier, capped at 35%.
+assert _pip(20.0, 4.0, "start", [], 100.0, punch_off=2.0) == 18.6
+# word at the very end: the action still gets room to play out (lands 3.0s in).
+assert _pip(20.0, 4.0, "middle", [], 100.0, punch_off=3.9) == 19.0
+# nothing to line up: unlocated action, no punch word, or a very short clip.
+assert _pip(20.0, 4.0, "throughout", [], 100.0, punch_off=1.0) == 20.0
+assert _pip(20.0, 4.0, "middle", [], 100.0) == 20.0
+assert _pip(20.0, 1.2, "middle", [], 100.0, punch_off=0.1) == 20.0
+# without a punch word the old late-payoff rule still applies.
+assert _pip(20.0, 4.0, "end", [], 100.0) == 21.2
+# never before the start of the file.
+assert _pip(0.5, 4.0, "start", [], 100.0, punch_off=3.0) == 0.0
+
+from voxcut.jobs.steps.moment import _punch_off
+_beat = {"start_s": 10.0, "end_s": 13.0, "words": _words}
+assert _punch_off({"start_s": 10.0, "end_s": 13.0, "punch_word": "ate"}, _beat) == 1.0
+assert _punch_off({"start_s": 10.0, "end_s": 11.5, "punch_word": "ate"}, _beat) is None
+assert "punch_word" in plan._item_to_event(
+    {"id": "b", "start_s": 0, "end_s": 1},
+    {"kind": "broll", "queries": ["x"], "punch_word": " ate "}) and True
+print("punch-word alignment OK")

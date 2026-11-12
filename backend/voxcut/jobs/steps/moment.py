@@ -22,6 +22,7 @@ async def run_moment(ctx: JobContext) -> None:
     beats_path = pdir / "beats.json"
     beats = ({b["id"]: b for b in json.loads(beats_path.read_text())["beats"]}
              if beats_path.exists() else {})
+    _attach_words(beats, pdir / "transcript.json")
     from .source import _only_ids
     only = _only_ids(ctx.payload)
     events = [e for e in edl["events"] if e.get("asset_id") and not e.get("locked")
@@ -79,6 +80,35 @@ COARSE_KEEP = 0.4     # coarse regions below this score aren't worth refining
 
 ANALYZE_MAX_S = 900.0  # never analyze past 15 min — protects against the
                         # oversized sources already cached in the library
+
+
+def _attach_words(beats: dict, transcript_path: Path) -> None:
+    """Give each beat its spoken words as (text, start_s) so the moment step
+    can find when the planner's punch word is said."""
+    try:
+        words = json.loads(transcript_path.read_text())["words"]
+    except Exception:  # noqa: BLE001 — no transcript → no alignment
+        return
+    by_idx = {w["idx"]: w for w in words}
+    for b in beats.values():
+        lo, hi = b.get("word_start_idx"), b.get("word_end_idx")
+        if lo is None or hi is None:
+            continue
+        b["words"] = [(by_idx[i]["text"], by_idx[i]["start_s"])
+                      for i in range(lo, hi + 1) if i in by_idx]
+
+
+def _punch_off(ev: dict, beat: dict) -> float | None:
+    """Seconds into this event at which its punch word is spoken, or None.
+    Only for events that still span their whole beat — a split or trimmed
+    event no longer starts where the beat's words do."""
+    from ...moments.timing import punch_offset
+    if not beat or not ev.get("punch_word") or not beat.get("words"):
+        return None
+    beat_dur = beat["end_s"] - beat["start_s"]
+    if abs((ev["end_s"] - ev["start_s"]) - beat_dur) > 0.05:
+        return None
+    return punch_offset(ev["punch_word"], beat["words"], beat["start_s"])
 
 
 def _signal_moments(ev: dict, asset: Asset, query: str, entities: list[str],
@@ -168,6 +198,7 @@ def _try_asset(ev: dict, asset: Asset, beat: dict, query: str,
     from ...moments.timing import place_in_point
 
     beat_dur = ev["end_s"] - ev["start_s"]
+    punch_off = _punch_off(ev, beat)
     curve: dict = {}
     moments, conf = _signal_moments(ev, asset, query, entities, curve)
     sig_windows = [(m.in_s, m.out_s, m.score) for m in moments[:3]]
@@ -216,7 +247,8 @@ def _try_asset(ev: dict, asset: Asset, beat: dict, query: str,
         # and keep scene cuts off the first/last few frames.
         play_in = place_in_point(
             a, beat_dur, d.get("action_at", "none"), scenes,
-            min(asset.duration_s or 0.0, ANALYZE_MAX_S))
+            min(asset.duration_s or 0.0, ANALYZE_MAX_S),
+            punch_off=punch_off)
         if abs(play_in - a) > 0.01:
             # The strip, the EDL and a manual pick all use the placed
             # window; judged_in_s keeps what the judge actually looked at.

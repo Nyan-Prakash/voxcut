@@ -8,6 +8,8 @@ no key is configured.
 from __future__ import annotations
 
 import json
+import logging
+import threading
 from dataclasses import dataclass
 
 from sqlmodel import select
@@ -43,6 +45,41 @@ class BrainError(RuntimeError):
 
 IMAGE_DETAILS = ("low", "high", "auto")
 REQUEST_TIMEOUT_S = 120.0
+
+
+log = logging.getLogger(__name__)
+
+# Spend meter. USD per 1M tokens (input, output) — list prices, an ESTIMATE:
+# edit when OpenAI's pricing changes. Unknown models fall back to gpt-4o's.
+PRICE_PER_M = {"gpt-4o": (2.50, 10.00), "gpt-4o-mini": (0.15, 0.60)}
+_usage_lock = threading.Lock()
+_usage: dict[str, dict] = {}
+
+
+def _record_usage(tag: str, model: str, usage) -> None:  # noqa: ANN001
+    if usage is None:
+        return
+    p_in, p_out = PRICE_PER_M.get(model, PRICE_PER_M["gpt-4o"])
+    tin, tout = usage.prompt_tokens or 0, usage.completion_tokens or 0
+    cost = (tin * p_in + tout * p_out) / 1e6
+    with _usage_lock:
+        row = _usage.setdefault(tag, {"calls": 0, "in": 0, "out": 0, "usd": 0.0})
+        row["calls"] += 1
+        row["in"] += tin
+        row["out"] += tout
+        row["usd"] += cost
+        total = sum(r["usd"] for r in _usage.values())
+    log.info("[spend] %s in=%d out=%d ~$%.4f (running total ~$%.2f)",
+             tag, tin, tout, cost, total)
+
+
+def usage_summary(reset: bool = False) -> dict[str, dict]:
+    """Estimated spend per call type since start (or the last reset)."""
+    with _usage_lock:
+        out = {k: dict(v) for k, v in _usage.items()}
+        if reset:
+            _usage.clear()
+    return out
 
 
 def structured(system: str, user: str, schema: dict, *,
@@ -100,6 +137,7 @@ def structured(system: str, user: str, schema: dict, *,
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
+            _record_usage(schema_name, cfg.model, getattr(resp, "usage", None))
             content = resp.choices[0].message.content or "{}"
             return json.loads(content)
         except Exception as exc:  # noqa: BLE001

@@ -114,7 +114,7 @@ async def run_reroll(ctx: JobContext) -> None:
                 fresh = plan_one(beat, brief, avoid_extra=avoid_titles,
                                  hint=hint, neighbors=neighbors.get(beat["id"]))
                 for key in ("kind", "queries", "joke_queries", "audio",
-                            "gag", "joke_gag", "mode"):
+                            "gag", "joke_gag", "mode", "punch_word"):
                     ev[key] = fresh[key]
                 replanned += 1
             except BrainError:

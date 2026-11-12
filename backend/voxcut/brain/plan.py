@@ -85,6 +85,12 @@ whose query simply describes the ridiculous footage. Reaction and \
 exaggerated beats ALWAYS have a proper-name source — a named character or \
 person in a named scene, never "someone" — and at most half of the video's \
 angles may be stock.
+1d. MARK THE PUNCH WORD. "punch_word" is the single word in this beat's \
+narration the viewer should be HEARING at the instant the funny thing happens \
+on screen — the noun, verb or name the gag is about, usually where the \
+speaker lands the point (often late in the line, not its first word). Copy it \
+exactly as it appears in the narration. Use "" only when the visual simply \
+illustrates the whole line with no single landing word.
 2. ENERGY MATCHING: match visual energy to the beat's emphasis. Setup beats \
 (emphasis <0.5) want calm/medium footage; punchlines (>=0.7) want chaotic \
 high-energy visuals (crashes, explosions, freakouts, sprinting). Do not put \
@@ -152,7 +158,8 @@ def _default_treatment() -> dict:
 
 def _event(beat: dict, kind: str, queries: list[str] | None = None,
            audio_mode: str = "mute", joke_queries: list[str] | None = None,
-           gag: str = "", mode: str = "", joke_gag: str = "") -> dict:
+           gag: str = "", mode: str = "", joke_gag: str = "",
+           punch_word: str = "") -> dict:
     flags = ["auto"]
     if not queries:
         flags.append("gap_unfilled")
@@ -171,6 +178,9 @@ def _event(beat: dict, kind: str, queries: list[str] | None = None,
         "gag": gag,
         "joke_gag": joke_gag,
         "mode": mode,
+        # The word the visual should land on — the moment step lines the
+        # clip's action up with it (moments.timing).
+        "punch_word": punch_word,
         "treatment": _default_treatment(),
         "audio": {"mode": audio_mode, "duck_db": -18},
         "flags": flags,
@@ -259,6 +269,7 @@ def _item_to_event(beat: dict, it: dict) -> dict:
         gag=(it.get("gag") or "").strip(),
         mode=it.get("mode") or "",
         joke_gag=(it.get("joke_gag") or "").strip(),
+        punch_word=(it.get("punch_word") or "").strip(),
     )
 
 
