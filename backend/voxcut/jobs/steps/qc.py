@@ -39,7 +39,8 @@ async def run_qc(ctx: JobContext) -> None:
     # Interject clips are intentionally unmuted punchlines — the muted-clip
     # law does not apply to them, so they'd be false "middles" here.
     events = [e for e in edl["events"] if e.get("asset_id") and e.get("source")
-              and "interject" not in (e.get("flags") or [])]
+              and "interject" not in (e.get("flags") or [])
+              and not e.get("facecam")]
     if not events:
         await ctx.finish_step(step, "no placed clips to audit")
         return

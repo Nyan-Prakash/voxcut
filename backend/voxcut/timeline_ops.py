@@ -21,6 +21,7 @@ from .models import Project, Word, new_id
 
 MIN_PIECE_S = 0.25   # refuse cuts that leave a sliver
 COPY_KEYS = ("kind", "queries", "joke_queries", "gag", "joke_gag", "mode", "audio", "treatment",
+             "punch_word", "visual_need", "facecam",
              "moment_candidates", "finalists", "source_candidates",
              "finalist_asset_ids")
 

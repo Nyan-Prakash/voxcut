@@ -85,10 +85,17 @@ PLAN_SCHEMA = {
                                                   "the visual just "
                                                   "illustrates the whole "
                                                   "line"},
+                    "visual_need": {"type": "string",
+                                    "enum": ["high", "medium", "low"],
+                                    "description": "how much this line "
+                                                   "needs footage rather "
+                                                   "than the speaker on "
+                                                   "camera"},
                 },
                 "required": ["beat_id", "mode", "gag", "source", "kind",
                              "queries", "joke_gag", "joke_source",
-                             "joke_queries", "audio_mode", "punch_word"],
+                             "joke_queries", "audio_mode", "punch_word",
+                             "visual_need"],
             },
         }
     },

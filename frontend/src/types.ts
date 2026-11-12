@@ -59,6 +59,8 @@ export interface EdlEvent {
   finalists?: any[];
   qc?: { verdict: string; reason: string };
   gap_reason?: string | null;
+  facecam?: boolean;
+  visual_need?: "high" | "medium" | "low";
   interject?: { intent?: string; vision?: number };
 }
 
@@ -102,4 +104,17 @@ export interface Waveform {
   version: number;
   buckets_per_s: number;
   peaks: number[];
+}
+
+/** Trim step: the raw recording, before any cuts. Times are RAW seconds. */
+export interface TrimInfo {
+  state: "none" | "pending" | "done" | "skipped";
+  cuts: number[][];
+  raw_duration_s: number;
+  has_video: boolean;
+  locked: boolean;
+  words: { idx: number; text: string; start_s: number; end_s: number }[];
+  silences: number[][];
+  retakes: { start_s: number; end_s: number; text: string; reason: string }[];
+  defaults?: { min_pause_s: number; keep_pause_s: number };
 }

@@ -64,10 +64,20 @@ def _render_blank(dur: float, out: Path, w: int, h: int,
 
 
 def _is_gap(ev: dict) -> bool:
-    return "gap_unfilled" in (ev.get("flags") or []) and not ev.get("asset_id")
+    return ("gap_unfilled" in (ev.get("flags") or []) and not ev.get("asset_id")
+            and not ev.get("facecam"))
+
+
+def _has_picture(ev: dict) -> bool:
+    """A clip or a facecam shot — something that can hold through a gap."""
+    return bool(ev.get("asset_id") or ev.get("facecam"))
 
 
 def _absorb_gaps(events: list[dict]) -> list[tuple[dict, float]]:
+    return [(ev, dur) for ev, _start, dur in _absorb_gap_spans(events)]
+
+
+def _absorb_gap_spans(events: list[dict]) -> list[tuple[dict, float, float]]:
     """Unsourced gap events don't get their own screen time — the neighboring
     clip plays through them (operator preference: no fallback text cards).
     Returns (event, render_duration) pairs; absorbed gaps are dropped.
@@ -76,27 +86,62 @@ def _absorb_gaps(events: list[dict]) -> list[tuple[dict, float]]:
     spans: list[list] = [[ev, ev["start_s"], ev["end_s"]] for ev in events]
     absorbed: list[list] = []
     for item in spans:
-        if _is_gap(item[0]) and absorbed and absorbed[-1][0].get("asset_id"):
+        if _is_gap(item[0]) and absorbed and _has_picture(absorbed[-1][0]):
             absorbed[-1][2] = item[2]      # previous clip holds through the gap
             continue
         absorbed.append(item)
     result: list[list] = []
     for item in reversed(absorbed):
-        if _is_gap(item[0]) and result and result[-1][0].get("asset_id"):
+        if _is_gap(item[0]) and result and _has_picture(result[-1][0]):
             result[-1][1] = item[1]        # next clip starts early to cover it
             continue
         result.append(item)
     result.reverse()
-    return [(ev, max(0.1, round(e - s, 3))) for ev, s, e in result]
+    # (event, timeline start of what it covers, duration) — a facecam shot
+    # that starts early to cover a leading gap must also START its footage
+    # early, so the start matters, not just the length.
+    return [(ev, s, max(0.1, round(e - s, 3))) for ev, s, e in result]
+
+
+def _render_facecam(facecam: Path, in_s: float, dur: float, out: Path,
+                    w: int, h: int, crf: str, preset: str) -> bool:
+    """The speaker's own footage for this stretch of the timeline. The VO
+    master is the facecam's audio, so the picture must start at exactly the
+    matching time — in_s comes from trim_store.facecam_clock."""
+    vf = (f"scale={w}:{h}:force_original_aspect_ratio=increase,"
+          f"crop={w}:{h},tpad=stop_mode=clone:stop_duration={dur}"
+          f",fps={FPS},setsar=1")
+    try:
+        _run_atomic([
+            ffmpeg(), "-y", "-ss", f"{in_s:.3f}", "-i", str(facecam),
+            # An exact frame count, not -t: after a seek the first frame's
+            # timestamp is rarely 0, and -t then drops the last frame — one
+            # frame per shot adds up to visible lip-sync drift.
+            "-frames:v", str(max(1, round(dur * FPS))), "-vf", vf,
+            "-c:v", "libx264", "-preset", preset, "-crf", crf,
+            "-pix_fmt", "yuv420p", "-an", str(out),
+        ], out)
+        return _probe_ok(out)
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def render_event_segment(ev: dict, seg_dir: Path, w: int, h: int,
-                         proxy: bool = True, dur: float | None = None) -> Path:
+                         proxy: bool = True, dur: float | None = None,
+                         facecam: tuple[Path, float] | None = None) -> Path:
+    """facecam: (facecam.mp4, seconds into it) when this event is a facecam
+    shot and the project has the footage."""
     out = seg_dir / f"{ev['id']}.mp4"
     if dur is None:
         dur = max(0.1, round(ev["end_s"] - ev["start_s"], 3))
     crf = "28" if proxy else "18"
     preset = "ultrafast" if proxy else "medium"
+
+    if ev.get("facecam") and facecam is not None:
+        if _render_facecam(facecam[0], facecam[1], dur, out, w, h, crf, preset):
+            return out
+        out.unlink(missing_ok=True)
+        return _render_blank(dur, out, w, h, crf, preset)
 
     asset_path, asset_dur = (_resolve_asset(ev["asset_id"])
                              if ev.get("asset_id") else (None, 0.0))
@@ -115,7 +160,9 @@ def render_event_segment(ev: dict, seg_dir: Path, w: int, h: int,
         try:
             _run_atomic([
                 ffmpeg(), "-y", "-ss", f"{in_s:.3f}", "-i", asset_path,
-                "-t", f"{dur}", "-vf", vf,
+                # Exact frame count (see _render_facecam) so clips can't
+                # push the picture off the voiceover either.
+                "-frames:v", str(max(1, round(dur * FPS))), "-vf", vf,
                 "-c:v", "libx264", "-preset", preset, "-crf", crf,
                 "-pix_fmt", "yuv420p", "-an", str(out),
             ], out)
@@ -292,12 +339,26 @@ def _render_locked(project_id: str, edl: dict, master_path: Path | None,
     preset = "ultrafast" if proxy else "medium"
 
     events = sorted(edl.get("events", []), key=lambda e: e["start_s"])
-    render_plan = _absorb_gaps(events)
+    render_plan = _absorb_gap_spans(events)
+    facecam_path = project_dir / "facecam.mp4"
+    clock = None
+    if facecam_path.exists() and any(e.get("facecam") for e in events):
+        from ..trim_store import facecam_clock
+        clock = facecam_clock(project_id)
     seg_paths: list[Path] = []
-    for i, (ev, dur) in enumerate(render_plan):
+    for i, (ev, start, dur) in enumerate(render_plan):
         seg = seg_dir / f"{ev['id']}.mp4"
+        # Snap every segment to the frame grid of the TIMELINE, not of its
+        # own length: rounding each duration on its own let the picture
+        # slip a frame every few cuts (0.1s late after 17 events), which
+        # reads as bad lip sync the moment the picture is the speaker.
+        f0, f1 = round(start * FPS), round((start + dur) * FPS)
+        start, dur = f0 / FPS, max(1, f1 - f0) / FPS
         try:
-            seg = render_event_segment(ev, seg_dir, w, h, proxy, dur=dur)
+            fc = ((facecam_path, clock(start))
+                  if clock is not None and ev.get("facecam") else None)
+            seg = render_event_segment(ev, seg_dir, w, h, proxy, dur=dur,
+                                       facecam=fc)
         except Exception:  # noqa: BLE001 — last-resort per-segment guard
             seg = _render_blank(dur, seg, w, h, crf, preset)
         # Validate before it can poison the concat; a broken segment goes blank.

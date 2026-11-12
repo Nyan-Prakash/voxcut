@@ -63,6 +63,7 @@ function MultiPanel() {
 
 function InspectorBody({ ev, applyOps }: { ev: EdlEvent; applyOps: (ops: any[]) => Promise<void> }) {
   const { project, reroll } = useStore();
+  const hasFacecam = useStore((s) => !!s.trim?.has_video);
   const [cands, setCands] = useState<any>(null);
   const [query, setQuery] = useState(ev.queries?.[0] || "");
   const [hint, setHint] = useState("");
@@ -77,7 +78,7 @@ function InspectorBody({ ev, applyOps }: { ev: EdlEvent; applyOps: (ops: any[]) 
   return (
     <div className="inspector">
       <div className="row" style={{ justifyContent: "space-between" }}>
-        <h2>{ev.kind}</h2>
+        <h2>{ev.facecam ? "facecam" : ev.kind}</h2>
         <span className="muted">{ev.start_s.toFixed(2)}–{ev.end_s.toFixed(2)}s ({dur}s)</span>
       </div>
       {ev.flags?.length > 0 && (
@@ -103,6 +104,30 @@ function InspectorBody({ ev, applyOps }: { ev: EdlEvent; applyOps: (ops: any[]) 
           QC: {ev.qc.verdict === "middle" ? "mediocre middle" : ev.qc.verdict}
           {" — "}{ev.qc.reason}
         </div>
+      )}
+
+      {hasFacecam && (
+        <>
+          <label>On screen for this line</label>
+          <div className="seg">
+            <button className={ev.facecam ? "active" : "sec"} disabled={ev.locked}
+                    onClick={async () => {
+                      if (ev.facecam) return;
+                      await applyOps([{ op: "set_facecam", event_id: ev.id, data: { on: true } }]);
+                      await api.rebuildPreview(project!.id);
+                    }}>🎥 My face</button>
+            <button className={!ev.facecam ? "active" : "sec"} disabled={ev.locked}
+                    title={ev.asset_id ? "Show the clip chosen for this line"
+                                       : "Find a clip for this line"}
+                    onClick={async () => {
+                      if (!ev.facecam) return;
+                      await applyOps([{ op: "set_facecam", event_id: ev.id, data: { on: false } }]);
+                      // A clip was already sourced → just re-render; otherwise find one.
+                      if (ev.asset_id) await api.rebuildPreview(project!.id);
+                      else reroll([ev.id], "");
+                    }}>🎬 A clip</button>
+          </div>
+        </>
       )}
 
       <label>Direction for the new clip (optional)</label>

@@ -75,6 +75,7 @@ async def run_source(ctx: JobContext) -> None:
     only = _only_ids(ctx.payload)
     events = [e for e in edl["events"]
               if e["kind"] in SOURCING_KINDS and e.get("queries") and not e.get("locked")
+              and not e.get("facecam")   # the speaker is the footage
               and (only is None or e["id"] in only)]
     step = ctx.add_step("source")
     await ctx.report(step, 0.02, f"Sourcing {len(events)} clips")

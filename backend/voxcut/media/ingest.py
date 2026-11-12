@@ -12,7 +12,33 @@ from pathlib import Path
 
 import numpy as np
 
-from .probe import duration_s, ffmpeg, run
+from ..trim import FPS as FACECAM_FPS
+from .probe import duration_s, ffmpeg, ffprobe, run
+
+FACECAM_MAX_H = 1080
+
+
+def has_video(src: Path) -> bool:
+    """True when the upload carries a real video stream (a facecam) — cover
+    art embedded in an audio file does not count."""
+    try:
+        streams = ffprobe(src).get("streams", [])
+    except Exception:  # noqa: BLE001
+        return False
+    return any(s.get("codec_type") == "video"
+               and not (s.get("disposition") or {}).get("attached_pic")
+               for s in streams)
+
+
+def extract_facecam(src: Path, out: Path) -> None:
+    """The facecam master: constant 30 fps (so trim cuts land on whole
+    frames), at most 1080p, a keyframe every second for fast seeking, no
+    audio — the VO master is the audio."""
+    run([ffmpeg(), "-y", "-i", str(src), "-an",
+         "-vf", f"fps={FACECAM_FPS},scale=-2:'min({FACECAM_MAX_H},ih)',setsar=1",
+         "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+         "-g", str(FACECAM_FPS), "-pix_fmt", "yuv420p",
+         "-movflags", "+faststart", str(out)])
 
 
 def normalize(src: Path, project_dir: Path) -> dict:
@@ -29,11 +55,17 @@ def normalize(src: Path, project_dir: Path) -> dict:
     peaks = compute_peaks(asr_wav, dur)
     peaks_path.write_text(json.dumps(peaks))
 
+    facecam = None
+    if has_video(src):
+        facecam = project_dir / "facecam.mp4"
+        extract_facecam(src, facecam)
+
     return {
         "asr_wav": str(asr_wav),
         "master": str(master),
         "duration_s": dur,
         "waveform": str(peaks_path),
+        "facecam": str(facecam) if facecam else None,
     }
 
 

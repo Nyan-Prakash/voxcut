@@ -26,6 +26,7 @@ async def run_moment(ctx: JobContext) -> None:
     from .source import _only_ids
     only = _only_ids(ctx.payload)
     events = [e for e in edl["events"] if e.get("asset_id") and not e.get("locked")
+              and not e.get("facecam")
               and (only is None or e["id"] in only)]
     step = ctx.add_step("moment")
     await ctx.report(step, 0.02, f"Selecting moments for {len(events)} clips")

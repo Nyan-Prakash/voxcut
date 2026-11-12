@@ -114,7 +114,7 @@ async def run_reroll(ctx: JobContext) -> None:
                 fresh = plan_one(beat, brief, avoid_extra=avoid_titles,
                                  hint=hint, neighbors=neighbors.get(beat["id"]))
                 for key in ("kind", "queries", "joke_queries", "audio",
-                            "gag", "joke_gag", "mode", "punch_word"):
+                            "gag", "joke_gag", "mode", "punch_word", "visual_need"):
                     ev[key] = fresh[key]
                 replanned += 1
             except BrainError:
@@ -128,6 +128,9 @@ async def run_reroll(ctx: JobContext) -> None:
             ev["gag"] = hint
         ev["asset_id"] = None
         ev["source"] = None
+        if ev.get("facecam"):   # rerolling a face shot asks for a clip instead
+            from ...facecam import set_facecam
+            set_facecam(ev, False)
         for key in RESET_KEYS:
             ev.pop(key, None)
         ev.pop("qc", None)  # old verdict is about the old footage

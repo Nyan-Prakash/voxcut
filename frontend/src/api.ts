@@ -1,4 +1,4 @@
-import type { Beat, Edl, HighlightClip, Job, Project, Waveform, Word } from "./types";
+import type { Beat, Edl, HighlightClip, Job, Project, TrimInfo, Waveform, Word } from "./types";
 
 const token = new URLSearchParams(location.search).get("t") || "";
 
@@ -78,6 +78,14 @@ export const api = {
 
   getBeats: (id: string) => req<{ beats: Beat[]; mode: string }>(`/projects/${id}/beats`),
   rederiveBeats: (id: string) => req<{ job_id: string }>(`/projects/${id}/beats/rederive`, { method: "POST" }),
+
+  getTrim: (id: string) => req<TrimInfo>(`/projects/${id}/trim`),
+  applyTrim: (id: string, cuts: number[][]) =>
+    req<{ job_id: string }>(`/projects/${id}/trim`, {
+      method: "POST", body: JSON.stringify({ cuts }),
+    }),
+  trimVideoUrl: (id: string) => url(`/projects/${id}/trim/media`),
+  trimAudioUrl: (id: string) => url(`/projects/${id}/trim/audio`),
 
   generate: (id: string) => req<{ job_id: string }>(`/projects/${id}/generate`, { method: "POST" }),
   getEdl: (id: string) => req<Edl>(`/projects/${id}/edl`),

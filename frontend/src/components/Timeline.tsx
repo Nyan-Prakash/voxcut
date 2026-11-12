@@ -137,12 +137,15 @@ export function Timeline() {
           {edl.events.map((e) => {
             const interject = e.flags?.includes("interject");
             const sourcing = e.flags?.includes("sourcing");
-            const cls = e.flags?.includes("gap_unfilled") ? "gap" : "clip";
+            const face = !!e.facecam;
+            const cls = face ? "clip face"
+              : e.flags?.includes("gap_unfilled") ? "gap" : "clip";
             const rev = e.flags?.includes("needs_review") || e.flags?.includes("close_call")
               || e.flags?.includes("qc_middle") || e.flags?.includes("cold_open_weak");
             // Label with what actually PLAYS (tournament winner), not the query.
             const winner = e.finalists?.find((f: any) => f.asset_id === e.asset_id);
             const label = sourcing ? "⚡ finding a bit…"
+              : face ? "you, on camera"
               : (interject && e.interject?.intent) || winner?.title || e.queries?.[0]
               || (e.flags?.includes("user_added") ? "new segment — search or reroll" : e.kind);
             return (
@@ -154,16 +157,16 @@ export function Timeline() {
                    title={tool === "cut" ? "click to cut here"
                           : tool === "interject" ? "click to cut the voiceover and drop in an unmuted clip"
                           : `${e.kind} · ${label}`}>
-                {e.asset_id && project && (
+                {(e.asset_id || face) && project && (
                   <img alt=""
                        // Cache-buster tracks the footage: new asset or new
                        // moment → new URL → browser refetches the thumbnail.
                        src={api.mediaUrl(`/projects/${project.id}/thumb/${e.id}`)
-                            + `&v=${e.asset_id}-${e.source?.in_s ?? 0}`}
+                            + `&v=${face ? `face-${e.start_s}` : `${e.asset_id}-${e.source?.in_s ?? 0}`}`}
                        onError={(ev) => ((ev.target as HTMLElement).style.display = "none")} />
                 )}
                 {rev && <span className="rev">⚑</span>}
-                {e.asset_id && e.audio?.mode !== "mute" && <span className="aud">🔊</span>}
+                {e.asset_id && !face && e.audio?.mode !== "mute" && <span className="aud">🔊</span>}
                 {tool === "select" && !e.locked && !sourcing && (
                   <button className="dice" title={interject
                             ? "Reroll: hunt a fresh unmuted bit for this gap"

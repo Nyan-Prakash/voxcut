@@ -32,7 +32,12 @@ async def run_plan(ctx: JobContext) -> None:
     step = ctx.add_step("plan")
     mode = "LLM" if is_available() else "heuristic"
     await ctx.report(step, 0.2, f"Planning the edit ({mode})")
-    edl = await asyncio.to_thread(planner.plan, beats, brief, aspect)
+    from ...facecam import DEFAULT_FACE_SHARE, face_share_of
+    from ...trim_store import has_facecam
+    face_share = (float(proj_settings.get("face_share", DEFAULT_FACE_SHARE))
+                  if has_facecam(project_id) else None)
+    edl = await asyncio.to_thread(planner.plan, beats, brief, aspect, None,
+                                  face_share)
     save_edl(project_id, edl)
     # Say what actually happened: an LLM plan that failed falls back to the
     # keyword heuristic, and those events carry no gag.
@@ -41,4 +46,6 @@ async def run_plan(ctx: JobContext) -> None:
     if mode == "LLM" and planned < n:
         mode = (f"LLM planned {planned}/{n}; keyword fallback for the rest"
                 if planned else "LLM plan FAILED — keyword fallback")
+    if face_share is not None:
+        mode += f"; facecam on {round(face_share_of(edl['events']) * 100)}% of the runtime"
     await ctx.finish_step(step, f"{n} events ({mode})")

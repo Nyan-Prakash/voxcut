@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { api } from "./api";
-import type { Beat, Edl, EdlEvent, Job, Project, Waveform, Word } from "./types";
+import type { Beat, Edl, EdlEvent, Job, Project, TrimInfo, Waveform, Word } from "./types";
 
 interface State {
   view: "projects" | "editor" | "settings" | "library";
@@ -10,6 +10,10 @@ interface State {
   beats: Beat[];
   words: Word[];
   waveform: Waveform | null;
+  trim: TrimInfo | null;
+  // True while the operator has chosen to reopen the trim screen.
+  trimOpen: boolean;
+  setTrimOpen: (open: boolean) => void;
   selectedEventId: string | null;
   selectedEventIds: string[];
   jobs: Record<string, Job>;
@@ -57,6 +61,9 @@ export const useStore = create<State>((set, get) => ({
   beats: [],
   words: [],
   waveform: null,
+  trim: null,
+  trimOpen: false,
+  setTrimOpen: (open) => set({ trimOpen: open }),
   selectedEventId: null,
   selectedEventIds: [],
   jobs: {},
@@ -80,8 +87,12 @@ export const useStore = create<State>((set, get) => ({
 
   openProject: async (id) => {
     const project = await api.getProject(id);
+    // Clear the previous project's data first: a project with no edit yet
+    // must not show the last project's timeline.
     set({ project, view: "editor", selectedEventId: null, selectedEventIds: [],
-          stage: "clips" });
+          stage: "clips", edl: null, beats: [], words: [], waveform: null,
+          trim: null, trimOpen: false });
+    try { set({ trim: await api.getTrim(id) }); } catch { /* */ }
     try { set({ waveform: await api.waveform(id) }); } catch { /* not ready */ }
     try { const t = await api.transcript(id); set({ words: t.words }); } catch { /* */ }
     try { const b = await api.getBeats(id); set({ beats: b.beats }); } catch { /* */ }
@@ -98,6 +109,7 @@ export const useStore = create<State>((set, get) => ({
     try { const b = await api.getBeats(project.id); set({ beats: b.beats }); } catch { /* */ }
     try { set({ edl: await api.getEdl(project.id) }); } catch { /* */ }
     try { set({ project: await api.getProject(project.id) }); } catch { /* */ }
+    try { set({ trim: await api.getTrim(project.id) }); } catch { /* */ }
   },
 
   select: (id, mode = "single") => {
@@ -238,6 +250,11 @@ export const useStore = create<State>((set, get) => ({
       if (ev.project_id && project && ev.project_id === project.id) {
         get().refreshEdl();
       }
+    }
+    if (ev.type === "trim_done" && project && ev.project_id === project.id) {
+      set({ trimOpen: false });
+      get().refreshEdl();
+      get().setToast("✂ Trim applied — ready to generate");
     }
     if (ev.type === "preview_updated" && project && ev.project_id === project.id) {
       get().bumpPreview();

@@ -102,6 +102,13 @@ on screen — the noun, verb or name the gag is about, usually where the \
 speaker lands the point (often late in the line, not its first word). Copy it \
 exactly as it appears in the narration. Use "" only when the visual simply \
 illustrates the whole line with no single landing word.
+1e. RATE THE VISUAL NEED. Some videos are filmed: the speaker can simply be \
+shown talking instead of a clip. "visual_need" says how much THIS line loses \
+without footage. "high": the line names or jokes about something that only \
+lands if we SEE it — a reference, a concrete thing, a punchline with a visual \
+payoff. "low": the speaker carries it alone — setups, transitions, direct \
+address to the viewer, opinions, asides, sign-offs. "medium": either works. \
+Rate honestly; most scripts have plenty of "low" lines.
 2. ENERGY MATCHING: match visual energy to the beat's emphasis. Setup beats \
 (emphasis <0.5) want calm/medium footage; punchlines (>=0.7) want chaotic \
 high-energy visuals (crashes, explosions, freakouts, sprinting). Do not put \
@@ -170,7 +177,7 @@ def _default_treatment() -> dict:
 def _event(beat: dict, kind: str, queries: list[str] | None = None,
            audio_mode: str = "mute", joke_queries: list[str] | None = None,
            gag: str = "", mode: str = "", joke_gag: str = "",
-           punch_word: str = "") -> dict:
+           punch_word: str = "", visual_need: str = "medium") -> dict:
     flags = ["auto"]
     if not queries:
         flags.append("gap_unfilled")
@@ -192,6 +199,9 @@ def _event(beat: dict, kind: str, queries: list[str] | None = None,
         # The word the visual should land on — the moment step lines the
         # clip's action up with it (moments.timing).
         "punch_word": punch_word,
+        # How much the line needs footage — decides face vs clip when the
+        # project has a facecam (voxcut.facecam).
+        "visual_need": visual_need,
         "treatment": _default_treatment(),
         "audio": {"mode": audio_mode, "duck_db": -18},
         "flags": flags,
@@ -200,7 +210,9 @@ def _event(beat: dict, kind: str, queries: list[str] | None = None,
 
 
 def plan(beats: list[dict], brief: dict, aspect: str = "16:9",
-         use_llm: bool | None = None) -> dict:
+         use_llm: bool | None = None, face_share: float | None = None) -> dict:
+    """face_share: None for an audio-only project; otherwise the fraction of
+    the runtime that should show the speaker's facecam."""
     if use_llm is None:
         use_llm = is_available()
     events: list[dict]
@@ -213,6 +225,9 @@ def plan(beats: list[dict], brief: dict, aspect: str = "16:9",
             events = _heuristic_plan(beats)
     else:
         events = _heuristic_plan(beats)
+    if face_share is not None:
+        from ..facecam import assign_facecam
+        assign_facecam(events, face_share)
     if events:  # the hook gets the deeper tournament (source/moment steps)
         events[0]["flags"].append("cold_open")
     return {"version": 1, "aspect": aspect, "events": events}
@@ -321,6 +336,7 @@ def _item_to_event(beat: dict, it: dict) -> dict:
         mode=it.get("mode") or "",
         joke_gag=(it.get("joke_gag") or "").strip(),
         punch_word=(it.get("punch_word") or "").strip(),
+        visual_need=it.get("visual_need") or "medium",
     )
 
 

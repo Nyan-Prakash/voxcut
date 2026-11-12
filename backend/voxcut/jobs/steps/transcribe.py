@@ -26,7 +26,9 @@ async def run_transcribe(ctx: JobContext) -> None:
     ingest_step = ctx.add_step("ingest")
     await ctx.report(ingest_step, 0.1, "Normalizing audio")
     norm = await asyncio.to_thread(normalize, src, pdir)
-    await ctx.finish_step(ingest_step, f"{norm['duration_s']:.1f}s of audio")
+    await ctx.finish_step(
+        ingest_step, f"{norm['duration_s']:.1f}s of "
+        + ("video (facecam kept)" if norm.get("facecam") else "audio"))
 
     with session_scope() as db:
         p = db.get(Project, project_id)
@@ -66,6 +68,15 @@ async def run_transcribe(ctx: JobContext) -> None:
         "words": [w.__dict__ for w in transcript.words],
     }))
     (pdir / "silences.json").write_text(json.dumps({"silences": transcript.silences}))
+
+    # Keep the as-uploaded media + transcript and open the trim step: the
+    # operator trims (or skips) before generate can run.
+    from ...trim_store import stash_raw
+    stash_raw(project_id, {
+        "language": transcript.language,
+        "words": [w.__dict__ for w in transcript.words],
+        "silences": transcript.silences,
+    }, norm["duration_s"])
 
     with session_scope() as db:
         p = db.get(Project, project_id)

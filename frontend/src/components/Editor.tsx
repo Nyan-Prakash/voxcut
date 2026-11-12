@@ -6,9 +6,10 @@ import { Inspector } from "./Inspector";
 import { MusicSection } from "./Library";
 import { HighlightsPanel } from "./Highlights";
 import { ExportModal } from "./ExportModal";
+import { TrimStage } from "./Trim";
 
 export function Editor() {
-  const { project, edl, words, stage } = useStore();
+  const { project, edl, words, stage, trim, trimOpen } = useStore();
   const gen = async () => {
     if (!project) return;
     await api.generate(project.id);
@@ -17,6 +18,13 @@ export function Editor() {
 
   if (!project) return null;
   const hasTranscript = words.length > 0;
+
+  // Trim comes before generate: a fresh upload always stops here, and it can
+  // be reopened until an edit exists.
+  if (!edl && trim && trim.words.length > 0
+      && (trim.state === "pending" || trimOpen)) {
+    return <TrimStage key={`${project.id}-${trim.state}`} />;
+  }
 
   if (stage === "music" && edl) return <MusicStage />;
   if (stage === "tiktok" && edl) return <TikTokStage />;
@@ -34,6 +42,13 @@ export function Editor() {
               {hasTranscript ? "⚡ Generate edit" : "Waiting for transcript…"}
             </button>
           )}
+          {!edl && trim && (trim.state === "done" || trim.state === "skipped") && (
+            <button className="ghost" title="Go back and change what was cut from the recording"
+                    onClick={() => useStore.getState().setTrimOpen(true)}>
+              ✂ {trim.state === "done" ? `Trimmed (${trim.cuts.length} cuts) — change` : "Not trimmed — trim"}
+            </button>
+          )}
+          {!edl && trim?.has_video && <FaceShare />}
           {edl && <EditorToolbar />}
         </div>
         {edl ? <Timeline /> : (
@@ -102,6 +117,32 @@ function TikTokStage() {
   );
 }
 
+/** How much of the video shows the facecam. Used the next time the edit is
+ *  generated; single lines can be flipped any time in the inspector. */
+function FaceShare() {
+  const project = useStore((s) => s.project);
+  const [v, setV] = useState<number>(
+    Math.round(((project?.settings?.face_share as number) ?? 0.5) * 100));
+  if (!project) return null;
+  const save = async (pct: number) => {
+    const fresh = await api.getProject(project.id);   // never clobber other settings
+    const p = await api.updateProject(project.id, {
+      settings: { ...fresh.settings, face_share: pct / 100 },
+    });
+    useStore.setState({ project: p as any });
+  };
+  return (
+    <span className="face-share"
+          title="Share of the video that shows your facecam. Applies the next time you generate.">
+      🎥 Face {v}%
+      <input type="range" min={0} max={100} step={5} value={v}
+             onChange={(e) => setV(Number(e.target.value))}
+             onMouseUp={() => save(v)} onTouchEnd={() => save(v)}
+             onKeyUp={() => save(v)} />
+    </span>
+  );
+}
+
 function ToolSwitch() {
   const { tool, setTool } = useStore();
   const TOOLS: Array<{ id: typeof tool; label: string; hint: string }> = [
@@ -148,6 +189,7 @@ function EditorToolbar() {
       }}>▶ Rebuild</button>
       <button className="ghost" title="Re-fetch the timeline from the server"
               onClick={() => refreshEdl()}>⟳ Refresh</button>
+      {useStore.getState().trim?.has_video && <FaceShare />}
       <div className="spacer" />
       <TimeReadout />
       <ExportButton />

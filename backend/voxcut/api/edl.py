@@ -25,6 +25,10 @@ def get_edl(project_id: str) -> dict:
 
 @router.post("/{project_id}/generate")
 async def generate(project_id: str) -> dict:
+    from ..trim_store import read_state
+    if read_state(project_id)["state"] == "pending":
+        raise HTTPException(409, "Finish the trim step first — trim the "
+                                 "recording or choose to leave it as is.")
     job_id = await runner.submit("generate", project_id=project_id)
     return {"job_id": job_id}
 
@@ -41,7 +45,7 @@ class OpsBody(BaseModel):
 
 
 _ALLOWED = {"set_treatment", "set_audio", "set_kind",
-            "delete", "lock", "set_source", "set_asset"}
+            "delete", "lock", "set_source", "set_asset", "set_facecam"}
 
 
 @router.post("/{project_id}/edl/ops")
@@ -90,6 +94,17 @@ def apply_ops(project_id: str, body: OpsBody) -> dict:
             ev["asset_id"] = op.data.get("asset_id")
             ev["source"] = op.data.get("source", ev.get("source"))
             ev["flags"] = [f for f in ev.get("flags", []) if f != "gap_unfilled"]
+        elif op.op == "set_facecam":
+            # Show the speaker here (on) or go back to a clip (off). The
+            # planned clip, if one was sourced, is kept either way.
+            from ..facecam import set_facecam
+            from ..trim_store import has_facecam
+            on = bool(op.data.get("on", True))
+            if on and not has_facecam(project_id):
+                raise HTTPException(400, "this project has no facecam video")
+            set_facecam(ev, on)
+            if on:
+                ev["flags"] = [f for f in ev["flags"] if f != "gap_unfilled"]
         elif op.op == "lock":
             ev["locked"] = bool(op.data.get("locked", True))
         dirty.append(ev["id"])
@@ -216,15 +231,22 @@ def event_thumb(project_id: str, event_id: str) -> FileResponse:
     if not cache.exists():
         edl = load_edl(project_id)
         ev = next((e for e in edl["events"] if e["id"] == event_id), None)
-        if not ev or not ev.get("asset_id"):
-            raise HTTPException(404, "no footage for this event")
-        with session_scope() as db:
-            asset = db.get(Asset, ev["asset_id"])
-        if not asset:
-            raise HTTPException(404, "asset missing")
-        t = float((ev.get("source") or {}).get("in_s", 0.0)) + 0.4
+        facecam = settings().project_dir(project_id) / "facecam.mp4"
+        if ev and ev.get("facecam") and facecam.exists():
+            from ..trim_store import facecam_clock
+            src_path = str(facecam)
+            t = facecam_clock(project_id)(ev["start_s"]) + 0.4
+        else:
+            if not ev or not ev.get("asset_id"):
+                raise HTTPException(404, "no footage for this event")
+            with session_scope() as db:
+                asset = db.get(Asset, ev["asset_id"])
+            if not asset:
+                raise HTTPException(404, "asset missing")
+            src_path = asset.file_path
+            t = float((ev.get("source") or {}).get("in_s", 0.0)) + 0.4
         proc = subprocess.run(
-            [ffmpeg(), "-y", "-ss", f"{t:.2f}", "-i", asset.file_path,
+            [ffmpeg(), "-y", "-ss", f"{t:.2f}", "-i", src_path,
              "-frames:v", "1", "-vf", "scale=240:-2", "-q:v", "6", str(cache)],
             capture_output=True, text=True, timeout=60)
         if proc.returncode != 0 or not cache.exists():
