@@ -92,6 +92,11 @@ function InspectorBody({ ev, applyOps }: { ev: EdlEvent; applyOps: (ops: any[]) 
           <br />Deleting it also removes its inserted time.
         </div>
       )}
+      {ev.flags?.includes("gap_unfilled") && (
+        <div className="muted" style={{ fontSize: 12, marginTop: 6, color: "var(--bad)" }}>
+          No footage — {ev.gap_reason ?? "reason not recorded (sourced before logging existed)"}
+        </div>
+      )}
       {ev.qc && (
         <div className="muted" style={{ fontSize: 12, marginTop: 6,
               color: ev.qc.verdict === "middle" ? "var(--bad)" : undefined }}>

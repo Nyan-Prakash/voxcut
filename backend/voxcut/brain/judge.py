@@ -36,9 +36,6 @@ JUDGE_SCHEMA = {
     "required": ["picks"],
 }
 
-# The frame judge reuses the same schema; franchise is ignored there.
-FRAME_SCHEMA = JUDGE_SCHEMA
-
 JUDGE_SYSTEM = """\
 You vet YouTube search results for a fast-cut commentary video editor.
 
@@ -93,6 +90,15 @@ Judging rules:
 - TONE: this is a comedy edit. Reject footage of real tragedy — death, violent
   crime, accidents, disasters, grief — regardless of relevance. A funny beat
   cut against someone's real misfortune reads as offensive, not funny.
+- INTENDED GAG: when given, it is the editor's plan for what the viewer
+  should SEE under this line and why it is funny. A result likely to contain
+  exactly that footage scores highest. A result that lands the line another
+  way (clearly the literal thing, or clearly a joke) still counts. A result
+  that matches the search words but would deliver neither the gag nor the
+  literal thing is the mediocre middle — reject it.
+- CONTEXT: the lines before and after are there so you understand what the
+  beat MEANS (what "it"/"they" refer to, where the bit is going). Score
+  against the beat itself, never against its neighbors.
 - When in doubt, score low. Returning zero good picks is a valid answer —
   the editor lets the neighboring clip hold through the gap, which beats a
   random clip.
@@ -101,7 +107,7 @@ Return picks ONLY for results scoring >= 0.5, ordered best-first."""
 
 JUDGE_USER = """\
 Narration beat: "{beat_text}"
-Visual intent: {intent}
+{extra}Visual intent: {intent}
 Search queries used: {queries}
 Franchises already used in this video: {franchises}
 
@@ -109,29 +115,212 @@ Results:
 {results}"""
 
 
-FRAME_SYSTEM = """\
-You pick the exact MOMENT inside a downloaded video for a fast-cut commentary
-edit. The clip plays MUTED under the narrator's voiceover.
+FRAME_JUDGE_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "windows": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "index": {"type": "integer"},
+                    "seen": {"type": "string",
+                             "description": "what is literally visible across "
+                                            "the three frames, <= 15 words"},
+                    "has_subtitles_or_small_text": {
+                        "type": "boolean",
+                        "description": "subtitles, captions, small labels, "
+                                       "credits or corner text over real "
+                                       "footage (not a hard fail)"},
+                    "has_small_corner_watermark": {
+                        "type": "boolean",
+                        "description": "a small creator/app/clip-channel "
+                                       "mark on otherwise usable footage "
+                                       "(not a hard fail)"},
+                    "is_title_card_or_text_overlay": {
+                        "type": "boolean",
+                        "description": "HARD FAIL: text larger than a subtitle "
+                                       "that titles, numbers, labels or captions "
+                                       "the clip (title/number/chapter/list "
+                                       "cards, a numeral plus a word over "
+                                       "letterbox bars, end screens, comparison "
+                                       "grids, meme text panels, thumbnails), "
+                                       "even with footage visible behind it"},
+                    "is_logo_or_watermark_or_branding": {
+                        "type": "boolean",
+                        "description": "HARD FAIL: branding that marks the "
+                                       "footage as documentary, nature/science, "
+                                       "news, educational, corporate or stock "
+                                       "content, a lower-third, a sponsor or "
+                                       "intro/outro card, or a mark big enough "
+                                       "to pull the eye from the action. FALSE "
+                                       "for a network bug or creator/app/clip "
+                                       "mark on comedy, cartoon, movie, viral "
+                                       "or meme footage — that goes in "
+                                       "has_small_corner_watermark"},
+                    "is_talking_head": {
+                        "type": "boolean",
+                        "description": "HARD FAIL: a real person presenting, "
+                                       "explaining, vlogging, podcasting, "
+                                       "anchoring or being interviewed is the "
+                                       "content. FALSE for reactions, freakouts, "
+                                       "scripted scenes, cartoons"},
+                    "nothing_readable": {
+                        "type": "boolean",
+                        "description": "HARD FAIL: a viewer could not tell "
+                                       "within a second what is on screen "
+                                       "(blur, dark, transition, texture, "
+                                       "smear, empty frame)"},
+                    "is_product_or_toy_demo": {
+                        "type": "boolean",
+                        "description": "toys, products or merchandise being "
+                                       "handled, unboxed, demonstrated or "
+                                       "displayed (capped, not zeroed)"},
+                    "shows_named_subject": {
+                        "type": "boolean",
+                        "description": "the thing/event the narration names is "
+                                       "actually visible (not implied)"},
+                    "action_at": {
+                        "type": "string",
+                        "enum": ["start", "middle", "end", "throughout", "none"],
+                        "description": "which of the three frames shows the "
+                                       "key action/payoff for this line; "
+                                       "'throughout' if all three do, 'none' "
+                                       "if nothing notable happens (report "
+                                       "only — never changes the score)"},
+                    "score": {"type": "number"},
+                    "reason": {"type": "string"},
+                },
+                "required": ["index", "seen", "has_subtitles_or_small_text",
+                             "has_small_corner_watermark",
+                             "is_title_card_or_text_overlay",
+                             "is_logo_or_watermark_or_branding",
+                             "is_talking_head", "nothing_readable",
+                             "is_product_or_toy_demo",
+                             "shows_named_subject", "action_at", "score",
+                             "reason"],
+            },
+        },
+        "ranking": {
+            "type": "array",
+            "items": {"type": "integer"},
+            "description": "every window index exactly once, best-first",
+        },
+    },
+    "required": ["windows", "ranking"],
+}
 
-You see numbered frames, each sampled from the middle of one candidate window.
-Score each frame 0..1 for how well its window would play as the visual for the
-narration:
-- HIGH: the frame shows the named thing/action actually happening, an
-  exaggerated facial reaction, physical comedy mid-action, an obviously absurd
-  gag that commits to the bit, or the recognizable meme moment. Expressive and
-  instantly readable with no sound. If the narration is marked [PUNCHLINE],
-  chaotic high-energy moments win; if [setup], calm clear moments win.
-- LOW: someone merely talking at the camera, static shots where nothing
-  happens, title cards, intros/outros, channel branding, black/blurry
-  transition frames, unrelated content.
-Score every frame index exactly once. Be harsh: 0.8+ means "this exact moment
-is the gag". If nothing fits, low scores everywhere are the right answer."""
+# Any of these true → the code scores the window 0.0 regardless of `score`.
+# They are the failure classes a lenient scorer kept waving through: a
+# "7." list card, a branded documentary close-up, a presenter at a desk, a
+# blur. Making them booleans the model must answer, instead of hoping the
+# score reflects them, is what makes the gate enforceable.
+HARD_FAIL_FLAGS = ("is_title_card_or_text_overlay",
+                   "is_logo_or_watermark_or_branding",
+                   "is_talking_head", "nothing_readable")
+# Soft fail: a product shot can be the "literal" thing in a lenient reading
+# ("toy animals go in a trailer" for a line about separating animals) and
+# still be dead footage — it never gets to compete with real moments. Capped
+# below ESCALATE_BELOW in moment.py so the tournament looks elsewhere.
+SOFT_FAIL_CAPS = {"is_product_or_toy_demo": 0.4}
+# Reported, never enforced: a place for the model to note a subtitle or a
+# corner mark without reaching for the hard-fail flag.
+INFO_FLAGS = ("has_subtitles_or_small_text", "has_small_corner_watermark")
+
+FRAME_SYSTEM = """\
+You verify the exact MOMENT inside a downloaded video for a commentary edit.
+The clip plays MUTED under the narrator's voiceover, so judge every window
+as silent footage a viewer sees for a couple of seconds.
+
+Each numbered image is one candidate WINDOW shown as three frames tiled in
+time order (top→bottom, or left→right for vertical video): the start, the
+middle and the end of the window. Read all three — they tell you what the
+window DOES, not what one lucky frame looks like.
+
+STEP 1 — flags, answered for every window.
+
+First the two REPORT-ONLY flags. They never fail a window; they exist so
+you can note a mark without reaching for a hard fail:
+- has_subtitles_or_small_text: subtitle-sized text — subtitles, captions,
+  small labels, credits or corner text — sits over real footage. Text
+  that is bigger than a subtitle and names, numbers or titles the clip is
+  not "small": that is the hard-fail flag below.
+- has_small_corner_watermark: a small creator, clip-channel, app or
+  meme-site mark sits in a corner of otherwise usable footage. A TV
+  comedy, a cartoon, a movie, a viral clip or a meme with a corner mark is
+  still that footage — report the mark here and nowhere else.
+
+Then the HARD-FAIL flags. Any true one makes the window unusable; the
+editor will score it 0 no matter what. They are for footage that is
+unusable, not merely imperfect:
+- is_title_card_or_text_overlay: text or graphics ARE the content, or a
+  text panel/bar takes a large share of the frame — title, number, chapter
+  or list cards, a numeral plus a word over letterbox bars (compilation
+  item cards), end screens, caption cards, side-by-side comparison grids,
+  meme templates whose text panels are the joke, thumbnails. It counts
+  even when footage is visible behind or beside the text.
+- is_logo_or_watermark_or_branding: branding marks the footage as
+  documentary, news, educational, corporate or stock content — a nature or
+  science channel logo on a close-up, a news bug or lower-third, a sponsor
+  or intro/outro card — or a watermark big enough to pull the eye away
+  from the action.
+- is_talking_head: a real person presenting, explaining, vlogging,
+  podcasting, anchoring or being interviewed is the content, delivered
+  calmly to a camera or mic. NOT an exaggerated facial reaction, a
+  freakout, a famous reaction moment, characters in a scripted scene, or
+  animated/cartoon characters — those are footage, even when they speak.
+- nothing_readable: a viewer could not tell within a second what they are
+  looking at — blurry, dark, washed out, mid-transition, a patch of ground
+  or texture, motion smear, a mostly empty frame.
+Then the SOFT-FAIL flag, which caps the score at 0.4 (the editor looks for
+another source) instead of zeroing it:
+- is_product_or_toy_demo: toys, products or merchandise being handled,
+  unboxed, demonstrated or displayed — a product shot can match the words
+  of a line and still be dead footage under it.
+Also record shows_named_subject: is the thing or event the narration names
+literally visible in the frames (not implied, not a category cousin)?
+And record action_at — report only, it never changes the score: which of
+the three frames shows the key action or payoff for this line (start,
+middle, end), "throughout" when all three do, "none" when nothing notable
+happens. The editor uses it to place the cut so the payoff is not clipped.
+
+STEP 2 — score 0..1 for how well the window plays as the visual for this
+narration, muted. Calibration — hold to it:
+- 0.8–1.0: THE exact gag. The frames show precisely the named thing/event
+  happening, the recognizable meme moment, or physical comedy / an
+  exaggerated reaction that reads instantly with no sound and fits the
+  line. Rare — usually at most one window in a video earns this.
+- 0.6–0.8: clearly shows the named thing or is clearly funny, but it is not
+  the peak moment (the approach, the aftermath, a milder take). When the
+  narration quotes or references a specific show, scene or meme and the
+  video title says this IS that scene, a clear frame of that scene with
+  its recognizable characters is the literal thing — at least 0.6 even
+  when the frame itself is calm.
+- 0.2–0.5: where MOST windows should land — related footage that is
+  generic, static, needs context to connect, or shows the subject while
+  nothing happens. "That is sort of the topic" is a 0.3, not a 0.7.
+- 0.0–0.2: unrelated, or any hard-fail flag.
+Generic means generic: compilation-style recycled footage, toys or
+products being handled or unboxed, stock b-roll of the category,
+educational close-ups, people vaguely doing things. Cap those in the
+0.2–0.5 band unless the exact action the line calls for is visible. A
+window whose subject is only a cousin of what the line names (same
+category, different thing) is 0.5 at best.
+Energy: if the narration is marked [PUNCHLINE], chaotic high-energy moments
+win; if marked [setup], calm clear moments win. Mismatched energy loses
+points.
+
+Return one entry per window index — every index exactly once — and a forced
+"ranking" of ALL indices best-first: even when scores tie, decide which one
+you would cut to. Scores must be consistent with the ranking."""
 
 FRAME_USER = """\
 Narration beat: "{beat_text}"
-Visual intent: {intent}
-Video: {video_title}
-{n} candidate windows; frame i is from the middle of window i."""
+{extra}Visual intent: {intent}
+Video title: {video_title}
+{n} candidate windows; image i is window i, three frames start→middle→end."""
 
 
 QC_SCHEMA = {
@@ -290,27 +479,111 @@ def judge_qc(entries: list[tuple[str, str, str]]) -> list[dict | None]:
     return verdicts
 
 
-def judge_frames(beat_text: str, intent: str, video_title: str,
-                 frames: list[str]) -> list[float]:
-    """frames: list of data-URL jpegs, one per candidate window (in order).
-    Returns a score 0..1 per frame. Raises BrainError on failure."""
-    images = [(f"Frame {i}:", url) for i, url in enumerate(frames)]
+def _judge_extra(gag: str, context: tuple[str, str] | None) -> str:
+    """Optional prompt lines shared by both judges: the planner's intended
+    gag and the neighboring narration. Empty inputs add nothing to the
+    user message, so the calibration harness can measure with and without."""
+    lines = []
+    prev_line, next_line = context or ("", "")
+    if prev_line:
+        lines.append(f'Line before (context only): "{prev_line}"')
+    if next_line:
+        lines.append(f'Line after (context only): "{next_line}"')
+    if gag:
+        lines.append(f"Intended gag (the editor's plan; another clearly-"
+                     f"literal or clearly-funny read still counts): {gag}")
+    return "".join(line + "\n" for line in lines)
+
+
+def judge_frames_detailed(beat_text: str, intent: str, video_title: str,
+                          frames: list[str], *, detail: str = "high",
+                          gag: str = "",
+                          context: tuple[str, str] | None = None,
+                          ) -> list[dict]:
+    """frames: list of data-URL images, one per candidate window (in order;
+    normally a three-frame tile from moments.frames.sample_window_tiles).
+    detail: vision detail — "high" for the verification that gates
+    escalation, "low" for the coarse whole-video scan.
+
+    Returns one record per window, in window order:
+      score   0..1 after enforcement (hard-fail flags → 0.0; soft-fail
+              flags cap it; scores capped so they never contradict the
+              model's own forced ranking)
+      raw_score  the model's unenforced score, for calibration reports
+      flags   the hard-fail flags the model raised
+      soft_flags / info  the capping flags and the report-only flags raised
+      rank    0 = the window the model would cut to
+      seen / reason / shows_named_subject  diagnostics
+    Raises BrainError on failure."""
+    images = [(f"Window {i}:", url) for i, url in enumerate(frames)]
     out = structured(
         FRAME_SYSTEM,
         FRAME_USER.format(beat_text=beat_text, intent=intent,
-                          video_title=video_title, n=len(frames)),
-        JUDGE_SCHEMA, schema_name="frame_judge", temperature=0.2,
-        max_tokens=1500, images=images)
-    scores = [0.0] * len(frames)
-    for p in out.get("picks", []):
-        if 0 <= p["index"] < len(frames):
-            scores[p["index"]] = max(0.0, min(1.0, float(p["relevance"])))
-    return scores
+                          video_title=video_title, n=len(frames),
+                          extra=_judge_extra(gag, context)),
+        FRAME_JUDGE_SCHEMA, schema_name="frame_judge", temperature=0.1,
+        max_tokens=3000, images=images, image_detail=detail)
+    n = len(frames)
+    recs = [{"index": i, "score": 0.0, "raw_score": 0.0, "flags": [],
+             "soft_flags": [], "info": [], "rank": None, "seen": "",
+             "reason": "", "shows_named_subject": False,
+             "action_at": "none"} for i in range(n)]
+    for w in out.get("windows", []):
+        i = w.get("index")
+        if not isinstance(i, int) or not 0 <= i < n:
+            continue
+        raw = max(0.0, min(1.0, float(w.get("score", 0.0))))
+        flags = [f for f in HARD_FAIL_FLAGS if w.get(f)]
+        soft = [f for f in SOFT_FAIL_CAPS if w.get(f)]
+        score = 0.0 if flags else raw
+        for f in soft:
+            score = min(score, SOFT_FAIL_CAPS[f])
+        recs[i].update(
+            raw_score=raw, score=score, flags=flags, soft_flags=soft,
+            info=[f for f in INFO_FLAGS if w.get(f)],
+            seen=str(w.get("seen", "")), reason=str(w.get("reason", "")),
+            shows_named_subject=bool(w.get("shows_named_subject")),
+            action_at=str(w.get("action_at") or "none"))
+
+    # Forced ranking: the model's stated order, de-duplicated, with any
+    # window it forgot appended in score order. Then walk down it and cap
+    # each usable window at the score of the usable window above it, so a
+    # window the model ranked lower can never outscore one it ranked higher.
+    # Hard-failed windows are already 0 and neither move nor lower the cap.
+    order: list[int] = []
+    for i in out.get("ranking", []):
+        if isinstance(i, int) and 0 <= i < n and i not in order:
+            order.append(i)
+    for i in sorted(range(n), key=lambda j: -recs[j]["score"]):
+        if i not in order:
+            order.append(i)
+    usable = [i for i in order if not recs[i]["flags"]]
+    failed = [i for i in order if recs[i]["flags"]]
+    cap = 1.0
+    for i in usable:
+        recs[i]["score"] = round(min(recs[i]["score"], cap), 3)
+        cap = recs[i]["score"]
+    for rank, i in enumerate(usable + failed):
+        recs[i]["rank"] = rank
+    return recs
+
+
+def judge_frames(beat_text: str, intent: str, video_title: str,
+                 frames: list[str], *, detail: str = "high", gag: str = "",
+                 context: tuple[str, str] | None = None) -> list[float]:
+    """frames: list of data-URL images, one per candidate window (in order).
+    Returns an enforced score 0..1 per window — see judge_frames_detailed.
+    Raises BrainError on failure."""
+    return [r["score"] for r in
+            judge_frames_detailed(beat_text, intent, video_title, frames,
+                                  detail=detail, gag=gag, context=context)]
 
 
 def judge_candidates(beat_text: str, intent: str, queries: list[str],
                      candidates: list[dict],
                      franchise_counts: dict[str, int] | None = None,
+                     gag: str = "",
+                     context: tuple[str, str] | None = None,
                      ) -> list[tuple[int, float, str]]:
     """Returns [(candidate_index, relevance, franchise)] best-first, only
     relevance >= 0.5. Raises BrainError if the LLM is unavailable/fails
@@ -331,7 +604,8 @@ def judge_candidates(beat_text: str, intent: str, queries: list[str],
         JUDGE_SYSTEM,
         JUDGE_USER.format(beat_text=beat_text, intent=intent,
                           queries=", ".join(queries), results=results,
-                          franchises=franchises),
+                          franchises=franchises,
+                          extra=_judge_extra(gag, context)),
         JUDGE_SCHEMA, schema_name="source_judge", temperature=0.2,
         max_tokens=2000, images=images or None)
     picks = [(p["index"], float(p["relevance"]), (p.get("franchise") or "").strip())

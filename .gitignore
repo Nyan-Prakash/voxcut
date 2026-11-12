@@ -7,6 +7,10 @@ uv.lock
 
 # VOXCUT data (never commit user media / DB)
 data/
+# frame-judge calibration: labels + scores are committed, images are not
+backend/calibration/*/frames/
+backend/calibration/*/tiles/
+backend/calibration/*/contact_sheet_*.jpg
 /tmp/voxcut*
 
 # Node / Vite

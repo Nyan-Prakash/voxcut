@@ -16,6 +16,7 @@ dependencies = [
     "openai>=1.50",
     "rapidfuzz>=3.14.5",
     "fastembed>=0.8.0",
+    "pillow>=10.1",  # calibrate_frame_judge.py contact sheets
 ]
 
 [tool.uv]

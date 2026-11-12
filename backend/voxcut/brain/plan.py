@@ -25,13 +25,13 @@ Rules:
 SILENT visual: physical action, exaggerated facial reactions, freakouts,
 fails, memes, animated moments. NEVER plan footage of people just talking
 (interviews, podcasts, news anchors, explainers) — muted talking looks broken.
-When you want a meme or reaction, NAME THE EXACT well-known clip — a query a
-YouTube search can resolve to one canonical video ("Pinocchio nose growing
-scene", "Michael Scott no god please no", "confused math lady", "side eye Chloe")
-— NEVER a generic pattern like "<emotion> meme" or "<situation> meme"; generic
-meme queries return random low-quality uploads. The quoted names above are
-FORMAT examples only — do NOT default to them; draw from the full breadth of
-internet culture and pick whatever canonical clip genuinely fits THIS beat.
+When you want a meme or reaction, NAME THE EXACT well-known clip — the SOURCE
+(show, film, anime, game, creator, event) plus the SPECIFIC moment or quoted
+line, so a YouTube search resolves to one canonical video — NEVER a generic
+pattern like "<emotion> meme" or "<situation> meme"; generic meme queries
+return random low-quality uploads. Draw from the full breadth of internet
+culture and pick whatever canonical clip genuinely fits THIS beat; a clip that
+would fit under almost any sentence is too generic.
 Never use the same meme twice in one video. Stay anchored to the video's
 actual subject and story: at least one query per beat should reference its
 concrete entities or the video subject, so the edit doesn't drift into
@@ -53,6 +53,44 @@ craziest versions for punchlines.
 (lockdown drill → toy dart gun). The mismatch is the joke.
 NEVER the mediocre middle: a clip that is only somewhat related and not funny \
 is the worst outcome — go clearly literal or clearly joke, never in between.
+1b. WRITE THE GAG FIRST. For every beat fill "gag" before the queries: one \
+line saying what the viewer SEES and why it lands under these exact words, \
+and set "mode" to the playbook mode it uses. The visual is the SECOND \
+punchline — it adds a joke the narrator did not say out loud; it does not \
+merely illustrate the sentence. Engines that reliably work: take a figure of \
+speech or an exaggeration hyper-literally; show the most disproportionate \
+version of a small thing, or the cheapest version of a grand claim; cut to \
+someone or something reacting the way the audience feels at that word; treat \
+a trivial topic with epic gravity or a grave one with a toy prop. Read the \
+beat in context — the lines before and after tell you what "it", "they" or \
+"that" refer to and where the bit is heading; the visual must fit what the \
+line MEANS there, not just its nouns. If your gag line could sit unchanged \
+under a different sentence of this script, it is too generic — tie it to a \
+specific word or image in THIS line. NEVER a symbol or metaphor (footage \
+that "represents" or "symbolizes" the idea, like an object standing in for \
+an abstract thought) — symbolic stock is the mediocre middle. When a beat is \
+connective and names nothing showable, use a reaction or an absurd \
+non-sequitur instead. The queries then hunt for exactly the footage the gag \
+describes.
+1c. COMMIT TO A SOURCE. "A clip of someone doing X" is a wish, not a plan — \
+decide WHO, from WHAT. For each angle fill "source" / "joke_source" with the \
+NAMED origin of the footage: the show, film, anime, game, creator, athlete, \
+public event, or the name a famous viral clip is known by. The gag names \
+that source and the specific scene or moment in it, and EVERY query contains \
+the source name plus the moment. "source" is either a PROPER NAME or the \
+single word "stock" — never a category like "viral clip", "meme", "movie" or \
+"sitcom". Write "stock" when anonymous footage of the thing itself is the \
+point: plain literal grounding, a deadpan prop, or an absurd non-sequitur \
+whose query simply describes the ridiculous footage. Reaction and \
+exaggerated beats ALWAYS have a proper-name source — a named character or \
+person in a named scene, never "someone" — and at most half of the video's \
+angles may be stock.
+1d. MARK THE PUNCH WORD. "punch_word" is the single word in this beat's \
+narration the viewer should be HEARING at the instant the funny thing happens \
+on screen — the noun, verb or name the gag is about, usually where the \
+speaker lands the point (often late in the line, not its first word). Copy it \
+exactly as it appears in the narration. Use "" only when the visual simply \
+illustrates the whole line with no single landing word.
 2. ENERGY MATCHING: match visual energy to the beat's emphasis. Setup beats \
 (emphasis <0.5) want calm/medium footage; punchlines (>=0.7) want chaotic \
 high-energy visuals (crashes, explosions, freakouts, sprinting). Do not put \
@@ -69,7 +107,12 @@ tests both with real footage, keeping whichever verifies funnier: \
 "queries" = your primary angle; "joke_queries" = the OTHER angle. If the \
 primary is literal/exaggerated-literal, joke_queries names a reaction or \
 canonical meme matching the emotion; if the primary is a meme/reaction, \
-joke_queries goes literal. Both angles must obey rule 4's specificity.
+joke_queries goes literal. Write "joke_gag" (one line, what the viewer \
+sees for the OTHER angle) before joke_queries. The two angles must be \
+DIFFERENT footage from DIFFERENT sources — never the same character, show \
+or scene reworded. If a joke_query could return the same video as one of \
+your queries, you have written one angle twice. Both angles must obey rule \
+4's specificity.
 2d. FAMOUS + FRESH: mix recognizable iconic scenes (recognition lands the \
 joke) with fresh, lesser-known finds (surprise lands the joke) — a video of \
 only worn-out memes is as weak as a video of only obscure clips.
@@ -82,7 +125,9 @@ same flavor; never 3 consecutive reactions.
 4. Write 2-3 search queries per beat, ordered best-first. Queries must \
 be what a human would type into YouTube to find EXACTLY this footage — include \
 names, events, "meme", "scene", "interview", "moment" as appropriate. Be \
-SPECIFIC: never a lone generic word ("school", "phone"); anchor every query to \
+SPECIFIC: never a lone generic word ("school", "phone") or a bare category \
+("<kind of place> footage", "<kind of person> lifestyle") — say WHICH one: \
+the named event, person, film scene, show episode or viral clip; anchor every query to \
 the concrete entity, the named person/show/event, or the video's subject — \
 EXCEPT for absurd non-sequitur beats, where the query names the funny footage \
 itself ("iguana in a dress mirror"). If the beat names nothing concrete, an \
@@ -112,7 +157,9 @@ def _default_treatment() -> dict:
 
 
 def _event(beat: dict, kind: str, queries: list[str] | None = None,
-           audio_mode: str = "mute", joke_queries: list[str] | None = None) -> dict:
+           audio_mode: str = "mute", joke_queries: list[str] | None = None,
+           gag: str = "", mode: str = "", joke_gag: str = "",
+           punch_word: str = "") -> dict:
     flags = ["auto"]
     if not queries:
         flags.append("gap_unfilled")
@@ -126,6 +173,14 @@ def _event(beat: dict, kind: str, queries: list[str] | None = None,
         "source": None,
         "queries": queries or [],
         "joke_queries": joke_queries or [],
+        # The planner's intended joke — handed to both judges so footage is
+        # scored against the bit, not just the sentence's keywords.
+        "gag": gag,
+        "joke_gag": joke_gag,
+        "mode": mode,
+        # The word the visual should land on — the moment step lines the
+        # clip's action up with it (moments.timing).
+        "punch_word": punch_word,
         "treatment": _default_treatment(),
         "audio": {"mode": audio_mode, "duck_db": -18},
         "flags": flags,
@@ -159,8 +214,8 @@ def _llm_plan(beats: list[dict], brief: dict) -> list[dict]:
     context = brief_summary(brief)
 
     beats_block = "\n".join(
-        f"{b['id']} | emph={b['emphasis']} | rhythm={b.get('rhythm', 'flow')} | "
-        f"affinity={b['visual_affinity']} | "
+        f"{b['id']} | emph={b['emphasis']} | tone={b.get('tone', 'neutral')} | "
+        f"rhythm={b.get('rhythm', 'flow')} | affinity={b['visual_affinity']} | "
         f"entities={b.get('concrete_entities')} | {b['text']}" for b in beats)
     system = PLAN_SYSTEM.format(avoid=avoid)
     user = PLAN_USER.format(context=context, avoid=avoid, beats_block=beats_block)
@@ -178,18 +233,49 @@ def _llm_plan(beats: list[dict], brief: dict) -> list[dict]:
     return events
 
 
+_SOURCE_STOP = {"the", "a", "an", "of", "and", "in", "on", "from", "show",
+                "movie", "film", "series", "clip", "scene", "meme", "video",
+                "viral", "internet", "youtube", "tiktok", "stock", "footage",
+                "generic", "random", "sitcom", "cartoon", "anime", "reaction"}
+
+
+def _anchor_queries(queries: list[str], source: str) -> list[str]:
+    """Make every query carry its named source. The planner is told to do
+    this; when it writes "disgusted face reaction" under source "The Office"
+    anyway, the search returns random uploads — so the name is prefixed
+    here rather than hoped for. 'stock' (or empty) leaves queries alone."""
+    source = (source or "").strip()
+    if not source or source.lower() in ("stock", "none", "n/a", "generic"):
+        return queries
+    keys = [w for w in "".join(c if c.isalnum() else " " for c in source.lower()).split()
+            if w not in _SOURCE_STOP and len(w) > 2]
+    if not keys:
+        return queries
+    out = []
+    for q in queries:
+        ql = q.lower()
+        out.append(q if any(k in ql for k in keys) else f"{source} {q}")
+    return out
+
+
 def _item_to_event(beat: dict, it: dict) -> dict:
     kind = it["kind"] if it["kind"] in KINDS else "broll"
     return _event(
         beat, kind,
-        queries=it.get("queries", []),
+        queries=_anchor_queries(it.get("queries", []), it.get("source", "")),
         audio_mode=it.get("audio_mode", "mute"),
-        joke_queries=it.get("joke_queries", []),
+        joke_queries=_anchor_queries(it.get("joke_queries", []),
+                                     it.get("joke_source", "")),
+        gag=(it.get("gag") or "").strip(),
+        mode=it.get("mode") or "",
+        joke_gag=(it.get("joke_gag") or "").strip(),
+        punch_word=(it.get("punch_word") or "").strip(),
     )
 
 
 def plan_one(beat: dict, brief: dict, avoid_extra: list[str] | None = None,
-             hint: str | None = None) -> dict:
+             hint: str | None = None,
+             neighbors: tuple[str, str] | None = None) -> dict:
     """Re-plan a single beat (per-clip reroll). Returns a fresh event for the
     beat with new queries/kind. An optional operator hint steers the plan.
     Raises BrainError when the LLM is unavailable."""
@@ -201,6 +287,10 @@ def plan_one(beat: dict, brief: dict, avoid_extra: list[str] | None = None,
         f"affinity={beat.get('visual_affinity', 'literal')} | "
         f"entities={beat.get('concrete_entities')} | {beat.get('text', beat.get('gist', ''))}")
     user = PLAN_USER.format(context=context, avoid=avoid, beats_block=beats_block)
+    prev_line, next_line = neighbors or ("", "")
+    if prev_line or next_line:
+        user += (f"\n\nSurrounding narration (context only — plan ONLY the "
+                 f"beat above):\nBefore: \"{prev_line}\"\nAfter: \"{next_line}\"")
     if hint and hint.strip():
         user += (f"\n\nOPERATOR DIRECTION for this beat — follow it; it wins over "
                  f"every playbook rule above, but keep queries SPECIFIC and "

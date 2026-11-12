@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 import shutil
 import subprocess
@@ -10,6 +11,8 @@ from pathlib import Path
 
 from ..media.probe import ffprobe
 from .base import Candidate, Filters
+
+log = logging.getLogger(__name__)
 
 _FMT = "bv*[height<=720][ext=mp4]+ba[ext=m4a]/b[height<=720]/b"
 
@@ -39,6 +42,12 @@ class YouTubeProvider:
                 data = json.loads(proc.stdout)
                 if data.get("entries"):
                     break
+                log.warning("ytsearch %r: rc=0 but no entries (attempt %d)",
+                            query, attempt + 1)
+            else:
+                log.warning("ytsearch %r: rc=%d (attempt %d) stderr: %s",
+                            query, proc.returncode, attempt + 1,
+                            proc.stderr.strip()[-300:])
             if attempt == 0:
                 time.sleep(5)
         if not data:
@@ -83,6 +92,9 @@ class YouTubeProvider:
              # silently killing EVERY download.
              "--match-filter", "duration <=? 900",
              "--write-auto-subs", "--write-subs", "--sub-langs", "en.*",
+             # Subtitle fetches get 429'd under a burst; without this a
+             # caption failure discards a video that downloaded fine.
+             "--ignore-errors",
              "--write-info-json", "--write-thumbnail", "--no-playlist",
              "--continue", "--no-warnings",
              "-o", str(dest / "video.%(ext)s"), url],

@@ -1,0 +1,81 @@
+# idx  label(good|bad|?)  event_id   # asset title | narration
+# Edit the middle column. Lines starting with # are ignored.
+  0  good  ev_01M3GF47Y6HHBA4GWC6QEYP4DC  # PRELABEL: Seinfeld scene under the 'yada yada' line
+  1  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4DD  # NO GOD! PLEASE NO!!! NOOOOOOOOOO | there is 100 % a list of animals that I think just shouldn't
+  2  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4DE  # surprised pikachu meme origin | Now, I'm not saying we kill all of them, I would never say w
+  3  bad   ev_01M3GF47Y6HHBA4GWC6QEYP4DF  # PRELABEL: kids' toy-truck/animal playset unboxing — generic product shot
+  4  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4DG  # Spotted Lanternfly Mayhem | So,
+  5  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4DH  # Weekend Update: A Spotted Lanternfly on Being | animal number one,
+  6  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4DJ  # Why You Should STOMP Every Spotted Lanternfly | the lanternfly,
+  7  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4DK  # Invasive Species 101 | National Geographic | and all other invasive species.
+  8  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4DM  # German Cat Meme Original | So these are the things that kind of just come into their ha
+  9  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4DN  # Jimmy Neutron - Hugh Neutron & The Angry Mob | You know, they're just, they're spilling over the border, we
+ 10  bad   ev_01M3GF47Y6HHBA4GWC6QEYP4DP  # PRELABEL: compilation title card '7. WASPS' over black bars
+ 11  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4DQ  # Penguinz0 Gets Attacked by Wasp [ORIGINAL] | wasps.
+ 12  good  ev_01M3GF47Y6HHBA4GWC6QEYP4DR  # ADDED: bee on blossom under 'bees do the pollen' — literal
+ 13  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4DS  # Funny Bee Sting 🐝 | Now I hate getting stung, but I feel like if they have a pur
+ 14  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4DT  # HOW BEES MAKE HONEYCOMB - It Might Surprise Y | you know, honey's pretty sick, having flowers and like ecosy
+ 15  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4DV  # God Creating Animals Skit || Gacha Skit | But I feel like, you know, God went kind of crazy when he wa
+ 16  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4DW  # Stung by the Chancla! | David Lopez | But then they can sting an infinite number of times and also
+ 17  bad   ev_01M3GF47Y6HHBA4GWC6QEYP4DX  # PRELABEL: shaky blur of ground / beekeeper suit — nothing readable
+ 18  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4DY  # Funny... Wasp stings man while wife laughs! | So yeah, wasps are definitely number two on my list.
+ 19  bad   ev_01M3GF47Y6HHBA4GWC6QEYP4DZ  # PRELABEL: meme comparison grid with text headers
+ 20  good  ev_01M3GF47Y6HHBA4GWC6QEYP4E0  # PRELABEL: angry chihuahua face, teeth bared
+ 21  good  ev_01M3GF47Y6HHBA4GWC6QEYP4E1  # PRELABEL: Beverly Hills Chihuahua trailer
+ 22  good  ev_01M3GF47Y6HHBA4GWC6QEYP4E2  # PRELABEL: Air Bud dog with basketball
+ 23  good  ev_01M3GF47Y6HHBA4GWC6QEYP4E3  # PRELABEL: Air Bud dog with basketball
+ 24  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4E4  # Growling Chihuahua | if that makes sense and then you know I'm down with any othe
+ 25  good  ev_01M3GF47Y6HHBA4GWC6QEYP4E5  # PRELABEL: angry chihuahua face (Chui)
+ 26  good  ev_01M3GF47Y6HHBA4GWC6QEYP4E6  # PRELABEL: angry chihuahua face, snarling at camera
+ 27  good  ev_01M3GF47Y6HHBA4GWC6QEYP4E7  # PRELABEL: angry chihuahua face, red eyes snarling
+ 28  good  ev_01M3GF47Y6HHBA4GWC6QEYP4E8  # PRELABEL: angry chihuahua face, snarling at camera
+ 29  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4E9  # Severe Bed Bug Infestation Removed in Normand | number four and This this might be a little little controver
+ 30  bad   ev_01M3GF47Y6HHBA4GWC6QEYP4EA  # PRELABEL: documentary macro with National Geographic logo
+ 31  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4EB  # MINUSCULE Clip - "Racing Bugs" (2012) | now. I'm chill with bugs You know bugs are outside I think t
+ 32  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4EC  # Insects in flight | 11 incredible species in  | in there if they want to
+ 33  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4ED  # The Giant Mosquito Bite | it You know try and bite me outside like I don't think it's 
+ 34  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4EE  # Rent: Too Damn High!  Song. | But like when they're inside the house like I live in a city
+ 35  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4EF  # give me rent pt. 2 | So I think if they don't have if they don't end up paying re
+ 36  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4EG  # Severe Bed Bug Infestation Removed in Normand | bitches. So I definitely think I have a Bugs who don't pay r
+ 37  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4EH  # Counting ( original meme uwuw ) | Now number five number five is
+ 38  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4EJ  # Original Super Mario Bros - Infinite Lives -  | a very specific turtle from
+ 39  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4EK  # NEW Super Mario Bros. 3 Bloopers | Super Mario We, World 3,
+ 40  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4EM  # 3-3 Walk The Turtle - Super Mario Bros Glitch | you know that guy that you bump into,
+ 41  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4EN  # Markiplier Rage Quit (Getting Over It) | I don't know, I feel like they bumped the rates on that guy.
+ 42  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4EP  # gamer rage | And then whenever I do, I have to play him and I always lose
+ 43  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4EQ  # Spongebob Squarepants - You Stupid Dumb Anima | So I feel like it's just a stupid animal,
+ 44  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4ER  # Spongebob Squarepants - You Stupid Dumb Anima | you know, it's got a stupid smile, stupid hop and I think we
+ 45  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4ES  # Baa Donkey Gifs With Sound Baa | we could just peacefully separate him.
+ 46  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4ET  # Number 6 Man Urinates meme but it's in HD | And now, number 6 are
+ 47  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4EV  # Crab Rave - Backrooms Edition | crabs,
+ 48  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4EW  # Army of Crabs Protect Spy Robot From Stingray | and this is like a pretty small one, but I think The crabs n
+ 49  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4EX  # PINCHED by a HUGE CRAB! | I feel like you don't need them to be that close. And they s
+ 50  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4EY  # Noisestorm - Crab Rave [Monstercat Release] | So I've gotten bit before on the ocean, in the ocean, just s
+ 51  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4EZ  # Mr Incredible Becoming Uncanny meme (You See  | Now I kinda get the hypocrisy now that I think about it, how
+ 52  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4F0  # @Numberblocks- Meet Number Seven | Meet the N | now number seven,
+ 53  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4F1  # Lice Invasion - The Office US | six,
+ 54  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4F2  # LICE BOYS | seven,
+ 55  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4F3  # What Causes Head Lice? | Treatment For Head L | I actually don't remember which one,
+ 56  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4F4  # Head lice infection | but lice.
+ 57  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4F5  # Every StoryTime Animation | Now, I gotta tell you a story.
+ 58  ?     ev_01M3GF47Y6HHBA4GWC6QEYP4F6  # Lice Outbreak Warning in North County | So back when I was a kid, there was a lice outbreak in my mi
+ 59  ?     ev_01M3GF47Y7HGMS48WK4SAQ713X  # funny shaved head 2 | And even though I didn't have it, my mom decided that it was
+ 60  ?     ev_01M3GF47Y7HGMS48WK4SAQ713Y  # funny shaved head 2 | a shaved head in middle school.
+ 61  ?     ev_01M3GF47Y7HGMS48WK4SAQ713Z  # School Lunch Table | And every day I went to school at the lunch table and got ma
+ 62  ?     ev_01M3GF47Y7HGMS48WK4SAQ7140  # WTF!!!!!!!??????? My mirror reflection is CRA | And when I got home, I'd look into the mirror and wonder why
+ 63  ?     ev_01M3GF47Y7HGMS48WK4SAQ7141  # Funny white dog with curly hair | Number eight. Number eight is dogs,
+ 64  ?     ev_01M3GF47Y7HGMS48WK4SAQ7142  # Funny white dog with curly hair | you know those white dogs with the curly hair and the crust 
+ 65  ?     ev_01M3GF47Y7HGMS48WK4SAQ7143  # || I SAID ENOUGH || MEME || { Ft. Past Aftons | Yeah, yeah. I think enough said on that point.
+ 66  ?     ev_01M3GF47Y7HGMS48WK4SAQ7144  # Goose Intimidates Soldiers || ViralHog | Number nine. Now I honestly think hormonal geese
+ 67  ?     ev_01M3GF47Y7HGMS48WK4SAQ7145  # Goose Attacks Businessman LOL | got a bounce. I don't know what's up with these motherfuckas
+ 68  ?     ev_01M3GF47Y7HGMS48WK4SAQ7146  # No Feeding Ducks! | I used to remember as a kid feeding them bread and then they
+ 69  ?     ev_01M3GF47Y7HGMS48WK4SAQ7147  # Angry hissing goose | They can hiss. Like, who made it so these birds can hiss?
+ 70  ?     ev_01M3GF47Y7HGMS48WK4SAQ7148  # Confused faces meme | I thought that was like a snake thing. So yeah, they can his
+ 71  ?     ev_01M3GF47Y7HGMS48WK4SAQ7149  # Killer Goose Attacking Girl! | And I remember I was feeding them, I was like 10 years old, 
+ 72  ?     ev_01M3GF47YHKDQHG7J35ZX5ZX5V  # He-Man Life Lesson - The right way is the bes | It was actually just like a real learning lesson for me as a
+ 73  ?     ev_01M3GF47YHKDQHG7J35ZX5ZX5W  # Geese loves to eat bread | Because I was giving them bread and they just attacked me re
+ 74  ?     ev_01M3GF47YHKDQHG7J35ZX5ZX5X  # Megamind Titan/Tighten Glow Up Meme - Metroma | so you know I think I grew up that day
+ 75  ?     ev_01M3GF47YHKDQHG7J35ZX5ZX5Y  # The End Is Near meme [BFB:AU] | read descript | and so that is my list
+ 76  ?     ev_01M3GF47YHKDQHG7J35ZX5ZX5Z  # If the YouTube comment section was a person | and if you enjoyed it or if you have anything else you want 
+ 77  ?     ev_01M3GF47YHKDQHG7J35ZX5ZX60  # [Animation Test] Wave Goodbye | and I will see you later
+ 78  ?     ev_01M3GF47YHKDQHG7J35ZX5ZX61  # Peace Disappearing Meme (Original) | comment for part two. Peace!

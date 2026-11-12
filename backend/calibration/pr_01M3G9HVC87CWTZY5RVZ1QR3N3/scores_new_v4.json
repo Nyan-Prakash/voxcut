@@ -1,0 +1,2408 @@
+{
+ "tag": "new_v4",
+ "legacy": false,
+ "detail": "high",
+ "results": [
+  {
+   "idx": 0,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DC",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.7,
+    0.6,
+    0.5,
+    0.0,
+    0.4
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 0,
+     "seen": "Man in red jacket, woman raising hand, man looking down",
+     "reason": "Recognizable scene from the show, fits the meme intent.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.6,
+     "raw_score": 0.6,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 1,
+     "seen": "Man and woman talking at diner, man entering room",
+     "reason": "Scene from the show, relevant but less dynamic.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.5,
+     "raw_score": 0.5,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 2,
+     "seen": "Woman laughing at diner, smiling",
+     "reason": "Generic diner scene, less relevant to the specific narration.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 3,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_title_card_or_text_overlay"
+     ],
+     "soft_flags": [],
+     "info": [],
+     "rank": 4,
+     "seen": "Diner scene with text credits overlay",
+     "reason": "Text overlay makes it a hard fail.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 4,
+     "score": 0.4,
+     "raw_score": 0.4,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 3,
+     "seen": "Woman stirring coffee, man watching",
+     "reason": "Calm diner scene, not very relevant to the narration.",
+     "shows_named_subject": false
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.7,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [],
+   "chosen_raw": 0.7,
+   "chosen_rank": 0,
+   "chosen_seen": "Man in red jacket, woman raising hand, man looking down",
+   "chosen_reason": "Recognizable scene from the show, fits the meme intent."
+  },
+  {
+   "idx": 1,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DD",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.7,
+    0.9,
+    0.5
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 1,
+     "seen": "Man in suit, shocked expression, office setting",
+     "reason": "Strong reaction fits the narration's tone, recognizable scene.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 1,
+     "score": 0.9,
+     "raw_score": 0.9,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 0,
+     "seen": "Man in suit, exaggerated shocked expression",
+     "reason": "Exaggerated reaction perfectly matches the narration's intent, iconic moment.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 2,
+     "score": 0.5,
+     "raw_score": 0.5,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 2,
+     "seen": "Man in suit, shocked expression, then exterior building",
+     "reason": "Reaction is good, but cut to building is less relevant to narration.",
+     "shows_named_subject": false
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.7,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [
+    "has_small_corner_watermark"
+   ],
+   "chosen_raw": 0.7,
+   "chosen_rank": 1,
+   "chosen_seen": "Man in suit, shocked expression, office setting",
+   "chosen_reason": "Strong reaction fits the narration's tone, recognizable scene."
+  },
+  {
+   "idx": 2,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DE",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.9,
+    0.8,
+    0.3,
+    0.2,
+    0.4
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.9,
+     "raw_score": 0.9,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text"
+     ],
+     "rank": 0,
+     "seen": "Characters with Pikachu, surprised expressions",
+     "reason": "Shows the exact surprised Pikachu meme moment, matching the narration's intent.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text"
+     ],
+     "rank": 1,
+     "seen": "Characters with Pikachu, surprised expressions",
+     "reason": "Shows the surprised Pikachu meme, but less focused on Pikachu than window 0.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.3,
+     "raw_score": 0.3,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text"
+     ],
+     "rank": 3,
+     "seen": "Character with a large star-shaped Pokemon",
+     "reason": "Unrelated to the surprised Pikachu meme, does not match the narration.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 3,
+     "score": 0.2,
+     "raw_score": 0.2,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text"
+     ],
+     "rank": 4,
+     "seen": "Character throwing a Pokeball",
+     "reason": "Unrelated action, does not match the surprised Pikachu meme or narration.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 4,
+     "score": 0.4,
+     "raw_score": 0.4,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text"
+     ],
+     "rank": 2,
+     "seen": "Oddish running, characters looking surprised",
+     "reason": "Shows surprise but not the Pikachu meme, less relevant to the narration.",
+     "shows_named_subject": false
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.9,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [
+    "has_subtitles_or_small_text"
+   ],
+   "chosen_raw": 0.9,
+   "chosen_rank": 0,
+   "chosen_seen": "Characters with Pikachu, surprised expressions",
+   "chosen_reason": "Shows the exact surprised Pikachu meme moment, matching the narration's intent."
+  },
+  {
+   "idx": 3,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DF",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.4,
+    0.6,
+    0.5,
+    0.4,
+    0.5
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.4,
+     "raw_score": 0.4,
+     "flags": [],
+     "soft_flags": [
+      "is_product_or_toy_demo"
+     ],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 3,
+     "seen": "Hand placing toy animals in a trailer",
+     "reason": "Shows animals being separated into a trailer, matching the narration about separation.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.6,
+     "raw_score": 0.6,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 0,
+     "seen": "Papo Zoo entrance with toy vehicle approaching",
+     "reason": "Shows the zoo entrance, aligning with the concept of separation in a zoo setting.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.5,
+     "raw_score": 0.5,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 1,
+     "seen": "Close-up of Papo Zoo entrance",
+     "reason": "Shows the zoo entrance, but less context than Window 1.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 3,
+     "score": 0.4,
+     "raw_score": 0.4,
+     "flags": [],
+     "soft_flags": [
+      "is_product_or_toy_demo"
+     ],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 4,
+     "seen": "Hands adjusting Papo Zoo entrance",
+     "reason": "Shows interaction with the zoo entrance, but focuses on the toy aspect.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 4,
+     "score": 0.5,
+     "raw_score": 0.5,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 2,
+     "seen": "Papo Zoo entrance with empty cages",
+     "reason": "Shows the zoo entrance and cages, relevant to the separation theme.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.4,
+   "chosen_flags": [],
+   "chosen_soft_flags": [
+    "is_product_or_toy_demo"
+   ],
+   "chosen_info": [
+    "has_small_corner_watermark"
+   ],
+   "chosen_raw": 0.4,
+   "chosen_rank": 3,
+   "chosen_seen": "Hand placing toy animals in a trailer",
+   "chosen_reason": "Shows animals being separated into a trailer, matching the narration about separation."
+  },
+  {
+   "idx": 7,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DK",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.8,
+    0.0,
+    0.7,
+    0.4,
+    0.6
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 0,
+     "seen": "Beetles on leaves, mongoose on rocks",
+     "reason": "Shows invasive species (beetles, mongoose) clearly, matching the narration.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_title_card_or_text_overlay"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 4,
+     "seen": "Sign about aquatic nuisance species, boat on lake",
+     "reason": "Text overlay is the main content, hard fail.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 2,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text",
+      "has_small_corner_watermark"
+     ],
+     "rank": 1,
+     "seen": "Cane toads crowded together",
+     "reason": "Shows a specific invasive species, cane toads, clearly.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 3,
+     "score": 0.4,
+     "raw_score": 0.4,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 3,
+     "seen": "Hand examining tree bark damage",
+     "reason": "Related to invasive species but not specific or clear.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 4,
+     "score": 0.6,
+     "raw_score": 0.6,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text",
+      "has_small_corner_watermark"
+     ],
+     "rank": 2,
+     "seen": "Beach covered in mussel shells",
+     "reason": "Shows impact of invasive species (mussels) clearly.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.8,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [
+    "has_small_corner_watermark"
+   ],
+   "chosen_raw": 0.8,
+   "chosen_rank": 0,
+   "chosen_seen": "Beetles on leaves, mongoose on rocks",
+   "chosen_reason": "Shows invasive species (beetles, mongoose) clearly, matching the narration."
+  },
+  {
+   "idx": 9,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DN",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.7,
+    0.6,
+    0.8
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 1,
+     "seen": "Animated characters in a crowd, one speaking",
+     "reason": "Shows an animated crowd, fitting the 'angry mob' theme. Matches the narration's intent.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.6,
+     "raw_score": 0.6,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 2,
+     "seen": "Animated character speaking, crowd behind",
+     "reason": "Focus on a single character speaking, less emphasis on the mob. Still relevant but less dynamic.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 0,
+     "seen": "Animated characters at a door, one speaking",
+     "reason": "Shows a character addressing a crowd at a door, fitting the 'angry mob' theme well. Strong reaction clip.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.7,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [
+    "has_small_corner_watermark"
+   ],
+   "chosen_raw": 0.7,
+   "chosen_rank": 1,
+   "chosen_seen": "Animated characters in a crowd, one speaking",
+   "chosen_reason": "Shows an animated crowd, fitting the 'angry mob' theme. Matches the narration's intent."
+  },
+  {
+   "idx": 10,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DP",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.0,
+    0.5,
+    0.6,
+    0.0
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_title_card_or_text_overlay"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 2,
+     "seen": "Person near door with text overlay 'WASPS AFRAID'",
+     "reason": "Text overlay is the main content, hard fail.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.5,
+     "raw_score": 0.5,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 1,
+     "seen": "Person holding green bag near door",
+     "reason": "Shows a person attempting wasp nest removal, related to the title.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.6,
+     "raw_score": 0.6,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 0,
+     "seen": "Person reaching up with green bag",
+     "reason": "Clearly shows the action of wasp nest removal, fits the title.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 3,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "nothing_readable"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 3,
+     "seen": "Blurry view through window, person outside",
+     "reason": "Blurry and unreadable, hard fail.",
+     "shows_named_subject": false
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.0,
+   "chosen_flags": [
+    "is_title_card_or_text_overlay"
+   ],
+   "chosen_soft_flags": [],
+   "chosen_info": [
+    "has_small_corner_watermark"
+   ],
+   "chosen_raw": 0.0,
+   "chosen_rank": 2,
+   "chosen_seen": "Person near door with text overlay 'WASPS AFRAID'",
+   "chosen_reason": "Text overlay is the main content, hard fail."
+  },
+  {
+   "idx": 12,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DR",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.9,
+    0.8,
+    0.8,
+    0.7,
+    0.3,
+    0.8
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.9,
+     "raw_score": 0.9,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 0,
+     "seen": "Bee on apple blossom, close-up",
+     "reason": "Perfectly matches the narration about bees pollinating.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 1,
+     "seen": "Bee on apple blossom, side view",
+     "reason": "Shows the bee pollinating, but less clear than window 0.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 2,
+     "seen": "Bee on apple blossom, close-up",
+     "reason": "Good close-up of bee pollinating, similar to window 0.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 3,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 4,
+     "seen": "Bee on apple blossom, side view",
+     "reason": "Shows bee pollinating, but less dynamic angle.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 4,
+     "score": 0.3,
+     "raw_score": 0.3,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 5,
+     "seen": "Apple blossoms with moon in background",
+     "reason": "Shows blossoms but no bees, not directly related to narration.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 5,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 3,
+     "seen": "Bee on apple blossom, close-up",
+     "reason": "Clear view of bee pollinating, matches narration well.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.9,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [
+    "has_small_corner_watermark"
+   ],
+   "chosen_raw": 0.9,
+   "chosen_rank": 0,
+   "chosen_seen": "Bee on apple blossom, close-up",
+   "chosen_reason": "Perfectly matches the narration about bees pollinating."
+  },
+  {
+   "idx": 13,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DS",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.7,
+    0.4,
+    0.3,
+    0.3,
+    0.6,
+    0.8
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 1,
+     "seen": "Person reacting to something on porch",
+     "reason": "The person is reacting, which fits the narration about getting stung.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.4,
+     "raw_score": 0.4,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 3,
+     "seen": "Two people interacting on porch",
+     "reason": "Interaction is visible but not directly related to the sting reaction.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 2,
+     "score": 0.3,
+     "raw_score": 0.3,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 4,
+     "seen": "Person bending down, dog running",
+     "reason": "Action is present but not clearly related to the sting or reaction.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 3,
+     "score": 0.3,
+     "raw_score": 0.3,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 5,
+     "seen": "Person bending over on porch",
+     "reason": "The action is unclear and not directly related to the sting reaction.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 4,
+     "score": 0.6,
+     "raw_score": 0.6,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 2,
+     "seen": "Person being attended to on porch",
+     "reason": "The person is being attended to, suggesting a reaction to a sting.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 5,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 0,
+     "seen": "Person and dog on porch, person reacting",
+     "reason": "The person is clearly reacting, fitting the narration about getting stung.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.7,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [
+    "has_small_corner_watermark"
+   ],
+   "chosen_raw": 0.7,
+   "chosen_rank": 1,
+   "chosen_seen": "Person reacting to something on porch",
+   "chosen_reason": "The person is reacting, which fits the narration about getting stung."
+  },
+  {
+   "idx": 14,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DT",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.8,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 0,
+     "seen": "Person holding honeycomb, bees on honeycomb",
+     "reason": "Shows bees on honeycomb, directly related to honey production.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_talking_head"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 2,
+     "seen": "Person holding honeycomb frame",
+     "reason": "Talking head content, person presenting.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.0,
+     "raw_score": 0.5,
+     "flags": [
+      "is_talking_head"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 1,
+     "seen": "Person holding honeycomb, close-up of bees",
+     "reason": "Close-up of bees, but starts with talking head.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 3,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_title_card_or_text_overlay",
+      "is_talking_head"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text",
+      "has_small_corner_watermark"
+     ],
+     "rank": 3,
+     "seen": "Person holding honeycomb, text overlay about cells",
+     "reason": "Text overlay about cells, talking head content.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.8,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [
+    "has_small_corner_watermark"
+   ],
+   "chosen_raw": 0.8,
+   "chosen_rank": 0,
+   "chosen_seen": "Person holding honeycomb, bees on honeycomb",
+   "chosen_reason": "Shows bees on honeycomb, directly related to honey production."
+  },
+  {
+   "idx": 17,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DX",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.7,
+    0.3,
+    0.0,
+    0.3,
+    0.0
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 0,
+     "seen": "Person running away from something outdoors",
+     "reason": "Shows a person running, likely reacting to wasps, fitting the narration.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.3,
+     "raw_score": 0.3,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 1,
+     "seen": "Excavator working on a dirt path",
+     "reason": "Shows an excavator, but no reaction or wasps visible.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 2,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_title_card_or_text_overlay"
+     ],
+     "soft_flags": [],
+     "info": [],
+     "rank": 3,
+     "seen": "Person running away from excavator, text overlay",
+     "reason": "Text overlay present, hard fail.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 3,
+     "score": 0.3,
+     "raw_score": 0.3,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 2,
+     "seen": "Excavator on a dirt path, no visible reaction",
+     "reason": "Shows an excavator, but no reaction or wasps visible.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 4,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_title_card_or_text_overlay"
+     ],
+     "soft_flags": [],
+     "info": [],
+     "rank": 4,
+     "seen": "Text overlay 'Next day..' on black screen",
+     "reason": "Text overlay present, hard fail.",
+     "shows_named_subject": false
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.7,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [],
+   "chosen_raw": 0.7,
+   "chosen_rank": 0,
+   "chosen_seen": "Person running away from something outdoors",
+   "chosen_reason": "Shows a person running, likely reacting to wasps, fitting the narration."
+  },
+  {
+   "idx": 19,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4DZ",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_title_card_or_text_overlay"
+     ],
+     "soft_flags": [],
+     "info": [],
+     "rank": 0,
+     "seen": "Grid with cat, meme, and person images",
+     "reason": "Title card or text overlay present, hard fail.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_title_card_or_text_overlay"
+     ],
+     "soft_flags": [],
+     "info": [],
+     "rank": 1,
+     "seen": "Grid with cat, meme, and person images",
+     "reason": "Title card or text overlay present, hard fail.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_title_card_or_text_overlay"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text"
+     ],
+     "rank": 2,
+     "seen": "Grid with cat, meme, and person images, small text",
+     "reason": "Title card or text overlay present, hard fail.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.0,
+   "chosen_flags": [
+    "is_title_card_or_text_overlay"
+   ],
+   "chosen_soft_flags": [],
+   "chosen_info": [],
+   "chosen_raw": 0.0,
+   "chosen_rank": 0,
+   "chosen_seen": "Grid with cat, meme, and person images",
+   "chosen_reason": "Title card or text overlay present, hard fail."
+  },
+  {
+   "idx": 20,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E0",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.9,
+    0.8,
+    0.7
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.9,
+     "raw_score": 0.9,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 0,
+     "seen": "Chihuahua being held, growling expression",
+     "reason": "Shows a Chihuahua with a growling expression, matching the narration perfectly.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 1,
+     "seen": "Chihuahua being held, growling expression",
+     "reason": "Similar to window 0, shows a Chihuahua growling, but slightly less expressive.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 2,
+     "seen": "Chihuahua being held, growling expression",
+     "reason": "Shows a Chihuahua growling, but the expression is less intense than window 0.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.9,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [],
+   "chosen_raw": 0.9,
+   "chosen_rank": 0,
+   "chosen_seen": "Chihuahua being held, growling expression",
+   "chosen_reason": "Shows a Chihuahua with a growling expression, matching the narration perfectly."
+  },
+  {
+   "idx": 21,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E1",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.8,
+    0.7,
+    0.0,
+    0.6
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 0,
+     "seen": "Chihuahuas in colorful headdresses, drumming",
+     "reason": "Shows Chihuahuas in a cute, theatrical setting, matching the narration about movies.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 1,
+     "seen": "Chihuahuas marching, wearing headdresses",
+     "reason": "Chihuahuas in a cute, organized setting, fitting the movie portrayal theme.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_title_card_or_text_overlay"
+     ],
+     "soft_flags": [],
+     "info": [],
+     "rank": 3,
+     "seen": "Large group of Chihuahuas, text overlay",
+     "reason": "Text overlay present, hard fail.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 3,
+     "score": 0.6,
+     "raw_score": 0.6,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 2,
+     "seen": "Chihuahua leading others, wearing headdresses",
+     "reason": "Shows Chihuahuas in a cute, organized setting, but less theatrical than others.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.8,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [],
+   "chosen_raw": 0.8,
+   "chosen_rank": 0,
+   "chosen_seen": "Chihuahuas in colorful headdresses, drumming",
+   "chosen_reason": "Shows Chihuahuas in a cute, theatrical setting, matching the narration about movies."
+  },
+  {
+   "idx": 22,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E2",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.9,
+    0.3,
+    0.5,
+    0.4,
+    0.8
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.9,
+     "raw_score": 0.9,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 0,
+     "seen": "Dog and boy playing basketball, dog scores",
+     "reason": "Shows the dog playing basketball, which is the literal subject of the narration.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.3,
+     "raw_score": 0.3,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 4,
+     "seen": "Boy and dog walking down a tree-lined path",
+     "reason": "Unrelated to the specific action of playing basketball, just shows a dog.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 2,
+     "score": 0.5,
+     "raw_score": 0.5,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 2,
+     "seen": "Boy sitting with dog, holding basketball",
+     "reason": "Shows the dog with a basketball, but not playing. Related but not the exact action.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 3,
+     "score": 0.4,
+     "raw_score": 0.4,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 3,
+     "seen": "Dog and boy sitting, dog looking at ball",
+     "reason": "Similar to window 2, shows the dog with a basketball but not playing.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 4,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 1,
+     "seen": "Dog and boy playing basketball, ball in hoop",
+     "reason": "Shows the dog involved in basketball, closely related to the narration.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.9,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [],
+   "chosen_raw": 0.9,
+   "chosen_rank": 0,
+   "chosen_seen": "Dog and boy playing basketball, dog scores",
+   "chosen_reason": "Shows the dog playing basketball, which is the literal subject of the narration."
+  },
+  {
+   "idx": 23,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E3",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.6,
+    0.7,
+    0.8,
+    0.5,
+    0.9
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.6,
+     "raw_score": 0.6,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 3,
+     "seen": "Boy sitting with golden retriever and basketball",
+     "reason": "Shows the dog and basketball, relevant to 'Air Bud' theme.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 2,
+     "seen": "Basketball going through hoop, boy looking up",
+     "reason": "Basketball action, fits the 'Air Bud' theme of playing basketball.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 1,
+     "seen": "Basketball in hoop, boy holding ball, dog approaching",
+     "reason": "Combines basketball action with the dog, directly relevant to 'Air Bud'.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 3,
+     "score": 0.5,
+     "raw_score": 0.5,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 4,
+     "seen": "Golden retriever, boy with basketball",
+     "reason": "Shows the dog and boy, but less dynamic than others.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 4,
+     "score": 0.9,
+     "raw_score": 0.9,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 0,
+     "seen": "Golden retriever, boy with basketball, overhead shot",
+     "reason": "Shows the dog and basketball action, very relevant to 'Air Bud'.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.6,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [],
+   "chosen_raw": 0.6,
+   "chosen_rank": 3,
+   "chosen_seen": "Boy sitting with golden retriever and basketball",
+   "chosen_reason": "Shows the dog and basketball, relevant to 'Air Bud' theme."
+  },
+  {
+   "idx": 25,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E5",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.9,
+    0.8,
+    0.7,
+    0.6
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.9,
+     "raw_score": 0.9,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 0,
+     "seen": "Chihuahua showing teeth, looking aggressive",
+     "reason": "The chihuahua's aggressive face fits the narration about annoying faces perfectly.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 1,
+     "seen": "Chihuahua being petted, showing teeth",
+     "reason": "The chihuahua's face is visible and fits the narration, but less aggressive than window 0.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 2,
+     "seen": "Chihuahua being petted, less aggressive",
+     "reason": "The chihuahua's face is visible but less expressive, still fits the narration.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 3,
+     "score": 0.6,
+     "raw_score": 0.6,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 3,
+     "seen": "Chihuahua being petted, calm expression",
+     "reason": "The chihuahua's face is visible but calm, less fitting for the narration.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.9,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [],
+   "chosen_raw": 0.9,
+   "chosen_rank": 0,
+   "chosen_seen": "Chihuahua showing teeth, looking aggressive",
+   "chosen_reason": "The chihuahua's aggressive face fits the narration about annoying faces perfectly."
+  },
+  {
+   "idx": 26,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E6",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.9,
+    0.8,
+    0.7,
+    0.6,
+    0.5
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.9,
+     "raw_score": 0.9,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 0,
+     "seen": "Close-up of a chihuahua baring teeth",
+     "reason": "Perfectly captures the aggressive behavior of the chihuahua, matching the narration.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 1,
+     "seen": "Chihuahua on a bed, baring teeth, then lunging",
+     "reason": "Shows the chihuahua's aggressive behavior, matching the narration well.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 2,
+     "seen": "Chihuahua in bed, baring teeth, then lunging",
+     "reason": "Similar to window 1, shows aggressive behavior but less clear.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 3,
+     "score": 0.6,
+     "raw_score": 0.6,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 3,
+     "seen": "Chihuahua on a bed, baring teeth",
+     "reason": "Shows the chihuahua's aggressive behavior, but less dynamic.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 4,
+     "score": 0.5,
+     "raw_score": 0.5,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 4,
+     "seen": "Chihuahua in a doghouse, baring teeth",
+     "reason": "Shows the chihuahua but less intense and clear than others.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.9,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [],
+   "chosen_raw": 0.9,
+   "chosen_rank": 0,
+   "chosen_seen": "Close-up of a chihuahua baring teeth",
+   "chosen_reason": "Perfectly captures the aggressive behavior of the chihuahua, matching the narration."
+  },
+  {
+   "idx": 27,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E7",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.9,
+    0.7
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.9,
+     "raw_score": 0.9,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 0,
+     "seen": "Chihuahua with glowing eyes, showing teeth",
+     "reason": "Perfectly matches the narration about Chihuahuas being 'small little devils' with an exaggerated, aggressive expression.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 1,
+     "seen": "Chihuahua in profile, showing teeth",
+     "reason": "Shows the Chihuahua's aggressive side profile, fitting the narration but less direct than the front view.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.9,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [],
+   "chosen_raw": 0.9,
+   "chosen_rank": 0,
+   "chosen_seen": "Chihuahua with glowing eyes, showing teeth",
+   "chosen_reason": "Perfectly matches the narration about Chihuahuas being 'small little devils' with an exaggerated, aggressive expression."
+  },
+  {
+   "idx": 28,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4E8",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.9,
+    0.8,
+    0.7,
+    0.6,
+    0.7
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.9,
+     "raw_score": 0.9,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 0,
+     "seen": "Close-up of chihuahua baring teeth aggressively",
+     "reason": "The chihuahua is clearly acting aggressively, matching the narration perfectly.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 1,
+     "seen": "Chihuahua on bed, baring teeth aggressively",
+     "reason": "The chihuahua is showing aggression, fitting the narration well.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 2,
+     "seen": "Chihuahua in bed, barking and showing teeth",
+     "reason": "The chihuahua is acting up, but the frames are less clear than others.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 3,
+     "score": 0.6,
+     "raw_score": 0.6,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 4,
+     "seen": "Chihuahua standing, baring teeth slightly",
+     "reason": "The chihuahua is showing some aggression, but less intense.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 4,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 3,
+     "seen": "Chihuahua in doghouse, baring teeth",
+     "reason": "The chihuahua is acting up, but the setting is less clear.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.9,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [],
+   "chosen_raw": 0.9,
+   "chosen_rank": 0,
+   "chosen_seen": "Close-up of chihuahua baring teeth aggressively",
+   "chosen_reason": "The chihuahua is clearly acting aggressively, matching the narration perfectly."
+  },
+  {
+   "idx": 30,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EA",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_logo_or_watermark_or_branding"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 0,
+     "seen": "Close-up of a bed bug on fabric",
+     "reason": "Contains a large National Geographic logo, marking it as branded content.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_logo_or_watermark_or_branding"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 1,
+     "seen": "Bed bug crawling on a surface",
+     "reason": "Contains a large National Geographic logo, marking it as branded content.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_logo_or_watermark_or_branding"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 2,
+     "seen": "Bed bug on human skin",
+     "reason": "Contains a large National Geographic logo, marking it as branded content.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 3,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_logo_or_watermark_or_branding"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 3,
+     "seen": "Full moon in a dark sky",
+     "reason": "Unrelated to the narration about bugs.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 4,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_logo_or_watermark_or_branding"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 4,
+     "seen": "Electrical outlet with plug",
+     "reason": "Unrelated to the narration about bugs.",
+     "shows_named_subject": false
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.0,
+   "chosen_flags": [
+    "is_logo_or_watermark_or_branding"
+   ],
+   "chosen_soft_flags": [],
+   "chosen_info": [
+    "has_small_corner_watermark"
+   ],
+   "chosen_raw": 0.0,
+   "chosen_rank": 0,
+   "chosen_seen": "Close-up of a bed bug on fabric",
+   "chosen_reason": "Contains a large National Geographic logo, marking it as branded content."
+  },
+  {
+   "idx": 33,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4ED",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.5,
+    0.8,
+    0.3,
+    0.7
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.5,
+     "raw_score": 0.5,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text",
+      "has_small_corner_watermark"
+     ],
+     "rank": 2,
+     "seen": "People screaming in a dark forest setting.",
+     "reason": "The reaction of screaming fits the clip_reaction intent, but the giant mosquito bite is not visible.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 1,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text",
+      "has_small_corner_watermark"
+     ],
+     "rank": 0,
+     "seen": "Person with a large mosquito on their back.",
+     "reason": "The giant mosquito is visible, directly relating to the narration about a bite.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.3,
+     "raw_score": 0.3,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 3,
+     "seen": "Person lying on the ground with a banjo.",
+     "reason": "The scene is calm and unrelated to the mosquito bite, not fitting the clip_reaction intent.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 3,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text",
+      "has_small_corner_watermark"
+     ],
+     "rank": 1,
+     "seen": "Person holding a banjo, mosquito visible.",
+     "reason": "The mosquito is visible, fitting the narration, but the focus is more on the person with the banjo.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.5,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [
+    "has_subtitles_or_small_text",
+    "has_small_corner_watermark"
+   ],
+   "chosen_raw": 0.5,
+   "chosen_rank": 2,
+   "chosen_seen": "People screaming in a dark forest setting.",
+   "chosen_reason": "The reaction of screaming fits the clip_reaction intent, but the giant mosquito bite is not visible."
+  },
+  {
+   "idx": 42,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EP",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.8,
+    0.6
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 0,
+     "seen": "Hands on keyboard, mannequin head, game screen",
+     "reason": "The mannequin head adds a humorous element, fitting the 'gamer rage' theme and reaction intent.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.6,
+     "raw_score": 0.6,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 1,
+     "seen": "Hands on keyboard, game screen, player losing",
+     "reason": "Shows gameplay and losing, but lacks the exaggerated reaction of window 0.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.8,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [
+    "has_small_corner_watermark"
+   ],
+   "chosen_raw": 0.8,
+   "chosen_rank": 0,
+   "chosen_seen": "Hands on keyboard, mannequin head, game screen",
+   "chosen_reason": "The mannequin head adds a humorous element, fitting the 'gamer rage' theme and reaction intent."
+  },
+  {
+   "idx": 45,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4ES",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.6,
+    0.5,
+    0.7,
+    0.5,
+    0.4
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.6,
+     "raw_score": 0.6,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text",
+      "has_small_corner_watermark"
+     ],
+     "rank": 1,
+     "seen": "Donkey faces through a window labeled 'Burro'.",
+     "reason": "Humorous donkey faces fit the reaction intent, matching the narration about separation.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.5,
+     "raw_score": 0.5,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text",
+      "has_small_corner_watermark"
+     ],
+     "rank": 2,
+     "seen": "Single donkey making a funny face.",
+     "reason": "Single donkey face is funny but less relevant to the idea of separation.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 0,
+     "seen": "Donkeys with open mouths, hand offering food.",
+     "reason": "Multiple donkeys with open mouths and a hand offering food is humorous and fits the separation theme.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 3,
+     "score": 0.5,
+     "raw_score": 0.5,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text",
+      "has_small_corner_watermark"
+     ],
+     "rank": 3,
+     "seen": "Single donkey making a funny face.",
+     "reason": "Similar to Window 1, funny but less relevant to separation.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 4,
+     "score": 0.4,
+     "raw_score": 0.4,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text",
+      "has_small_corner_watermark"
+     ],
+     "rank": 4,
+     "seen": "Donkeys through window, then a goat hanging.",
+     "reason": "The transition to a goat hanging is less relevant to the separation theme.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.6,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [
+    "has_subtitles_or_small_text",
+    "has_small_corner_watermark"
+   ],
+   "chosen_raw": 0.6,
+   "chosen_rank": 1,
+   "chosen_seen": "Donkey faces through a window labeled 'Burro'.",
+   "chosen_reason": "Humorous donkey faces fit the reaction intent, matching the narration about separation."
+  },
+  {
+   "idx": 48,
+   "event_id": "ev_01M3GF47Y6HHBA4GWC6QEYP4EW",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_logo_or_watermark_or_branding"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 0,
+     "seen": "Crabs on ocean floor, stingray approaches",
+     "reason": "Contains BBC branding, marking it as documentary content.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_logo_or_watermark_or_branding"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 1,
+     "seen": "Stingray among crabs on ocean floor",
+     "reason": "Contains BBC branding, marking it as documentary content.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_logo_or_watermark_or_branding"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 2,
+     "seen": "Stingray near scattered crabs on sand",
+     "reason": "Contains BBC branding, marking it as documentary content.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 3,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_logo_or_watermark_or_branding"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 3,
+     "seen": "Close-up of crabs on ocean floor",
+     "reason": "Contains BBC branding, marking it as documentary content.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 4,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_logo_or_watermark_or_branding"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 4,
+     "seen": "Crabs piled on each other, close-up",
+     "reason": "Contains BBC branding, marking it as documentary content.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 5,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_logo_or_watermark_or_branding"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 5,
+     "seen": "Crabs on ocean floor, stingray above",
+     "reason": "Contains BBC branding, marking it as documentary content.",
+     "shows_named_subject": true
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.0,
+   "chosen_flags": [
+    "is_logo_or_watermark_or_branding"
+   ],
+   "chosen_soft_flags": [],
+   "chosen_info": [
+    "has_small_corner_watermark"
+   ],
+   "chosen_raw": 0.0,
+   "chosen_rank": 0,
+   "chosen_seen": "Crabs on ocean floor, stingray approaches",
+   "chosen_reason": "Contains BBC branding, marking it as documentary content."
+  },
+  {
+   "idx": 67,
+   "event_id": "ev_01M3GF47Y7HGMS48WK4SAQ7145",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.8,
+    null,
+    null,
+    null
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.8,
+     "raw_score": 0.8,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 0,
+     "seen": "Businessman walking, goose approaching on path",
+     "reason": "The clip shows a goose approaching a businessman, matching the narration's context of unexpected behavior.",
+     "shows_named_subject": true
+    },
+    null,
+    null,
+    null
+   ],
+   "error": null,
+   "chosen_score": 0.8,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [
+    "has_small_corner_watermark"
+   ],
+   "chosen_raw": 0.8,
+   "chosen_rank": 0,
+   "chosen_seen": "Businessman walking, goose approaching on path",
+   "chosen_reason": "The clip shows a goose approaching a businessman, matching the narration's context of unexpected behavior."
+  },
+  {
+   "idx": 68,
+   "event_id": "ev_01M3GF47Y7HGMS48WK4SAQ7146",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.9,
+    0.7,
+    0.6,
+    0.0,
+    0.2
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.9,
+     "raw_score": 0.9,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 0,
+     "seen": "Person attacked by duck near 'No Feeding Ducks' sign",
+     "reason": "Directly shows a person being attacked by a duck, matching the narration.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 1,
+     "seen": "Duck, person near pond, person with bread on head",
+     "reason": "Shows ducks and a person with bread, relevant to feeding ducks.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 2,
+     "score": 0.6,
+     "raw_score": 0.6,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 2,
+     "seen": "Person holding bread, duck nearby, person with bread",
+     "reason": "Person holding bread with ducks nearby, relevant but less direct.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 3,
+     "score": 0.0,
+     "raw_score": 0.0,
+     "flags": [
+      "is_title_card_or_text_overlay"
+     ],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 4,
+     "seen": "Person jumping, pixelated object, person jumping",
+     "reason": "Contains text overlay, not relevant to narration.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 4,
+     "score": 0.2,
+     "raw_score": 0.2,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 3,
+     "seen": "Person jumping, dramatic pose, person punching",
+     "reason": "Dramatic action unrelated to feeding ducks.",
+     "shows_named_subject": false
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.9,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [
+    "has_small_corner_watermark"
+   ],
+   "chosen_raw": 0.9,
+   "chosen_rank": 0,
+   "chosen_seen": "Person attacked by duck near 'No Feeding Ducks' sign",
+   "chosen_reason": "Directly shows a person being attacked by a duck, matching the narration."
+  },
+  {
+   "idx": 74,
+   "event_id": "ev_01M3GF47YHKDQHG7J35ZX5ZX5X",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.5,
+    0.3,
+    0.7,
+    0.0
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.5,
+     "raw_score": 0.5,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_small_corner_watermark"
+     ],
+     "rank": 1,
+     "seen": "Character in purple shirt enters a room",
+     "reason": "Character entering a room fits the 'growing up' theme, but lacks strong reaction.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 1,
+     "score": 0.3,
+     "raw_score": 0.3,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 2,
+     "seen": "Woman crouching in a city with debris",
+     "reason": "Scene of distress but not directly related to 'growing up' or reaction.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 2,
+     "score": 0.7,
+     "raw_score": 0.7,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 0,
+     "seen": "Character in superhero costume running",
+     "reason": "Superhero transformation aligns with 'glow up' and 'growing up' themes.",
+     "shows_named_subject": true
+    },
+    {
+     "index": 3,
+     "score": 0.0,
+     "raw_score": 0.1,
+     "flags": [
+      "nothing_readable"
+     ],
+     "soft_flags": [],
+     "info": [],
+     "rank": 3,
+     "seen": "Character flying over city, blurred motion",
+     "reason": "Blurry and unreadable, does not clearly show a reaction or growth.",
+     "shows_named_subject": false
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.5,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [
+    "has_small_corner_watermark"
+   ],
+   "chosen_raw": 0.5,
+   "chosen_rank": 1,
+   "chosen_seen": "Character in purple shirt enters a room",
+   "chosen_reason": "Character entering a room fits the 'growing up' theme, but lacks strong reaction."
+  },
+  {
+   "idx": 76,
+   "event_id": "ev_01M3GF47YHKDQHG7J35ZX5ZX5Z",
+   "chosen_window_idx": 0,
+   "scores": [
+    0.3,
+    0.2,
+    0.0,
+    0.4,
+    0.5
+   ],
+   "records": [
+    {
+     "index": 0,
+     "score": 0.3,
+     "raw_score": 0.3,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text"
+     ],
+     "rank": 2,
+     "seen": "Person pouring drink, text 'So how's Jeremy doing?'",
+     "reason": "Text suggests a comment-like interaction, but not directly related to narration.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 1,
+     "score": 0.2,
+     "raw_score": 0.2,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 3,
+     "seen": "Person at table, another person, hallway scene",
+     "reason": "Unrelated scenes, no clear connection to comment section theme.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 2,
+     "score": 0.0,
+     "raw_score": 0.1,
+     "flags": [
+      "nothing_readable"
+     ],
+     "soft_flags": [],
+     "info": [],
+     "rank": 4,
+     "seen": "Person with drink, empty frame",
+     "reason": "Ends with an unreadable frame, lacks context.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 3,
+     "score": 0.4,
+     "raw_score": 0.4,
+     "flags": [],
+     "soft_flags": [],
+     "info": [],
+     "rank": 1,
+     "seen": "Person holding drink, talking, gesturing",
+     "reason": "Person gesturing could imply interaction, somewhat fits comment theme.",
+     "shows_named_subject": false
+    },
+    {
+     "index": 4,
+     "score": 0.5,
+     "raw_score": 0.5,
+     "flags": [],
+     "soft_flags": [],
+     "info": [
+      "has_subtitles_or_small_text"
+     ],
+     "rank": 0,
+     "seen": "Person in store, another person, text 'HI REPENT JESUS LOVES YOU'",
+     "reason": "Text resembles a comment, fits theme better than others.",
+     "shows_named_subject": false
+    }
+   ],
+   "error": null,
+   "chosen_score": 0.3,
+   "chosen_flags": [],
+   "chosen_soft_flags": [],
+   "chosen_info": [
+    "has_subtitles_or_small_text"
+   ],
+   "chosen_raw": 0.3,
+   "chosen_rank": 2,
+   "chosen_seen": "Person pouring drink, text 'So how's Jeremy doing?'",
+   "chosen_reason": "Text suggests a comment-like interaction, but not directly related to narration."
+  }
+ ]
+}

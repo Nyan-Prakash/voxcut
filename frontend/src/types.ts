@@ -58,6 +58,7 @@ export interface EdlEvent {
   source_candidates?: any[];
   finalists?: any[];
   qc?: { verdict: string; reason: string };
+  gap_reason?: string | null;
   interject?: { intent?: string; vision?: number };
 }
 
