@@ -34,4 +34,11 @@ async def run_plan(ctx: JobContext) -> None:
     await ctx.report(step, 0.2, f"Planning the edit ({mode})")
     edl = await asyncio.to_thread(planner.plan, beats, brief, aspect)
     save_edl(project_id, edl)
-    await ctx.finish_step(step, f"{len(edl['events'])} events ({mode})")
+    # Say what actually happened: an LLM plan that failed falls back to the
+    # keyword heuristic, and those events carry no gag.
+    n = len(edl["events"])
+    planned = sum(1 for e in edl["events"] if e.get("gag"))
+    if mode == "LLM" and planned < n:
+        mode = (f"LLM planned {planned}/{n}; keyword fallback for the rest"
+                if planned else "LLM plan FAILED — keyword fallback")
+    await ctx.finish_step(step, f"{n} events ({mode})")

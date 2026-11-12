@@ -145,3 +145,42 @@ assert "punch_word" in plan._item_to_event(
     {"id": "b", "start_s": 0, "end_s": 1},
     {"kind": "broll", "queries": ["x"], "punch_word": " ate "}) and True
 print("punch-word alignment OK")
+
+# ---- long scripts are planned in batches -----------------------------------
+from voxcut.brain.client import BrainError as _BE
+
+_beats = [{"id": f"b{i}", "start_s": i, "end_s": i + 1, "text": f"line {i}",
+           "emphasis": 0.5, "visual_affinity": "literal"} for i in range(40)]
+_calls: list[str] = []
+
+
+def _fake_structured(system, user, schema, **kw):
+    _calls.append(user)
+    if len(_calls) == 2 and _fail_second:
+        raise _BE("truncated")
+    ids = [ln.split(" | ")[0] for ln in user.split("Beats:\n")[1].split("\n\n")[0].split("\n")]
+    return {"items": [{"beat_id": i, "mode": "literal", "gag": "g", "kind": "broll",
+                       "source": f"Show {i}", "queries": ["q"], "joke_gag": "j",
+                       "joke_source": "stock", "joke_queries": ["jq"],
+                       "audio_mode": "mute", "punch_word": "line"} for i in ids]}
+
+
+_real_structured, plan.structured = plan.structured, _fake_structured
+try:
+    _fail_second = False
+    _evs = plan._llm_plan(_beats, {})
+    assert len(_calls) == 3 and len(_evs) == 40          # 16 + 16 + 8
+    assert all(e["gag"] == "g" for e in _evs)
+    assert [e["beat_id"] for e in _evs] == [b["id"] for b in _beats]
+    assert "line 15" not in _calls[0].split("Beats:")[0]
+    assert 'BEFORE these beats' in _calls[1] and '"line 15"' in _calls[1]
+    assert 'AFTER these beats' in _calls[1] and '"line 32"' in _calls[1]
+    assert "Show b0" in _calls[1]                        # sources carried over
+    # one bad batch costs only its own beats
+    _calls.clear(); _fail_second = True
+    _evs = plan._llm_plan(_beats, {})
+    assert sum(1 for e in _evs if e["gag"]) == 24 and len(_evs) == 40
+    assert all(not e["gag"] for e in _evs[16:32])
+finally:
+    plan.structured = _real_structured
+print("batched planning OK")

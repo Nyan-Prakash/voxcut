@@ -7,10 +7,21 @@ become gaps absorbed by neighboring clips at render time.
 """
 from __future__ import annotations
 
+import logging
+
 from ulid import ULID
 
 from .client import BrainError, is_available, structured
 from .schemas import PLAN_SCHEMA
+
+log = logging.getLogger(__name__)
+
+# Beats planned per LLM call. One call for a whole script overflowed the
+# reply limit on a 3-minute video (48 beats × ~150 tokens of gag, sources,
+# two query sets) — the truncated JSON failed and the WHOLE edit silently
+# fell back to the keyword heuristic. Batches keep every reply well inside
+# the limit, and a failed batch only costs its own beats.
+PLAN_BATCH = 16
 
 PLAN_SYSTEM = """\
 You are the edit brain for a fast-cut no-face commentary video. For each beat, \
@@ -196,7 +207,9 @@ def plan(beats: list[dict], brief: dict, aspect: str = "16:9",
     if use_llm and beats:
         try:
             events = _llm_plan(beats, brief)
-        except BrainError:
+        except BrainError as exc:
+            log.warning("[plan] LLM plan failed, using the keyword heuristic "
+                        "for all %d beats: %s", len(beats), exc)
             events = _heuristic_plan(beats)
     else:
         events = _heuristic_plan(beats)
@@ -209,27 +222,65 @@ KINDS = {"clip_literal", "clip_reaction", "meme_image", "broll"}
 
 
 def _llm_plan(beats: list[dict], brief: dict) -> list[dict]:
+    """Plan every beat, PLAN_BATCH at a time. Raises BrainError only when no
+    batch succeeded; a single failed batch falls back to the heuristic for
+    its own beats (and says so in the log)."""
     from .steps_helpers import brief_summary  # lazy to avoid cycle
     avoid = ", ".join(brief.get("avoid", [])) or "(none)"
     context = brief_summary(brief)
-
-    beats_block = "\n".join(
-        f"{b['id']} | emph={b['emphasis']} | tone={b.get('tone', 'neutral')} | "
-        f"rhythm={b.get('rhythm', 'flow')} | affinity={b['visual_affinity']} | "
-        f"entities={b.get('concrete_entities')} | {b['text']}" for b in beats)
     system = PLAN_SYSTEM.format(avoid=avoid)
-    user = PLAN_USER.format(context=context, avoid=avoid, beats_block=beats_block)
-    out = structured(system, user, PLAN_SCHEMA, schema_name="edit_plan",
-                     temperature=0.5, max_tokens=6000)
 
-    items = {it["beat_id"]: it for it in out.get("items", [])}
     events: list[dict] = []
-    for b in beats:
-        it = items.get(b["id"])
-        if not it:
-            events.append(_heuristic_event(b))
+    used_sources: list[str] = []
+    failed = 0
+    last_err: BrainError | None = None
+    batches = [beats[i:i + PLAN_BATCH] for i in range(0, len(beats), PLAN_BATCH)]
+    for n, batch in enumerate(batches):
+        beats_block = "\n".join(
+            f"{b['id']} | emph={b['emphasis']} | tone={b.get('tone', 'neutral')} | "
+            f"rhythm={b.get('rhythm', 'flow')} | affinity={b['visual_affinity']} | "
+            f"entities={b.get('concrete_entities')} | {b['text']}" for b in batch)
+        user = PLAN_USER.format(context=context, avoid=avoid,
+                                beats_block=beats_block)
+        # Each batch is a slice of one script: show what is said just
+        # outside it, and which sources earlier batches already spent.
+        extra = []
+        i0 = n * PLAN_BATCH
+        if i0 > 0:
+            extra.append("Narration just BEFORE these beats (context only, do "
+                         f"not plan it): \"{beats[i0 - 1]['text']}\"")
+        if i0 + len(batch) < len(beats):
+            extra.append("Narration just AFTER these beats (context only, do "
+                         f"not plan it): \"{beats[i0 + len(batch)]['text']}\"")
+        if used_sources:
+            extra.append("Sources already used earlier in this video — pick "
+                         "different ones: " + ", ".join(used_sources[-40:]))
+        if extra:
+            user += "\n\n" + "\n".join(extra)
+        try:
+            out = structured(system, user, PLAN_SCHEMA, schema_name="edit_plan",
+                             temperature=0.5, max_tokens=6000)
+        except BrainError as exc:
+            failed += 1
+            last_err = exc
+            log.warning("[plan] batch %d/%d failed, heuristic for its %d beats: %s",
+                        n + 1, len(batches), len(batch), exc)
+            events.extend(_heuristic_event(b) for b in batch)
             continue
-        events.append(_item_to_event(b, it))
+        items = {it["beat_id"]: it for it in out.get("items", [])}
+        for b in batch:
+            it = items.get(b["id"])
+            if not it:
+                log.warning("[plan] no plan returned for beat %s", b["id"])
+                events.append(_heuristic_event(b))
+                continue
+            events.append(_item_to_event(b, it))
+            for key in ("source", "joke_source"):
+                src = (it.get(key) or "").strip()
+                if src and src.lower() != "stock" and src not in used_sources:
+                    used_sources.append(src)
+    if failed == len(batches) and last_err is not None:
+        raise last_err
     return events
 
 
