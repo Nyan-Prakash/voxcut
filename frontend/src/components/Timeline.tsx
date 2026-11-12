@@ -144,7 +144,7 @@ export function Timeline() {
               || e.flags?.includes("qc_middle") || e.flags?.includes("cold_open_weak");
             // Label with what actually PLAYS (tournament winner), not the query.
             const winner = e.finalists?.find((f: any) => f.asset_id === e.asset_id);
-            const label = sourcing ? "⚡ finding a bit…"
+            const label = sourcing ? "finding a bit…"
               : face ? "you, on camera"
               : (interject && e.interject?.intent) || winner?.title || e.queries?.[0]
               || (e.flags?.includes("user_added") ? "new segment — search or reroll" : e.kind);
@@ -165,14 +165,14 @@ export function Timeline() {
                             + `&v=${face ? `face-${e.start_s}` : `${e.asset_id}-${e.source?.in_s ?? 0}`}`}
                        onError={(ev) => ((ev.target as HTMLElement).style.display = "none")} />
                 )}
-                {rev && <span className="rev">⚑</span>}
-                {e.asset_id && !face && e.audio?.mode !== "mute" && <span className="aud">🔊</span>}
+                {rev && <span className="rev">!</span>}
+                {e.asset_id && !face && e.audio?.mode !== "mute" && <span className="aud">sound</span>}
                 {tool === "select" && !e.locked && !sourcing && (
                   <button className="dice" title={interject
                             ? "Reroll: hunt a fresh unmuted bit for this gap"
                             : "Reroll: fresh plan + fresh footage for this clip"}
                           onClick={(me) => { me.stopPropagation(); reroll([e.id]); }}>
-                    🎲
+                    ↻
                   </button>
                 )}
                 <span className="evt-label">{label}</span>
@@ -339,7 +339,7 @@ function MusicLane({ width, dur, tall }: { width: number; dur: number; tall?: bo
       await api.musicSuggest(project.id);
       const p = await api.getProject(project.id);
       useStore.setState({ project: p });
-      setToast("🎵 Music suggested from the video's tones — drag to adjust");
+      setToast("Music suggested from the video's tones — drag to adjust");
       await api.rebuildPreview(project.id);
     } catch (e: any) { setToast(e.message); }
   };
@@ -369,7 +369,7 @@ function MusicLane({ width, dur, tall }: { width: number; dur: number; tall?: bo
                      onMouseUp={() => { if (vol != null) { updateMusic({ volume_db: vol }); setVol(null); } }} />
           <button className="ghost" style={{ padding: "0 6px" }} onClick={suggest}
                   title="Match your mood-tagged tracks to the video's tone sections. Only fills the lane — everything stays editable.">
-            ✨ Suggest
+            Suggest
           </button>
         </span>
       </div>
@@ -391,7 +391,7 @@ function MusicLane({ width, dur, tall }: { width: number; dur: number; tall?: bo
             return (
               <div className="mreg ghost-reg"
                    style={{ left: a * PX_PER_S, width: (b - a) * PX_PER_S }}>
-                <span className="mreg-label">♪ {short(dragTrack.name)}</span>
+                <span className="mreg-label">{short(dragTrack.name)}</span>
               </div>
             );
           })()}
@@ -401,11 +401,11 @@ function MusicLane({ width, dur, tall }: { width: number; dur: number; tall?: bo
                           width: Math.max(10, (r.end_s - r.start_s) * PX_PER_S) }}
                  onMouseDown={(e) => onRegionDown(e, r)}
                  title={`${r.file} · ${r.start_s.toFixed(1)}–${r.end_s.toFixed(1)}s (drag to move, edges to resize)`}>
-              <span className="mreg-label">♪ {short(r.file)}</span>
+              <span className="mreg-label">{short(r.file)}</span>
               <button className="mreg-x" title="remove"
                       onMouseDown={(e) => e.stopPropagation()}
                       onClick={(e) => { e.stopPropagation(); commit(regions.filter((x) => x.id !== r.id)); }}>
-                ✕
+                ×
               </button>
             </div>
           ))}

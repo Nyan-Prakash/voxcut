@@ -11,7 +11,7 @@ function FirstRun() {
   if (!show) return null;
   return (
     <div className="card" style={{ borderColor: "var(--accent)" }}>
-      <h2>👋 Welcome to VOXCUT</h2>
+      <h2>Welcome to VOXCUT</h2>
       <div className="muted">
         VOXCUT turns a voiceover into a fast-cut commentary edit. For the smartest
         beat segmentation and edit planning, add an OpenAI API key in Settings —

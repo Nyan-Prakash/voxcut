@@ -13,9 +13,9 @@ export function Inspector() {
   if (!ev) {
     return <div className="inspector"><div className="muted">
       Select a clip in the timeline to edit it.<br /><br />
-      ✂ Cut tool: click a clip to split it.<br />
-      ＋ Segment tool: drag a range to carve a new segment.<br />
-      🎲 on any clip: regenerate just that clip.<br />
+      Cut tool: click a clip to split it.<br />
+      Segment tool: drag a range to carve a new segment.<br />
+      Reroll on any clip: regenerate just that clip.<br />
       ⌘/ctrl-click or shift-click: select several clips, reroll them together.
     </div></div>;
   }
@@ -40,7 +40,7 @@ function MultiPanel() {
         {sel.map((e) => (
           <div key={e.id} style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {e.start_s.toFixed(1)}s · {e.finalists?.find((f: any) => f.asset_id === e.asset_id)?.title
-              || e.queries?.[0] || e.kind}{e.locked ? " 🔒" : ""}
+              || e.queries?.[0] || e.kind}{e.locked ? " (locked)" : ""}
           </div>
         ))}
       </div>
@@ -50,7 +50,7 @@ function MultiPanel() {
              placeholder="e.g. make these anime moments…" />
       <button style={{ width: "100%", marginTop: 8 }} disabled={!unlocked.length}
               onClick={() => reroll(unlocked.map((e) => e.id), hint)}>
-        🎲 Reroll {unlocked.length} clip{unlocked.length === 1 ? "" : "s"}
+        Reroll {unlocked.length} clip{unlocked.length === 1 ? "" : "s"}
       </button>
       {unlocked.length < sel.length && (
         <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>
@@ -88,7 +88,7 @@ function InspectorBody({ ev, applyOps }: { ev: EdlEvent; applyOps: (ops: any[]) 
       )}
       {ev.flags?.includes("interject") && (
         <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>
-          ⚡ Unmuted interjection — the narration pauses while this plays.
+          Unmuted interjection — the narration pauses while this plays.
           {ev.interject?.intent ? <><br />“{ev.interject.intent}”</> : null}
           <br />Deleting it also removes its inserted time.
         </div>
@@ -115,7 +115,7 @@ function InspectorBody({ ev, applyOps }: { ev: EdlEvent; applyOps: (ops: any[]) 
                       if (ev.facecam) return;
                       await applyOps([{ op: "set_facecam", event_id: ev.id, data: { on: true } }]);
                       await api.rebuildPreview(project!.id);
-                    }}>🎥 My face</button>
+                    }}>My face</button>
             <button className={!ev.facecam ? "active" : "sec"} disabled={ev.locked}
                     title={ev.asset_id ? "Show the clip chosen for this line"
                                        : "Find a clip for this line"}
@@ -125,7 +125,7 @@ function InspectorBody({ ev, applyOps }: { ev: EdlEvent; applyOps: (ops: any[]) 
                       // A clip was already sourced → just re-render; otherwise find one.
                       if (ev.asset_id) await api.rebuildPreview(project!.id);
                       else reroll([ev.id], "");
-                    }}>🎬 A clip</button>
+                    }}>A clip</button>
           </div>
         </>
       )}
@@ -137,7 +137,7 @@ function InspectorBody({ ev, applyOps }: { ev: EdlEvent; applyOps: (ops: any[]) 
       <button style={{ width: "100%", marginTop: 8 }} disabled={ev.locked}
               title="Re-plans this beat with a fresh comedic angle, re-runs the tournament, and never returns the same footage. Your direction (if any) steers the plan."
               onClick={() => reroll([ev.id], hint)}>
-        🎲 Reroll this clip
+        Reroll this clip
       </button>
 
       <label>Type</label>
@@ -169,7 +169,7 @@ function InspectorBody({ ev, applyOps }: { ev: EdlEvent; applyOps: (ops: any[]) 
                        await api.rebuildPreview(project!.id);
                        useStore.getState().refreshEdl();
                      }}>
-                  <div>{chosen ? "✓ " : ""}{(f.title || "clip").slice(0, 38)}</div>
+                  <div>{(f.title || "clip").slice(0, 38)}</div>
                   <div className="muted">
                     vision {f.visual?.toFixed?.(2) ?? "—"} · {f.in_s?.toFixed?.(1)}s→{f.out_s?.toFixed?.(1)}s
                   </div>
@@ -231,7 +231,7 @@ function InspectorBody({ ev, applyOps }: { ev: EdlEvent; applyOps: (ops: any[]) 
 
       <div className="row" style={{ marginTop: 16 }}>
         <button className="ghost" onClick={() => applyOps([{ op: "lock", event_id: ev.id, data: { locked: !ev.locked } }])}>
-          {ev.locked ? "🔒 locked" : "🔓 lock"}
+          {ev.locked ? "Locked" : "Lock"}
         </button>
         <button className="ghost" style={{ color: "var(--bad)" }}
                 onClick={() => { applyOps([{ op: "delete", event_id: ev.id }]); useStore.getState().select(null); }}>

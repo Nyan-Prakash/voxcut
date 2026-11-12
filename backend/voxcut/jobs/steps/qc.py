@@ -94,4 +94,4 @@ async def run_qc(ctx: JobContext) -> None:
     save_edl(project_id, edl)
     await ctx.finish_step(
         step, f"{flagged}/{len(audited)} clips flagged as mediocre middle"
-              + (" — review ⚑ and reroll them" if flagged else " 🎉"))
+              + (" — review the flagged clips and reroll them" if flagged else ""))

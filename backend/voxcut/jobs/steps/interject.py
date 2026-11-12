@@ -679,4 +679,4 @@ async def run_interject(ctx: JobContext) -> None:
     await run_assemble(ctx)
     await bus.publish({"type": "interject_done", "project_id": project_id,
                        "event_id": event_id, "intent": result["intent"]})
-    await ctx.finish_step(step, f"⚡ {result['intent'] or 'interjection landed'}")
+    await ctx.finish_step(step, f"{result['intent'] or 'interjection landed'}")

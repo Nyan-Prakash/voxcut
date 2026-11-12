@@ -39,13 +39,13 @@ export function Editor() {
         <div className="tl-toolbar">
           {!edl && (
             <button onClick={gen} disabled={!hasTranscript}>
-              {hasTranscript ? "⚡ Generate edit" : "Waiting for transcript…"}
+              {hasTranscript ? "Generate edit" : "Waiting for transcript…"}
             </button>
           )}
           {!edl && trim && (trim.state === "done" || trim.state === "skipped") && (
             <button className="ghost" title="Go back and change what was cut from the recording"
                     onClick={() => useStore.getState().setTrimOpen(true)}>
-              ✂ {trim.state === "done" ? `Trimmed (${trim.cuts.length} cuts) — change` : "Not trimmed — trim"}
+              {trim.state === "done" ? `Trimmed (${trim.cuts.length} cuts) — change` : "Not trimmed — trim"}
             </button>
           )}
           {!edl && trim?.has_video && <FaceShare />}
@@ -73,7 +73,7 @@ function MusicStage() {
           <h2>Music</h2>
           <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
             Score the accepted cut: drag on the lane below to place a track,
-            or ✨ Suggest to match your tagged tracks to the video's tones.
+            or Suggest to match your tagged tracks to the video's tones.
           </div>
           <MusicSection compact />
         </div>
@@ -85,7 +85,7 @@ function MusicStage() {
           <button className="sec" onClick={async () => {
             await api.rebuildPreview(project!.id);
             useStore.getState().setToast("Rebuilding preview with music…");
-          }}>▶ Rebuild preview</button>
+          }}>Rebuild preview</button>
           <div className="spacer" />
           <TimeReadout />
           <ExportButton />
@@ -134,7 +134,7 @@ function FaceShare() {
   return (
     <span className="face-share"
           title="Share of the video that shows your facecam. Applies the next time you generate.">
-      🎥 Face {v}%
+      Face {v}%
       <input type="range" min={0} max={100} step={5} value={v}
              onChange={(e) => setV(Number(e.target.value))}
              onMouseUp={() => save(v)} onTouchEnd={() => save(v)}
@@ -146,10 +146,10 @@ function FaceShare() {
 function ToolSwitch() {
   const { tool, setTool } = useStore();
   const TOOLS: Array<{ id: typeof tool; label: string; hint: string }> = [
-    { id: "select", label: "▣ Select", hint: "click clips to edit, click background to seek" },
-    { id: "cut", label: "✂ Cut", hint: "click a clip to split it at that point (snaps to words)" },
-    { id: "add", label: "＋ Segment", hint: "drag a range on the timeline to carve a new segment" },
-    { id: "interject", label: "⚡ Interject",
+    { id: "select", label: "Select", hint: "click clips to edit, click background to seek" },
+    { id: "cut", label: "Cut", hint: "click a clip to split it at that point (snaps to words)" },
+    { id: "add", label: "Segment", hint: "drag a range on the timeline to carve a new segment" },
+    { id: "interject", label: "Interject",
       hint: "click the timeline to cut the voiceover and drop in an unmuted clip whose audio is the joke" },
   ];
   return (
@@ -169,33 +169,33 @@ function EditorToolbar() {
     <>
       <ToolSwitch />
       <div className="tl-divider" />
-      <button className="ghost" title="Undo the last edit" onClick={() => undo()}>↶ Undo</button>
+      <button className="ghost" title="Undo the last edit" onClick={() => undo()}>Undo</button>
       <ReviewNav />
-      <button className="ghost" title="Vision-audit every clip against the never-mediocre law; weak ones get flagged ⚑ for you to reroll"
+      <button className="ghost" title="Vision-audit every clip against the never-mediocre law; weak ones get flagged for you to reroll"
               onClick={async () => {
                 await api.runQc(project!.id);
-                useStore.getState().setToast("🔎 QC: auditing clips against the never-mediocre law…");
-              }}>🔎 QC</button>
+                useStore.getState().setToast("QC: auditing clips against the never-mediocre law…");
+              }}>QC</button>
       <div className="tl-divider" />
       <button className="ghost" title="Throw away this cut and generate a fresh one"
               onClick={async () => {
         await api.generate(project!.id);
         useStore.getState().setToast("Regenerating…");
-      }}>↻ Regenerate</button>
+      }}>Regenerate</button>
       <button className="ghost" title="Re-render the stitched preview video"
               onClick={async () => {
         await api.rebuildPreview(project!.id);
         useStore.getState().setToast("Rebuilding preview…");
-      }}>▶ Rebuild</button>
+      }}>Rebuild</button>
       <button className="ghost" title="Re-fetch the timeline from the server"
-              onClick={() => refreshEdl()}>⟳ Refresh</button>
+              onClick={() => refreshEdl()}>Refresh</button>
       {useStore.getState().trim?.has_video && <FaceShare />}
       <div className="spacer" />
       <TimeReadout />
       <ExportButton />
       <button onClick={() => useStore.getState().setStage("music")}
               title="Happy with the clips? Move on to scoring the video with music.">
-        ✓ Accept → Music
+        Accept → Music
       </button>
     </>
   );
@@ -227,10 +227,10 @@ function ReviewNav() {
       const idx = list.findIndex((e) => e.id === cur);
       select(list[(idx + 1) % list.length].id);
     } else {
-      useStore.getState().setToast("Nothing flagged for review 🎉");
+      useStore.getState().setToast("Nothing flagged for review");
     }
   };
-  return <button className="ghost" onClick={jump}>⚑ Review ({flagged().length})</button>;
+  return <button className="ghost" onClick={jump}>Review ({flagged().length})</button>;
 }
 
 function ExportButton() {
@@ -239,7 +239,7 @@ function ExportButton() {
     <>
       <button onClick={() => setOpen(true)}
               title="Export the full video or AI-scouted short-form verticals">
-        ⬇ Export
+        Export
       </button>
       {open && <ExportModal onClose={() => setOpen(false)} />}
     </>
@@ -282,7 +282,7 @@ function Preview() {
               const v = ref.current;
               if (!v) return;
               v.paused ? v.play() : v.pause();
-            }}>⏯ Play / Pause whole video</button>
+            }}>Play / Pause whole video</button>
             <span className="muted">plays the full stitched timeline</span>
           </div>
         </>

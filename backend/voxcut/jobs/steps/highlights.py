@@ -105,7 +105,7 @@ async def run_highlights(ctx: JobContext) -> None:
         {"version": 1, "clips": clips}, indent=2))
     await ctx.finish_step(
         step, f"{len(clips)} TikTok-worthy clip{'s'[:len(clips) != 1]} found"
-              + (" — review and export ⬇" if clips else ""))
+              + (" — review and export" if clips else ""))
     await bus.publish({"type": "highlights_ready", "project_id": project_id,
                        "count": len(clips)})
 

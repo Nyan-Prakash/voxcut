@@ -119,7 +119,7 @@ export function TrimStage() {
     try {
       await api.applyTrim(project.id, list);
       useStore.getState().setToast(list.length
-        ? `✂ Applying ${list.length} cuts…` : "Keeping the recording as is…");
+        ? `Applying ${list.length} cuts…` : "Keeping the recording as is…");
     } catch (e: any) {
       useStore.getState().setToast(`Trim failed: ${e.message}`);
       setBusy(false);
@@ -145,7 +145,7 @@ export function TrimStage() {
             n.has(p.i) ? n.delete(p.i) : n.add(p.i);
             return n;
           })}>
-      ⏸{p.len.toFixed(1)}s
+      pause {p.len.toFixed(1)}s
     </span>
   );
   const lead = pausesOn ? pauseAfter.get(-1) : undefined;
@@ -167,7 +167,7 @@ export function TrimStage() {
                  onPause={() => setPlaying(false)}
                  onEnded={() => { setPlaying(false); videoRef.current?.pause(); }} />
           <div className="row" style={{ marginTop: 8 }}>
-            <button onClick={toggle}>{playing ? "⏸ Pause" : "▶ Play with cuts"}</button>
+            <button onClick={toggle}>{playing ? "Pause" : "Play with cuts"}</button>
             <span className="tl-time">{fmt(t)} <em>/ {fmt(dur)}</em></span>
           </div>
         </div>
@@ -198,7 +198,7 @@ export function TrimStage() {
                    onChange={(e) => setKeepPause(Number(e.target.value))} />
           </div>
           <div className="muted" style={{ fontSize: 11 }}>
-            Click a ⏸ marker in the transcript to keep that pause.
+            Click a pause marker in the transcript to keep that pause.
           </div>
 
           <label>Possible retakes ({info.retakes.length})</label>
@@ -233,7 +233,7 @@ export function TrimStage() {
                 {fmt(c[0])} → {fmt(c[1])} ({(c[1] - c[0]).toFixed(1)}s)
               </span>
               <button className="ghost" title="Restore this part"
-                      onClick={() => setManual((m) => m.filter((_x, j) => j !== i))}>✕</button>
+                      onClick={() => setManual((m) => m.filter((_x, j) => j !== i))}>×</button>
             </div>
           ))}
         </div>
@@ -242,7 +242,7 @@ export function TrimStage() {
       <div className="timeline-wrap">
         <div className="tl-toolbar">
           <button className="sec" disabled={!sel} onClick={cutSelection}>
-            ✂ Cut selected words
+            Cut selected words
           </button>
           {sel && <button className="ghost" onClick={() => setSel(null)}>clear selection</button>}
           <div className="spacer" />
@@ -254,7 +254,7 @@ export function TrimStage() {
             Leave as is →
           </button>
           <button disabled={busy || cuts.length === 0} onClick={() => submit(cuts)}>
-            ✂ Trim and continue
+            Trim and continue
           </button>
         </div>
         <TrimWave dur={dur} t={t} cuts={cuts} seek={seek}

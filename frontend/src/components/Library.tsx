@@ -47,7 +47,7 @@ function TrackAudition({ name, durationS, audioRef, playing, onPlayingChange }: 
     <div className="row" style={{ marginTop: 6, gap: 6 }}>
       <button className="ghost audition-btn" onClick={toggle}
               title={playing ? "pause" : "preview this track"}>
-        {playing ? "⏸" : "▶"}
+        {playing ? "Pause" : "Play"}
       </button>
       <div className={`audition-bar ${playing ? "" : "idle"}`} onClick={seekTo}
            title={playing ? "click to seek" : undefined}>
@@ -106,7 +106,7 @@ export function MusicSection({ compact = false }: { compact?: boolean }) {
                  useStore.setState({ dragTrack: { name: t.name, duration_s: t.duration_s || 0 } });
                }}
                onDragEnd={() => useStore.setState({ dragTrack: null })}>
-            <strong style={{ fontSize: 13 }}>♪ {t.name}</strong>
+            <strong style={{ fontSize: 13 }}>{t.name}</strong>
             <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
               {t.duration_s?.toFixed(0)}s · {fmtBytes(t.size_bytes)}
             </div>
@@ -120,7 +120,7 @@ export function MusicSection({ compact = false }: { compact?: boolean }) {
                 {data.moods.map((m) => <option key={m} value={m}>{m}</option>)}
               </select>
               <button className="ghost" style={{ color: "var(--bad)" }}
-                      onClick={async () => { await api.musicDelete(t.name); load(); }}>✕</button>
+                      onClick={async () => { await api.musicDelete(t.name); load(); }}>×</button>
             </div>
           </div>
         ))}
@@ -181,7 +181,7 @@ export function LibraryView() {
             </div>
             <div className="row" style={{ marginTop: 8 }}>
               <button className="ghost" onClick={async () => { await api.libraryPin(a.id, !a.pinned); load(); }}>
-                {a.pinned ? "📌 pinned" : "pin"}
+                {a.pinned ? "pinned" : "pin"}
               </button>
             </div>
           </div>

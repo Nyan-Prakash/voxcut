@@ -22,7 +22,7 @@ function ThemeToggle() {
     return () => mq.removeEventListener("change", onChange);
   }, [mode]);
   const next: Record<ThemeMode, ThemeMode> = { auto: "light", light: "dark", dark: "auto" };
-  const icon = { auto: "◐", light: "☀", dark: "☾" }[mode];
+  const icon = { auto: "Auto", light: "Light", dark: "Dark" }[mode];
   return (
     <button className="ghost" title={`Theme: ${mode}`}
             onClick={() => setMode(next[mode])}>{icon}</button>
@@ -72,7 +72,7 @@ function SystemChips() {
   const set = useStore((s) => s.setToast);
   useEffect(() => {
     api.system().then((s) => {
-      if (!s.ffmpeg) set("⚠ ffmpeg not found");
+      if (!s.ffmpeg) set("ffmpeg not found");
     }).catch(() => {});
   }, []);
   return null;

@@ -55,7 +55,7 @@ export function ExportModal({ onClose }: { onClose: () => void }) {
   const scout = async () => {
     try {
       await api.analyzeHighlights(project.id);
-      useStore.getState().setToast("📱 Scouting the edit for TikTok-worthy clips…");
+      useStore.getState().setToast("Scouting the edit for TikTok-worthy clips…");
     } catch (e: any) { useStore.getState().setToast(e.message); }
   };
 
@@ -74,11 +74,11 @@ export function ExportModal({ onClose }: { onClose: () => void }) {
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="row" style={{ justifyContent: "space-between" }}>
           <h2 style={{ margin: 0 }}>Export</h2>
-          <button className="ghost" onClick={onClose} title="Close">✕</button>
+          <button className="ghost" onClick={onClose} title="Close">×</button>
         </div>
 
         <div className="modal-section">
-          <strong style={{ fontSize: 13 }}>🎬 Full video</strong>
+          <strong style={{ fontSize: 13 }}>Full video</strong>
           <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
             The whole timeline, full quality, loudness-normalized for YouTube.
           </div>
@@ -98,10 +98,10 @@ export function ExportModal({ onClose }: { onClose: () => void }) {
             {" · "}{edl?.aspect || "16:9"}
           </div>
           <div className="row" style={{ marginTop: 10 }}>
-            <button onClick={doExport} disabled={busy}>⬇ Export {RESOLUTIONS.find((r) => r.id === resolution)?.label}</button>
+            <button onClick={doExport} disabled={busy}>Export {RESOLUTIONS.find((r) => r.id === resolution)?.label}</button>
             {ready && (
               <a href={api.exportUrl(project.id)} download>
-                <button className="sec">💾 Download last export</button>
+                <button className="sec">Download last export</button>
               </a>
             )}
           </div>
@@ -109,9 +109,9 @@ export function ExportModal({ onClose }: { onClose: () => void }) {
 
         <div className="modal-section">
           <div className="row" style={{ justifyContent: "space-between" }}>
-            <strong style={{ fontSize: 13 }}>📱 Short-form (9:16 verticals)</strong>
+            <strong style={{ fontSize: 13 }}>Short-form (9:16 verticals)</strong>
             {analyzed && (
-              <button className="ghost" onClick={scout} title="Run the AI scout again">↻ Re-scout</button>
+              <button className="ghost" onClick={scout} title="Run the AI scout again">Re-scout</button>
             )}
           </div>
           <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
@@ -121,7 +121,7 @@ export function ExportModal({ onClose }: { onClose: () => void }) {
           </div>
           {!analyzed && (
             <div className="row" style={{ marginTop: 10 }}>
-              <button className="sec" onClick={scout}>🔍 Find TikTok clips</button>
+              <button className="sec" onClick={scout}>Find TikTok clips</button>
             </div>
           )}
           {analyzed && clips.length === 0 && (
@@ -134,7 +134,7 @@ export function ExportModal({ onClose }: { onClose: () => void }) {
           ))}
           {clips.length > 1 && clips.some((c) => !c.exported) && (
             <div className="row" style={{ marginTop: 10 }}>
-              <button className="sec" onClick={exportAll}>⬇ Export all</button>
+              <button className="sec" onClick={exportAll}>Export all</button>
             </div>
           )}
           {clips.length > 0 && (
@@ -173,10 +173,10 @@ function ClipRow({ clip }: { clip: HighlightClip }) {
       </div>
       {clip.exported ? (
         <a href={api.highlightDownloadUrl(project!.id, clip.index)} download>
-          <button className="sec">💾 Download</button>
+          <button className="sec">Download</button>
         </a>
       ) : (
-        <button className="sec" onClick={doExport} disabled={busy}>⬇ 9:16</button>
+        <button className="sec" onClick={doExport} disabled={busy}>9:16</button>
       )}
     </div>
   );

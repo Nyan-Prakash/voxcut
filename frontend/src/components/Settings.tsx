@@ -28,7 +28,7 @@ export function SettingsView() {
     setTesting(true);
     try {
       const r = await api.testKey(key || undefined, s.openai_model);
-      setToast(r.ok ? `✓ OpenAI key works (${r.model})` : `✗ ${r.error}`);
+      setToast(r.ok ? `OpenAI key works (${r.model})` : `Failed: ${r.error}`);
     } finally { setTesting(false); }
   };
 
@@ -96,17 +96,17 @@ function Downloader() {
       </div>
       <div className="row" style={{ marginTop: 8 }}>
         <span className="chip">{sys?.yt_dlp ? `v${sys.yt_dlp_version}` : "not installed"}</span>
-        <span className="chip">ffmpeg {sys?.ffmpeg ? "✓" : "✗"}</span>
-        <span className="chip">brain {sys?.brain_ready ? "✓ OpenAI" : "heuristic"}</span>
+        <span className="chip">ffmpeg {sys?.ffmpeg ? "ok" : "missing"}</span>
+        <span className="chip">brain {sys?.brain_ready ? "OpenAI" : "heuristic"}</span>
       </div>
       <div className="row" style={{ marginTop: 10 }}>
         <button className="sec" disabled={!!busy} onClick={async () => {
           setBusy("canary"); const r = await api.canary();
-          setToast(r.ok ? "✓ Downloader healthy" : `✗ ${r.error}`); setBusy("");
+          setToast(r.ok ? "Downloader healthy" : `Failed: ${r.error}`); setBusy("");
         }}>{busy === "canary" ? "Checking…" : "Test downloader"}</button>
         <button className="sec" disabled={!!busy} onClick={async () => {
           setBusy("update"); const r = await api.updateYtdlp();
-          setToast(r.ok ? `✓ Updated to ${r.version}` : `✗ ${r.error}`);
+          setToast(r.ok ? `Updated to ${r.version}` : `Failed: ${r.error}`);
           api.system().then(setSys); setBusy("");
         }}>{busy === "update" ? "Updating…" : "Update downloader"}</button>
       </div>

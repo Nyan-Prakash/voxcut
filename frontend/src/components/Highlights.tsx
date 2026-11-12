@@ -27,14 +27,14 @@ export function HighlightsPanel() {
     setBusy(true);
     try {
       await api.analyzeHighlights(project.id);
-      useStore.getState().setToast("📱 Scouting the edit for TikTok-worthy clips…");
+      useStore.getState().setToast("Scouting the edit for TikTok-worthy clips…");
     } catch (e: any) { useStore.getState().setToast(e.message); }
     finally { setBusy(false); }
   };
 
   return (
     <div className="inspector" style={{ overflowY: "auto" }}>
-      <h2>📱 TikTok clips</h2>
+      <h2>TikTok clips</h2>
       <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
         The AI watches the finished edit and picks hook-first, self-contained
         moments that stand alone as TikToks. Export cuts a 9:16 vertical —
@@ -42,13 +42,13 @@ export function HighlightsPanel() {
       </div>
       <div className="row" style={{ marginTop: 10 }}>
         <button onClick={analyze} disabled={busy}>
-          {analyzed ? "↻ Re-scout clips" : "🔍 Find TikTok clips"}
+          {analyzed ? "Re-scout clips" : "Find TikTok clips"}
         </button>
       </div>
       {analyzed && clips.length === 0 && (
         <div className="muted" style={{ marginTop: 14, fontSize: 12 }}>
           Nothing stood alone as a clip — nothing scored above the bar.
-          Re-scout after editing, or lower your expectations manually with ✂.
+          Re-scout after editing, or lower your expectations manually with the Cut tool.
         </div>
       )}
       {clips.map((c) => (
@@ -84,7 +84,7 @@ function ClipCard({ clip, onWatch }: { clip: HighlightClip; onWatch: () => void 
       </div>
       {clip.hook && (
         <div style={{ fontSize: 12, marginTop: 6 }}>
-          🪝 “{clip.hook}”
+          “{clip.hook}”
         </div>
       )}
       {clip.reason && (
@@ -92,15 +92,15 @@ function ClipCard({ clip, onWatch }: { clip: HighlightClip; onWatch: () => void 
       )}
       <div className="row" style={{ marginTop: 8 }}>
         <button className="sec" onClick={onWatch} title="Jump the preview to this clip">
-          ▶ Watch
+          Watch
         </button>
         <button className="sec" onClick={doExport} disabled={busy}
                 title="Cut this range from the full-quality export into a 1080x1920 vertical — full video centered, blurred backdrop above and below">
-          ⬇ Export 9:16
+          Export 9:16
         </button>
         {clip.exported && (
           <a href={api.highlightDownloadUrl(project!.id, clip.index)} download>
-            <button>💾 Download</button>
+            <button>Download</button>
           </a>
         )}
       </div>

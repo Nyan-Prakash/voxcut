@@ -443,7 +443,6 @@ pre { background: var(--glass); border: 1px solid var(--hairline);
   background: var(--bad, #ff453a); color: #fff; opacity: 0.8; white-space: nowrap; }
 .tp.kept { background: var(--glass); color: var(--muted); border: 1px solid var(--hairline); }
 .evt.face { border-color: var(--hairline-strong); }
-.evt.face .evt-label::before { content: "🎥 "; }
 .editor.trim .timeline-wrap { height: clamp(300px, 48vh, 520px); }
 .face-share { display: inline-flex; align-items: center; gap: 8px; font-size: 12px;
   color: var(--muted); white-space: nowrap; }

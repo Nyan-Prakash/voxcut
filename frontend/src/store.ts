@@ -166,7 +166,7 @@ export const useStore = create<State>((set, get) => ({
       const res = await api.splitEvent(project.id, eventId, atS);
       set({ edl: res.edl, selectedEventId: res.new_event_id });
       try { const b = await api.getBeats(project.id); set({ beats: b.beats }); } catch { /* */ }
-      get().setToast(`✂ Cut at ${res.cut_s.toFixed(2)}s — reroll either half for new footage`);
+      get().setToast(`Cut at ${res.cut_s.toFixed(2)}s — reroll either half for new footage`);
       await api.rebuildPreview(project.id);
     } catch (e: any) { get().setToast(e.message); }
   },
@@ -187,7 +187,7 @@ export const useStore = create<State>((set, get) => ({
     const { project, edl, interjectPending } = get();
     if (!project || !edl) return;
     if (interjectPending) {
-      get().setToast("⚡ Already finding a bit — hang on…");
+      get().setToast("Already finding a bit — hang on…");
       return;
     }
     set({ interjectPending: true });
@@ -199,7 +199,7 @@ export const useStore = create<State>((set, get) => ({
       try { const b = await api.getBeats(project.id); set({ beats: b.beats }); } catch { /* */ }
       try { set({ waveform: await api.waveform(project.id) }); } catch { /* */ }
       try { set({ project: await api.getProject(project.id) }); } catch { /* */ }
-      get().setToast("⚡ Voiceover cut — finding an unmuted bit to drop in…");
+      get().setToast("Voiceover cut — finding an unmuted bit to drop in…");
     } catch (e: any) {
       set({ interjectPending: false });
       get().setToast(e.message);
@@ -227,8 +227,8 @@ export const useStore = create<State>((set, get) => ({
       await api.reroll(project.id, eventIds, hint);
       const dir = hint?.trim() ? " with your direction" : "";
       get().setToast(eventIds.length === 1
-        ? `🎲 Rerolling clip${dir} — fresh plan, fresh footage…`
-        : `🎲 Rerolling ${eventIds.length} clips${dir}…`);
+        ? `Rerolling clip${dir} — fresh plan, fresh footage…`
+        : `Rerolling ${eventIds.length} clips${dir}…`);
     } catch (e: any) { get().setToast(e.message); }
   },
 
@@ -254,7 +254,7 @@ export const useStore = create<State>((set, get) => ({
     if (ev.type === "trim_done" && project && ev.project_id === project.id) {
       set({ trimOpen: false });
       get().refreshEdl();
-      get().setToast("✂ Trim applied — ready to generate");
+      get().setToast("Trim applied — ready to generate");
     }
     if (ev.type === "preview_updated" && project && ev.project_id === project.id) {
       get().bumpPreview();
@@ -262,12 +262,12 @@ export const useStore = create<State>((set, get) => ({
     if (ev.type === "interject_done" && project && ev.project_id === project.id) {
       set({ interjectPending: false });
       get().refreshEdl();
-      get().setToast(`⚡ Interjection landed${ev.intent ? ` — ${ev.intent}` : ""}. 🎲 reroll it if it doesn't hit`);
+      get().setToast(`Interjection landed${ev.intent ? ` — ${ev.intent}` : ""}. Reroll it if it doesn't hit`);
     }
     if (ev.type === "interject_failed" && project && ev.project_id === project.id) {
       set({ interjectPending: false });
       get().refreshEdl();
-      get().setToast(`⚡ ${ev.reason || "Couldn't find a good interjection here"}`);
+      get().setToast(`${ev.reason || "Couldn't find a good interjection here"}`);
     }
     if (ev.type === "job_failed" && ev.kind === "interject") {
       set({ interjectPending: false });
@@ -279,7 +279,7 @@ export const useStore = create<State>((set, get) => ({
     if ((ev.type === "highlights_ready" || ev.type === "clip_ready")
         && project && ev.project_id === project.id) {
       set((s) => ({ highlightsNonce: s.highlightsNonce + 1 }));
-      if (ev.type === "clip_ready") get().setToast("📱 TikTok clip exported — download is ready");
+      if (ev.type === "clip_ready") get().setToast("TikTok clip exported — download is ready");
     }
   },
 
